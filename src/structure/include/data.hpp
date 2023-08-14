@@ -6,15 +6,15 @@
 #include <string>
 #include <map>
 
-struct Info
+struct DataInfo
 {
     int length;
     double *data;
     double *covarianceData;
     bool linked;
 
-    Info();
-    Info(int length);
+    DataInfo();
+    DataInfo(int length);
 };
 
 struct Data
@@ -22,7 +22,7 @@ struct Data
 private:
     std::map<std::string, int> index;
     Pointer<double> pointer;
-    Pointer<double> covariancePointer; 
+    Pointer<double> covariancePointer;
     Pointer<double> instances;
     double **offset;
     double **covarianceOffset;
@@ -32,7 +32,7 @@ private:
 
 protected:
 public:
-    Data(std::map<std::string, Info> &info);
+    Data(std::map<std::string, DataInfo> &info);
     Pointer<double> GetStatePointer();
     Pointer<double> GetStateCovariancePointer();
     Pointer<double> GetInstances();
@@ -41,13 +41,13 @@ public:
 class DataLoader
 {
 private:
-    std::map<std::string, Info> info;
+    std::map<std::string, DataInfo> info;
 
 protected:
 public:
     DataLoader();
     void Add(std::string name, int length);
-    void Link(std::string name, double *data, double* covarianceData);
+    void Link(std::string name, double *data, double *covarianceData);
     void Remove(std::string name);
     Data Load();
 };

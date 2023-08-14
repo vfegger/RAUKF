@@ -2,11 +2,11 @@
 
 DataLoader::DataLoader() {}
 
-Info::Info() : length(0), data(NULL), linked(false) {}
+DataInfo::DataInfo() : length(0), data(NULL), linked(false) {}
 
-Info::Info(int length) : length(length), data(NULL), linked(false) {}
+DataInfo::DataInfo(int length) : length(length), data(NULL), linked(false) {}
 
-Data::Data(std::map<std::string, Info> &info) : count(info.size()), length(0)
+Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0)
 {
     if (count == 0)
     {
@@ -16,7 +16,7 @@ Data::Data(std::map<std::string, Info> &info) : count(info.size()), length(0)
     covarianceOffset = (double **)malloc(sizeof(double *) * 2 * count);
     lengthPerOffset = (int *)malloc(sizeof(int) * count);
     int iaux = 0;
-    for (std::map<std::string, Info>::iterator i = info.begin(); i != info.end(); ++i)
+    for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         index[(*i).first] = iaux;
         int l = (*i).second.length;
@@ -41,7 +41,7 @@ Data::Data(std::map<std::string, Info> &info) : count(info.size()), length(0)
         covarianceOffset[i] = covarianceOffset[i - 1] + lengthPerOffset[i - 1] * length + lengthPerOffset[i - 1];
         covarianceOffset[count + i] = covarianceOffset[count + i - 1] + lengthPerOffset[i - 1] * length + lengthPerOffset[i - 1];
     }
-    for (std::map<std::string, Info>::iterator i = info.begin(); i != info.end(); ++i)
+    for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         if ((*i).second.linked)
         {
@@ -59,12 +59,12 @@ Data::Data(std::map<std::string, Info> &info) : count(info.size()), length(0)
     }
     pointer.copyHost2Dev(length);
     covariancePointer.copyHost2Dev(length * length);
-    instances.alloc((2*length+1) * length);
+    instances.alloc((2 * length + 1) * length);
 }
 
 void DataLoader::Add(std::string name, int length)
 {
-    info[name] = Info(length);
+    info[name] = DataInfo(length);
 }
 
 void DataLoader::Link(std::string name, double *data, double *covarianceData)

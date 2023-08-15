@@ -36,6 +36,8 @@ public:
     Pointer<double> GetStatePointer();
     Pointer<double> GetStateCovariancePointer();
     Pointer<double> GetInstances();
+    int GetStateLength();
+    int GetSigmaLength();
 };
 
 class DataLoader

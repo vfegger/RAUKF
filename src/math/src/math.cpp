@@ -1,5 +1,16 @@
 #include "../include/math.hpp"
 
+void Math::Copy(Pointer<double> v_o, Pointer<double> v_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::Copy(v_o, v_i, length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::Copy(v_o, v_i, length);
+    }
+}
 void Math::Add(Pointer<double> v_io, Pointer<double> v_i, int length, Type type)
 {
     if (type == Type::CPU)
@@ -88,43 +99,76 @@ void Math::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, 
         MathGPU::Mul(v_o, vL_i, vR_i, length);
     }
 }
-void Math::MatMul(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
+void Math::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
 {
     if (type == Type::CPU)
     {
-        MathCPU::MatMul(m_o, mL_i, mR_i, M, K, N);
+        MathCPU::MatMulNN(beta, m_o, alpha, mL_i, mR_i, M, K, N);
     }
     else if (type == Type::GPU)
     {
-        MathGPU::MatMul(m_o, mL_i, mR_i, M, K, N);
+        MathGPU::MatMulNN(beta, m_o, alpha, mL_i, mR_i, M, K, N);
     }
 }
-void Math::Iterate(void (*op_i)(Pointer<double> v_io, Pointer<double> v_i, int length, Type type), Pointer<double> m_io, Pointer<double> m_i, int length, int iteration, int stride_io, int stride_i, Type type)
+void Math::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulNT(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulNT(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+}
+void Math::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulTN(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulTN(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+}
+void Math::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulTT(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulTT(beta, m_o, alpha, mL_i, mR_i, M, K, N);
+    }
+}
+void Math::Iterate(void (*op_i)(Pointer<double> v_io, Pointer<double> v_i, int length, Type type), Pointer<double> m_io, Pointer<double> m_i, int length, int iteration, int stride_io, int stride_i, int offset_io, int offset_i, Type type)
 {
     for (int i = 0; i < iteration; ++i)
     {
-        op_i(m_io + i * stride_io, m_i + i * stride_i, length, type);
+        op_i(m_io + (i * stride_io + offset_io), m_i + (i * stride_i + offset_i), length, type);
     }
 }
-void Math::Iterate(void (*op_i)(Pointer<double> v_io, double v_i, int length, Type type), Pointer<double> m_io, double *v_i, int length, int iteration, int stride_io, Type type)
+void Math::Iterate(void (*op_i)(Pointer<double> v_io, double v_i, int length, Type type), Pointer<double> m_io, double *v_i, int length, int iteration, int stride_io, int offset_io, Type type)
 {
     for (int i = 0; i < iteration; ++i)
     {
-        op_i(m_io + i * stride_io, *(v_i + i), length, type);
+        op_i(m_io + (i * stride_io + offset_io), *(v_i + i), length, type);
     }
 }
-void Math::Iterate(void (*op_i)(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type), Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int length, int iteration, int stride_o, int strideL_i, int strideR_i, Type type)
+void Math::Iterate(void (*op_i)(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type), Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int length, int iteration, int stride_o, int strideL_i, int strideR_i, int offset_o, int offsetL_i, int offsetR_i, Type type)
 {
     for (int i = 0; i < iteration; ++i)
     {
-        op_i(m_o + i * stride_o, mL_i + i * strideL_i, mR_i + i * strideR_i, length, type);
+        op_i(m_o + (i * stride_o + offset_o), mL_i + (i * strideL_i + offsetL_i), mR_i + (i * strideR_i + offsetR_i), length, type);
     }
 }
-void Math::Iterate(void (*op_i)(Pointer<double> v_o, Pointer<double> vL_i, double vR_i, int length, Type type), Pointer<double> m_o, Pointer<double> mL_i, double *vR_i, int length, int iteration, int stride_o, int strideL_i, Type type)
+void Math::Iterate(void (*op_i)(Pointer<double> v_o, Pointer<double> vL_i, double vR_i, int length, Type type), Pointer<double> m_o, Pointer<double> mL_i, double *vR_i, int length, int iteration, int stride_o, int strideL_i, int offset_o, int offsetL_i, Type type)
 {
     for (int i = 0; i < iteration; ++i)
     {
-        op_i(m_o + i * stride_o, mL_i + i * strideL_i, *(vR_i + i), length, type);
+        op_i(m_o + (i * stride_o + offset_o), mL_i + (i * strideL_i + offsetL_i), *(vR_i + i), length, type);
     }
 }
 void Math::Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengthJ, Type type)

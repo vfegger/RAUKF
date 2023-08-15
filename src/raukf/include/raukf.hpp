@@ -3,6 +3,7 @@
 
 #include "../../structure/include/pointer.hpp"
 #include "../../structure/include/data.hpp"
+#include "../../structure/include/measure.hpp"
 #include "../../math/include/math.hpp"
 
 class Model;

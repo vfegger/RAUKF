@@ -62,6 +62,31 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     instances.alloc((2 * length + 1) * length);
 }
 
+Pointer<double> Data::GetStatePointer()
+{
+    return pointer;
+}
+
+Pointer<double> Data::GetStateCovariancePointer()
+{
+    return covariancePointer;
+}
+
+Pointer<double> Data::GetInstances()
+{
+    return instances;
+}
+
+int Data::GetStateLength()
+{
+    return length;
+}
+
+int Data::GetSigmaLength()
+{
+    return 2 * length + 1;
+}
+
 void DataLoader::Add(std::string name, int length)
 {
     info[name] = DataInfo(length);

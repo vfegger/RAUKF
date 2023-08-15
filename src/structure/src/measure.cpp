@@ -1,5 +1,7 @@
 #include "../include/measure.hpp"
 
+MeasureLoader::MeasureLoader() {}
+
 MeasureInfo::MeasureInfo() : length(0), data(NULL), linked(false) {}
 
 MeasureInfo::MeasureInfo(int length) : length(length), data(NULL), linked(false) {}
@@ -10,6 +12,7 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
     {
         return;
     }
+    dataOffset = (double **)malloc(sizeof(double *) * 2 * count);
     offset = (double **)malloc(sizeof(double *) * 2 * count);
     covarianceOffset = (double **)malloc(sizeof(double *) * 2 * count);
     lengthPerOffset = (int *)malloc(sizeof(int) * count);
@@ -22,18 +25,25 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
         length += l;
         ++iaux;
     }
+    data.alloc(length);
     pointer.alloc(length);
     covariancePointer.alloc(length * length);
+    double *pdHost = data.host();
+    double *pdDev = data.dev();
     double *pHost = pointer.host();
     double *pDev = pointer.dev();
     double *pcHost = covariancePointer.host();
     double *pcDev = covariancePointer.dev();
+    dataOffset[0] = pdHost;
+    dataOffset[count] = pdDev;
     offset[0] = pHost;
     offset[count] = pDev;
     covarianceOffset[0] = pcHost;
     covarianceOffset[count] = pcDev;
     for (int i = 1; i < count; ++i)
     {
+        dataOffset[i] = dataOffset[i - 1] + lengthPerOffset[i - 1];
+        dataOffset[count + i] = dataOffset[count + i - 1] + lengthPerOffset[i - 1];
         offset[i] = offset[i - 1] + lengthPerOffset[i - 1];
         offset[count + i] = offset[count + i - 1] + lengthPerOffset[i - 1];
         covarianceOffset[i] = covarianceOffset[i - 1] + lengthPerOffset[i - 1] * length + lengthPerOffset[i - 1];
@@ -47,7 +57,6 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
             for (int j = 0; j < lengthPerOffset[ii]; j++)
             {
                 offset[ii][j] = (*i).second.data[j];
-                covarianceOffset[ii][j * length + j] = (*i).second.covarianceData[j];
             }
         }
         else
@@ -56,6 +65,62 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
         }
     }
     pointer.copyHost2Dev(length);
-    covariancePointer.copyHost2Dev(length * length);
     instances.alloc((2 * length + 1) * length);
+}
+
+Pointer<double> Measure::GetMeasurePointer()
+{
+    return pointer;
+}
+
+Pointer<double> Measure::GetMeasureCovariancePointer()
+{
+    return covariancePointer;
+}
+
+Pointer<double> Measure::GetInstances()
+{
+    return instances;
+}
+
+int Measure::GetMeasureLength()
+{
+    return length;
+}
+
+void Measure::SetMeasureData(std::string name, double *data)
+{
+    int ii = index[name];
+    double *pHost = dataOffset[ii];
+    int l = lengthPerOffset[ii];
+    for (int i = 0; i < l; ++i)
+    {
+        pHost[i] = data[i];
+    }
+}
+
+Pointer<double> Measure::GetMeasureData()
+{
+    data.copyHost2Dev(length);
+    return data;
+}
+
+void MeasureLoader::Add(std::string name, int length)
+{
+    info[name] = MeasureInfo(length);
+}
+
+void MeasureLoader::Link(std::string name, double *data)
+{
+    info[name].data = data;
+}
+
+void MeasureLoader::Remove(std::string name)
+{
+    info.erase(name);
+}
+
+Measure MeasureLoader::Load()
+{
+    return Measure(info);
 }

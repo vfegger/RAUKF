@@ -24,6 +24,7 @@ private:
     Pointer<double> pointer;
     Pointer<double> covariancePointer;
     Pointer<double> instances;
+    double **dataOffset;
     double **offset;
     double **covarianceOffset;
     int *lengthPerOffset;
@@ -34,9 +35,11 @@ protected:
 public:
     Measure(std::map<std::string, MeasureInfo> &info);
     Pointer<double> GetMeasurePointer();
-    Pointer<double> GetMeasureDataPointer();
-    void SetMeasureData(double *data);
+    Pointer<double> GetMeasureCovariancePointer();
     Pointer<double> GetInstances();
+    int GetMeasureLength();
+    void SetMeasureData(std::string name, double *data);
+    Pointer<double> GetMeasureData();
 };
 
 class MeasureLoader

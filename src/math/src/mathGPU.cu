@@ -148,6 +148,11 @@ __global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsi
     }
 }
 
+void MathGPU::Copy(Pointer<double> v_o, Pointer<double> v_i, int length)
+{
+    cudaMemcpy(v_o.dev(), v_i.dev(), sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
+}
+
 void MathGPU::Add(Pointer<double> v_io, Pointer<double> v_i, int length)
 {
     dim3 T(THREAD_COUNT);
@@ -196,12 +201,25 @@ void MathGPU::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_
     dim3 B(CEIL(length, T.x));
     CUDA_Mul<<<B, T, 0, 0>>>(v_o.dev(), vL_i.dev(), vR_i.dev(), length);
 }
-void MathGPU::MatMul(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathGPU::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
 {
     cublasHandle_t handle;
-    double alpha = 1.0;
-    double beta = 0.0;
     cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, mL_i.dev(), M, mR_i.dev(), K, &beta, m_o.dev(), M);
+}
+void MathGPU::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    cublasHandle_t handle;
+    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, mL_i.dev(), M, mR_i.dev(), N, &beta, m_o.dev(), M);
+}
+void MathGPU::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    cublasHandle_t handle;
+    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, mL_i.dev(), K, mR_i.dev(), K, &beta, m_o.dev(), M);
+}
+void MathGPU::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    cublasHandle_t handle;
+    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, mL_i.dev(), K, mR_i.dev(), N, &beta, m_o.dev(), M);
 }
 void MathGPU::Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengthJ)
 {

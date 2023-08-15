@@ -37,12 +37,15 @@ void RAUKF::Iterate(Timer &timer)
     Pointer<double> z = this->pmeasure->GetMeasurePointer();
     Pointer<double> R;
 
-    Pointer<double> Pxy;
-    Pointer<double> K;
+    Pointer<double> PxyT;
+    Pointer<double> KT;
 
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
     int Ly = this->pmeasure->GetMeasureLength();
+
+    PxyT.alloc(Lx * Ly);
+    KT.alloc(Lx * Ly);
 
     std::cout << "State length: " << Lx << "; Observation length: " << Ly << "; Sigma points: " << Ls << "\n";
 
@@ -54,9 +57,9 @@ void RAUKF::Iterate(Timer &timer)
     Math::CholeskyDecomposition(cd, Pxx, Lx, type);
 
     std::cout << "Generate Sigma Points based on Cholesky Decompostion\n";
-    Math::Iterate(Math::Copy, xs, x, Lx, Ls, Lx, 0, type);
-    Math::Iterate(Math::Add, xs, cd, Lx, Lx, Lx, Lx, type);
-    Math::Iterate(Math::Sub, xs, cd, Lx, Lx, Lx, Lx, type);
+    Math::Iterate(Math::Copy, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
+    Math::Iterate(Math::Add, xs, cd, Lx, Lx, Lx, Lx, Lx, 0, type);
+    Math::Iterate(Math::Sub, xs, cd, Lx, Lx, Lx, Lx, Lx * (Lx + 1), 0, type);
 
     cd.free();
     // Evolve and Measure each state given by each sigma point
@@ -77,26 +80,24 @@ void RAUKF::Iterate(Timer &timer)
     Math::Mean(y, ys, Ly, Ls, type);
 
     std::cout << "Covariance\n";
-    Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, type);
-    Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, type);
+    Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
+    Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);
 
-    Math::MatMul(Pxx, xs, xs, Lx, Ls, Lx, type);
-    Math::MatMul(Pyy, ys, ys, Ly, Ls, Ly, type);
-    Math::MatMul(Pxy, xs, ys, Lx, Ls, Ly, type);
+    Math::MatMulNT(0.0, Pxx, 1.0, xs, xs, Lx, Ls, Lx, type);
+    Math::MatMulNT(0.0, Pyy, 1.0, ys, ys, Ly, Ls, Ly, type);
+    Math::MatMulNT(0.0, PxyT, 1.0, ys, xs, Ly, Ls, Lx, type);
     Math::Add(Pxx, Q, Lx * Lx, type);
     Math::Add(Pyy, R, Ly * Ly, type);
 
-    // Kalman gain calculation by solving: Pyy * K^T = Pxy^T
-    Math::CholeskySolver(K, Pyy, Pxy, Ly, Ly, Lx, type);
+    // Kalman gain calculation by solving: Pyy * (K^T) = Pxy^T
+    Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
 
     // State Update
     std::cout << "State Update\n";
     Math::Sub(z, y, Ly, type);
-    Math::MatMul(aux, K, z, Lx, Ly, 1, type);
-    Math::Add(x, aux, Lx, type);
+    Math::MatMulTN(1.0, x, 1.0, KT, z, Lx, Ly, 1, type);
 
     std::cout << "State Covariance Update\n";
-    Math::MatMul(aux, K, Pyy, Lx, Ly, Ly, type);
-    Math::MatMul(aux1, aux, K, Lx, Ly, Ly, type);
-    Math::Add(Pxx, aux1, Lx * Lx, type);
+    Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
+    Math::MatMulNN(1.0, Pxx, 1.0, PxyT, KT, Lx, Ly, Ly, type);
 }

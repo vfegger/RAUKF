@@ -1,5 +1,15 @@
 #include "../include/mathCPU.hpp"
 
+void MathCPU::Copy(Pointer<double> v_o, Pointer<double> v_i, int length)
+{
+    double *pv_o = v_io.host();
+    double *pv_i = v_i.host();
+    for (int i = 0; i < length; ++i)
+    {
+        pv_o[i] += pv_i[i];
+    }
+}
+
 void MathCPU::Add(Pointer<double> v_io, Pointer<double> v_i, int length)
 {
     double *pv_io = v_io.host();
@@ -74,7 +84,70 @@ void MathCPU::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_
         pv_o[i] = pvL_i[i] * pvR_i[i];
     }
 }
-void MathCPU::MatMul(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    double *pm_o = m_o.host();
+    double *pmL_i = mL_i.host();
+    double *pmR_i = mR_i.host();
+    double *auxL = (double *)malloc(sizeof(double) * M * K);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            auxL[i * K + j] = pmL_i[j * M + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+    free(auxL);
+}
+void MathCPU::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    double *pm_o = m_o.host();
+    double *pmL_i = mL_i.host();
+    double *pmR_i = mR_i.host();
+    double *auxL = (double *)malloc(sizeof(double) * M * K);
+    double *auxR = (double *)malloc(sizeof(double) * K * N);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            auxL[i * K + j] = pmL_i[j * M + i];
+        }
+    }
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            auxR[i * K + j] = pmR_i[j * N + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+}
+void MathCPU::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
 {
     double *pm_o = m_o.host();
     double *pmL_i = mL_i.host();
@@ -87,9 +160,36 @@ void MathCPU::MatMul(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> 
             acc = 0.0;
             for (int k = 0; k < K; ++k)
             {
-                acc += pmL_i[k * M + i] * pmR_i[j * K + k];
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
             }
-            pm_o[j * M + i] = acc;
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+}
+void MathCPU::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+{
+    double *pm_o = m_o.host();
+    double *pmL_i = mL_i.host();
+    double *pmR_i = mR_i.host();
+    double *auxR = (double *)malloc(sizeof(double) * K * N);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            auxR[i * K + j] = pmR_i[j * N + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
     }
 }

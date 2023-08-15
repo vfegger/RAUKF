@@ -1,8 +1,6 @@
 #include "../include/raukf.hpp"
 
-RAUKF::RAUKF() : pmodel(NULL), alpha(0.0), beta(0.0), kappa(0.0), lambda(0.0), type(Type::CPU)
-{
-}
+RAUKF::RAUKF() : pmodel(NULL), alpha(0.0), beta(0.0), kappa(0.0), lambda(0.0), type(Type::CPU) {}
 
 void RAUKF::SetModel(Model *pmodel)
 {
@@ -68,10 +66,10 @@ void RAUKF::Iterate(Timer &timer)
     {
         pmodel->Evolve(pstate, type);
     }
-    std::cout << "Measure Step\n";
+    std::cout << "Evaluation Step\n";
     for (int i = 0; i < Ls; ++i)
     {
-        pmodel->Measure(pmeasure, pstate, type);
+        pmodel->Evaluate(pmeasure, pstate, type);
     }
 
     // Calculate new mean and covariance for the state and measure

@@ -5,8 +5,8 @@
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
 #include "../../math/include/math.hpp"
-
-class Model;
+#include "../../model/include/model.hpp"
+#include "../../timer/include/timer.hpp"
 
 class RAUKF
 {

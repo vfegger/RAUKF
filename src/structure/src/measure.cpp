@@ -88,6 +88,11 @@ Pointer<double> Measure::GetMeasureCovariancePointer()
     return covariancePointer;
 }
 
+Pointer<double> Measure::GetMeasureNoisePointer()
+{
+    return noisePointer;
+}
+
 Pointer<double> Measure::GetInstances()
 {
     return instances;

@@ -10,6 +10,7 @@ struct MeasureInfo
 {
     int length;
     double *data;
+    double *noiseData;
     bool linked;
 
     MeasureInfo();
@@ -23,10 +24,12 @@ private:
     Pointer<double> data;
     Pointer<double> pointer;
     Pointer<double> covariancePointer;
+    Pointer<double> noisePointer;
     Pointer<double> instances;
     double **dataOffset;
     double **offset;
     double **covarianceOffset;
+    double **noiseOffset;
     int *lengthPerOffset;
     int length;
     int count;
@@ -36,6 +39,7 @@ public:
     Measure(std::map<std::string, MeasureInfo> &info);
     Pointer<double> GetMeasurePointer();
     Pointer<double> GetMeasureCovariancePointer();
+    Pointer<double> GetMeasureNoisePointer();
     Pointer<double> GetInstances();
     int GetMeasureLength();
     void SetMeasureData(std::string name, double *data);
@@ -51,7 +55,7 @@ protected:
 public:
     MeasureLoader();
     void Add(std::string name, int length);
-    void Link(std::string name, double *data);
+    void Link(std::string name, double *data, double *noiseData);
     void Remove(std::string name);
     Measure Load();
 };

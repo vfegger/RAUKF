@@ -26,6 +26,7 @@ public:
 
     void SetModel(Model *pmodel);
     void SetState(Data *pstate);
+    void SetMeasure(Measure *pstate);
     void SetType(Type type);
 
     void Iterate(Timer &timer);

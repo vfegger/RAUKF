@@ -68,16 +68,10 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
     // Evolve and Measure each state given by each sigma point
     std::cout << "Evolution Step\n";
-    for (int i = 0; i < Ls; ++i)
-    {
-        pmodel->Evolve(pstate, type);
-    }
+    pmodel->Evolve(pstate, type);
     timer.Record(type);
     std::cout << "Evaluation Step\n";
-    for (int i = 0; i < Ls; ++i)
-    {
-        pmodel->Evaluate(pmeasure, pstate, type);
-    }
+    pmodel->Evaluate(pmeasure, pstate, type);
     timer.Record(type);
 
     // Calculate new mean and covariance for the state and measure

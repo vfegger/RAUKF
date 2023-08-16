@@ -26,9 +26,8 @@ private:
     Pointer<double> covariancePointer;
     Pointer<double> noisePointer;
     Pointer<double> instances;
-    double **offset;
-    double **covarianceOffset;
-    double **noiseOffset;
+    int *offset;
+    int *offset2;
     int *lengthPerOffset;
     int length;
     int count;
@@ -42,6 +41,8 @@ public:
     Pointer<double> GetInstances();
     int GetStateLength();
     int GetSigmaLength();
+    int GetOffset(std::string name);
+    int GetOffset2(std::string name);
 };
 
 class DataLoader

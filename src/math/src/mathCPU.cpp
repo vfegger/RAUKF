@@ -1,94 +1,71 @@
 #include "../include/mathCPU.hpp"
 
-void MathCPU::Copy(Pointer<double> v_o, Pointer<double> v_i, int length)
+void MathCPU::Copy(double *pv_o, double *pv_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pv_i = v_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pv_i[i];
     }
 }
 
-void MathCPU::Add(Pointer<double> v_io, Pointer<double> v_i, int length)
+void MathCPU::Add(double *pv_io, double *pv_i, int length)
 {
-    double *pv_io = v_io.host();
-    double *pv_i = v_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] += pv_i[i];
     }
 }
-void MathCPU::Sub(Pointer<double> v_io, Pointer<double> v_i, int length)
+void MathCPU::Sub(double *pv_io, double *pv_i, int length)
 {
-    double *pv_io = v_io.host();
-    double *pv_i = v_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] -= pv_i[i];
     }
 }
-void MathCPU::Mul(Pointer<double> v_io, double v_i, int length)
+void MathCPU::Mul(double *pv_io, double v_i, int length)
 {
-    double *pv_io = v_io.host();
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] *= v_i;
     }
 }
-void MathCPU::Mul(Pointer<double> v_io, Pointer<double> v_i, int length)
+void MathCPU::Mul(double *pv_io, double *pv_i, int length)
 {
-    double *pv_io = v_io.host();
-    double *pv_i = v_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] *= pv_i[i];
     }
 }
-void MathCPU::Add(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length)
+void MathCPU::Add(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pvL_i = vL_i.host();
-    double *pvR_i = vR_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pvL_i[i] + pvR_i[i];
     }
 }
-void MathCPU::Sub(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length)
+void MathCPU::Sub(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pvL_i = vL_i.host();
-    double *pvR_i = vR_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pvL_i[i] - pvR_i[i];
     }
 }
-void MathCPU::Mul(Pointer<double> v_o, Pointer<double> vL_i, double vR_i, int length)
+void MathCPU::Mul(double *pv_o, double *pvL_i, double vR_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pvL_i = vL_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pvL_i[i] * vR_i;
     }
 }
-void MathCPU::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length)
+void MathCPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pvL_i = vL_i.host();
-    double *pvR_i = vR_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pvL_i[i] * pvR_i[i];
     }
 }
-void MathCPU::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    double *pm_o = m_o.host();
-    double *pmL_i = mL_i.host();
-    double *pmR_i = mR_i.host();
     double *auxL = (double *)malloc(sizeof(double) * M * K);
     double acc;
     for (int j = 0; j < K; ++j)
@@ -112,11 +89,8 @@ void MathCPU::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<d
     }
     free(auxL);
 }
-void MathCPU::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    double *pm_o = m_o.host();
-    double *pmL_i = mL_i.host();
-    double *pmR_i = mR_i.host();
     double *auxL = (double *)malloc(sizeof(double) * M * K);
     double *auxR = (double *)malloc(sizeof(double) * K * N);
     double acc;
@@ -146,12 +120,11 @@ void MathCPU::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<d
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
     }
+    free(auxR);
+    free(auxL);
 }
-void MathCPU::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    double *pm_o = m_o.host();
-    double *pmL_i = mL_i.host();
-    double *pmR_i = mR_i.host();
     double acc;
     for (int j = 0; j < N; ++j)
     {
@@ -166,11 +139,8 @@ void MathCPU::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<d
         }
     }
 }
-void MathCPU::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    double *pm_o = m_o.host();
-    double *pmL_i = mL_i.host();
-    double *pmR_i = mR_i.host();
     double *auxR = (double *)malloc(sizeof(double) * K * N);
     double acc;
     for (int j = 0; j < K; ++j)
@@ -192,11 +162,10 @@ void MathCPU::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<d
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
     }
+    free(auxR);
 }
-void MathCPU::Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengthJ)
+void MathCPU::Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ)
 {
-    double *pv_o = v_o.host();
-    double *pm_i = m_i.host();
     for (int i = 0; i < lengthI; ++i)
     {
         pv_o[i] = 0.0;
@@ -213,29 +182,23 @@ void MathCPU::Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int le
         }
     }
 }
-bool MathCPU::Compare(Pointer<double> vL_i, Pointer<double> vR_i, int length)
+bool MathCPU::Compare(double *pvL_i, double *pvR_i, int length)
 {
-    double *pvL_i = vL_i.host();
-    double *pvR_i = vR_i.host();
     bool res = true;
     for (int i = 0; i < length; ++i)
     {
         res |= pvL_i[i] == pvR_i[i];
     }
 }
-bool MathCPU::Diag(Pointer<double> v_o, Pointer<double> m_i, int length)
+bool MathCPU::Diag(double *pv_o, double *pm_i, int length)
 {
-    double *pv_o = v_o.host();
-    double *pm_i = m_i.host();
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pm_i[i * length + i];
     }
 }
-void MathCPU::CholeskyDecomposition(Pointer<double> m_o, Pointer<double> m_i, int length)
+void MathCPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {
-    double *pm_o = m_o.host();
-    double *pm_i = m_i.host();
     for (int j = 0; j < length; ++j)
     {
         double sum = 0.0;
@@ -255,19 +218,15 @@ void MathCPU::CholeskyDecomposition(Pointer<double> m_o, Pointer<double> m_i, in
         }
     }
 }
-void MathCPU::CholeskySolver(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N)
+void MathCPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     if (M != K)
     {
         return;
     }
-    Pointer<double> m;
-    m.alloc(M * K);
-    CholeskyDecomposition(m, mL_i, K);
+    double *pm = (double*)malloc(sizeof(double) * M * K);
+    CholeskyDecomposition(pm, pmL_i, K);
 
-    double *pm = m.host();
-    double *pm_o = m_o.host();
-    double *pmR_i = mR_i.host();
     for (int k = 0; k < N; ++k)
     {
         for (int i = 0; i < M; ++i)
@@ -289,5 +248,5 @@ void MathCPU::CholeskySolver(Pointer<double> m_o, Pointer<double> mL_i, Pointer<
             pm_o[k * M + j] = (pm_o[k * M + j] - sum) / pm[j * M + j];
         }
     }
-    m.free();
+    free(pm);
 }

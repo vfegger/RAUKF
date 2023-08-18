@@ -6,6 +6,8 @@
 #include <cublas.h>
 #include <cusolverDn.h>
 
+#define TOL8_GPU 1e-8
+
 namespace MathGPU
 {
     // Vector copy

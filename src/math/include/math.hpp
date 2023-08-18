@@ -49,6 +49,14 @@ namespace Math
 
     // Mean Operation
     void Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengthJ, Type type);
+    // Dot Operation
+    double Dot(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
+    // Norm-1 Operation
+    double Norm1(Pointer<double> v_i, int length, Type type);
+    // Norm-2 Operation
+    double Norm2(Pointer<double> v_i, int length, Type type);
+    // Norm-Infinity Operation
+    double NormInf(Pointer<double> v_i, int length, Type type);
     // Comparison Operation
     bool Compare(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
     // Diagonalization Operation

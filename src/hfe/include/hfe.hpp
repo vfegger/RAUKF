@@ -2,11 +2,15 @@
 #define HFE_HEADER
 
 #include "../../model/include/model.hpp"
+#include <random>
 
 class HFE : public Model
 {
 private:
     int Lx, Ly, Lz;
+    double Sx, Sy, Sz;
+    double dx, dy, dz;
+    double amp;
 
 protected:
     void EvolveCPU(Data *pstate) override;

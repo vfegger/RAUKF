@@ -2,11 +2,11 @@
 
 void MathCPU::Copy(Pointer<double> v_o, Pointer<double> v_i, int length)
 {
-    double *pv_o = v_io.host();
+    double *pv_o = v_o.host();
     double *pv_i = v_i.host();
     for (int i = 0; i < length; ++i)
     {
-        pv_o[i] += pv_i[i];
+        pv_o[i] = pv_i[i];
     }
 }
 
@@ -160,7 +160,7 @@ void MathCPU::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<d
             acc = 0.0;
             for (int k = 0; k < K; ++k)
             {
-                acc += auxL[i * K + k] * pmR_i[j * K + k];
+                acc += pmL_i[i * K + k] * pmR_i[j * K + k];
             }
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
@@ -187,7 +187,7 @@ void MathCPU::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<d
             acc = 0.0;
             for (int k = 0; k < K; ++k)
             {
-                acc += auxL[i * K + k] * pmR_i[j * K + k];
+                acc += pmL_i[i * K + k] * auxR[j * K + k];
             }
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }

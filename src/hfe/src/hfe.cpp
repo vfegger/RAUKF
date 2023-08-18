@@ -1,5 +1,22 @@
 #include "../include/hfe.hpp"
 
+inline double C(double T_in)
+{
+    return 1324.75 * T_in + 3557900.0;
+}
+
+inline double K(double T_in)
+{
+    return (14e-3 + 2.517e-6 * T_in) * T_in + 12.45;
+}
+
+double DiffK(double TN_in, double T_in, double TP_in, double delta_in)
+{
+    double auxN = 2.0 * (K(TN_in) * K(T_in)) / (K(TN_in) + K(T_in)) * (TN_in - T_in) / delta_in;
+    double auxP = 2.0 * (K(TP_in) * K(T_in)) / (K(TP_in) + K(T_in)) * (TP_in - T_in) / delta_in;
+    return (auxN + auxP) / delta_in;
+}
+
 void HFE::EvolveCPU(Data *pstate)
 {
     double *pinstance = pstate->GetInstances().host();
@@ -7,10 +24,63 @@ void HFE::EvolveCPU(Data *pstate)
     int Lsigma = pstate->GetSigmaLength();
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    for (int i = 0; i < Lsigma; ++i)
+    for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = pinstance + Lx * i + offsetT;
-        double *Q = pinstance + Lx * i + offsetQ;
+        double *T = pinstance + Lstate * s + offsetT;
+        double *Q = pinstance + Lstate * s + offsetQ;
+        double *aux = (double *)malloc(sizeof(double) * Lx * Ly * (Lz + 1));
+        // Diffusion Contribution
+        for (int k = 0; k < Lz; ++k)
+        {
+            for (int j = 0; j < Ly; ++j)
+            {
+                for (int i = 0; i < Lx; ++i)
+                {
+                    int index = (k * Ly + j) * Lx + i;
+                    double T0 = T[index];
+                    double TiP = (i < Lx - 1) ? T[index + 1] : T0;
+                    double TiN = (i > 0) ? T[index - 1] : T0;
+                    double TjP = (j < Ly - 1) ? T[index + Lx] : T0;
+                    double TjN = (j > 0) ? T[index - Lx] : T0;
+                    double TkP = (k < Lz - 1) ? T[index + Ly * Lx] : T0;
+                    double TkN = (k > 0) ? T[index - Ly * Lx] : T0;
+                    aux[index] = (DiffK(TiN, T0, TiP, dx) + DiffK(TjN, T0, TjP, dy) + DiffK(TkN, T0, TkP, dz));
+                }
+            }
+        }
+        // Received Heat Flux
+        int offset = (Lz - 1) * Ly * Lz;
+        for (int j = 0; j < Ly; ++j)
+        {
+            for (int i = 0; i < Lx; ++i)
+            {
+                int index = j * Lx + i;
+                aux[offset + index] += (amp / dz) * Q[index];
+            }
+        }
+        // Calculate Temporal Derivative
+        for (int k = 0; k < Lz; ++k)
+        {
+            for (int j = 0; j < Ly; ++j)
+            {
+                for (int i = 0; i < Lx; ++i)
+                {
+                    int index = (k * Ly + j) * Lx + i;
+                    aux[index] /= C(T[index]);
+                }
+            }
+        }
+        // Random Step of Heat Flux
+        int offset = Lz * Ly * Lz;
+        for (int j = 0; j < Ly; ++j)
+        {
+            for (int i = 0; i < Lx; ++i)
+            {
+                int index = j * Lx + i;
+                aux[offset + index] = distribution(generator);
+            }
+        }
+        free(aux);
     }
 }
 void HFE::EvolveGPU(Data *pstate)
@@ -22,8 +92,8 @@ void HFE::EvolveGPU(Data *pstate)
     int offsetQ = pstate->GetOffset("Heat Flux");
     for (int i = 0; i < Lsigma; ++i)
     {
-        double *T = pinstance + Lx * i + offsetT;
-        double *Q = pinstance + Lx * i + offsetQ;
+        double *T = pinstance + Lstate * i + offsetT;
+        double *Q = pinstance + Lstate * i + offsetQ;
     }
 }
 void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
@@ -38,9 +108,18 @@ void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int i = 0; i < Lsigma; ++i)
     {
-        double *T = psinstance + Lx * i + offsetT;
-        double *Q = psinstance + Lx * i + offsetQ;
-        double *Tm = pminstance + Lx * i + offsetQ;
+        double *T = psinstance + Lstate * i + offsetT;
+        double *Q = psinstance + Lstate * i + offsetQ;
+        double *Tm = pminstance + Lstate * i + offsetQ;
+        // Received Heat Flux
+        for (int j = 0; j < Ly; ++j)
+        {
+            for (int i = 0; i < Lx; ++i)
+            {
+                int index = j * Lx + i;
+                Tm[index] = T[index];
+            }
+        }
     }
 }
 void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
@@ -55,9 +134,9 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int i = 0; i < Lsigma; ++i)
     {
-        double *T = psinstance + Lx * i + offsetT;
-        double *Q = psinstance + Lx * i + offsetQ;
-        double *Tm = pminstance + Lx * i + offsetTm;
+        double *T = psinstance + Lstate * i + offsetT;
+        double *Q = psinstance + Lstate * i + offsetQ;
+        double *Tm = pminstance + Lmeasure * i + offsetTm;
     }
 }
 

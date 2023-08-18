@@ -4,6 +4,8 @@
 #include "../../structure/include/pointer.hpp"
 #include <cmath>
 
+#define TOL8_CPU 1e-8
+
 namespace MathCPU
 {
     // Vector copy

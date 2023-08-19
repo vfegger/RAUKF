@@ -2,7 +2,7 @@
 #define POINTER_HEADER
 
 #include <stdlib.h>
-#include <cuda.h>
+#include <cuda_runtime.h>
 
 enum Type
 {
@@ -48,7 +48,7 @@ public:
 
     void free()
     {
-        free(pHost);
+        ::free(pHost);
         cudaFree(pDev);
     }
 

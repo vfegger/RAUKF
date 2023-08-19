@@ -20,7 +20,6 @@ __host__ __device__ inline double DiffK(double TN_in, double T_in, double TP_in,
 void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
     int index, offset;
-    double acc;
     double T0, TiN, TiP, TjN, TjP, TkN, TkP;
     int Lx = parms.Lx;
     int Ly = parms.Ly;
@@ -115,7 +114,7 @@ void HC::CPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
 
 void HC::CPU::AllocWorkspaceRK4(double *&workspace, HCParms &parms)
 {
-    workspace = (double *)malloc(sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+    workspace = (double *)malloc(5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
 
 void HC::CPU::FreeWorkspaceRK4(double *workspace)
@@ -190,7 +189,7 @@ void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
 
 void HC::CPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)
 {
-    workspace = (double *)malloc(sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+    workspace = (double *)malloc(8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
 
 void HC::CPU::FreeWorkspaceRKF45(double *workspace)
@@ -245,12 +244,12 @@ void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, do
         for (int i = 0; i < L1; ++i)
         {
             aux00[i] += C[j] * h * K_j[i];
-            aux10[i] += C[n+j] * h * K_j[i];
+            aux10[i] += C[n + j] * h * K_j[i];
         }
         for (int i = 0; i < L2; ++i)
         {
             aux01[i] += C[j] * h * K_j[L1 + i];
-            aux11[i] += C[n+j] * h * K_j[L1 + i];
+            aux11[i] += C[n + j] * h * K_j[L1 + i];
         }
     }
 }

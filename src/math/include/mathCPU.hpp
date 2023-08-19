@@ -43,7 +43,7 @@ namespace MathCPU
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation
-    bool Diag(double *pv_o, double *pm_i, int length);
+    void Diag(double *pv_o, double *pm_i, int length);
 
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);

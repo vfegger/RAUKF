@@ -60,7 +60,7 @@ namespace Math
     // Comparison Operation
     bool Compare(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
     // Diagonalization Operation
-    bool Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type);
+    void Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type);
 
     // Cholesky Decomposition
     void CholeskyDecomposition(Pointer<double> m_o, Pointer<double> m_i, int length, Type type);

@@ -189,8 +189,9 @@ bool MathCPU::Compare(double *pvL_i, double *pvR_i, int length)
     {
         res |= pvL_i[i] == pvR_i[i];
     }
+    return res;
 }
-bool MathCPU::Diag(double *pv_o, double *pm_i, int length)
+void MathCPU::Diag(double *pv_o, double *pm_i, int length)
 {
     for (int i = 0; i < length; ++i)
     {

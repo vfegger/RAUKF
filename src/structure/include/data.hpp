@@ -56,7 +56,7 @@ public:
     void Add(std::string name, int length);
     void Link(std::string name, double *data, double *covarianceData, double* noiseData);
     void Remove(std::string name);
-    Data Load();
+    Data* Load();
 };
 
 #endif

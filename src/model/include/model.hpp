@@ -17,12 +17,12 @@ protected:
     virtual void EvaluateCPU(Measure *pmeasure, Data *pstate) = 0;
     virtual void EvaluateGPU(Measure *pmeasure, Data *pstate) = 0;
 
-    virtual Data &GenerateData() = 0;
-    virtual Measure &GenerateMeasure() = 0;
-
 public:
     void Evolve(Data *pstate, Type type);
     void Evaluate(Measure *pmeasure, Data *pstate, Type type);
+
+    virtual Data *GenerateData() = 0;
+    virtual Measure *GenerateMeasure() = 0;
 };
 
 #endif

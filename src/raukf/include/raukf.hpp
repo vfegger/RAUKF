@@ -25,8 +25,7 @@ public:
     RAUKF();
 
     void SetModel(Model *pmodel);
-    void SetState(Data *pstate);
-    void SetMeasure(Measure *pstate);
+    void UnsetModel();
     void SetType(Type type);
 
     void Iterate(Timer &timer);

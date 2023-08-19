@@ -192,8 +192,9 @@ bool Math::Compare(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type 
     {
         return MathGPU::Compare(vL_i.dev(), vR_i.dev(), length);
     }
+    return false;
 }
-bool Math::Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type)
+void Math::Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type)
 {
     if (type == Type::CPU)
     {

@@ -56,7 +56,7 @@ public:
     void Add(std::string name, int length);
     void Link(std::string name, double *noiseData);
     void Remove(std::string name);
-    Measure Load();
+    Measure* Load();
 };
 
 #endif

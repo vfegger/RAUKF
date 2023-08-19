@@ -130,7 +130,9 @@ void MeasureLoader::Remove(std::string name)
     info.erase(name);
 }
 
-Measure MeasureLoader::Load()
+Measure *MeasureLoader::Load()
 {
-    return Measure(info);
+    Measure *pmeasure = (Measure *)malloc(sizeof(Measure));
+    *pmeasure = Measure(info);
+    return pmeasure;
 }

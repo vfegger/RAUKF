@@ -2,14 +2,17 @@
 #define MATHGPU_HEADER
 
 #include "../../structure/include/pointer.hpp"
-#include <cuda.h>
-#include <cublas.h>
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
 #include <cusolverDn.h>
 
 #define TOL8_GPU 1e-8
 
 namespace MathGPU
 {
+    static cublasHandle_t cublasHandle;
+    static cusolverDnHandle_t cusolverDnHandle;
+
     // Vector copy
     void Copy(double *pv_o, double *pv_i, int length);
 
@@ -45,7 +48,7 @@ namespace MathGPU
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation
-    bool Diag(double *pv_o, double *pm_i, int length);
+    void Diag(double *pv_o, double *pm_i, int length);
 
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);

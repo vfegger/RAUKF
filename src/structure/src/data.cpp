@@ -121,7 +121,9 @@ void DataLoader::Remove(std::string name)
     info.erase(name);
 }
 
-Data DataLoader::Load()
+Data *DataLoader::Load()
 {
-    return Data(info);
+    Data *pdata = (Data *)malloc(sizeof(Data));
+    *pdata = Data(info);
+    return pdata;
 }

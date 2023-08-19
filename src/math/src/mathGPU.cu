@@ -203,23 +203,19 @@ void MathGPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
 }
 void MathGPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    cublasHandle_t handle;
-    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
 }
 void MathGPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    cublasHandle_t handle;
-    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
 }
 void MathGPU::MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    cublasHandle_t handle;
-    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
 }
 void MathGPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
-    cublasHandle_t handle;
-    cublasDgemm(handle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
 }
 void MathGPU::Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ)
 {
@@ -231,34 +227,28 @@ bool MathGPU::Compare(double *pvL_i, double *pvR_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    cublasHandle_t handle;
-    double alpha = 1.0;
-    double beta = 0.0;
     double *pDev;
     double res = -1.0;
     cudaMalloc(&pDev, sizeof(double) * length);
     CUDA_Sub<<<B, T, 0, 0>>>(pDev, pvL_i, pvR_i, length);
-    cublasDnrm2(handle, length, pDev, 1, &res);
+    cublasDnrm2(cublasHandle, length, pDev, 1, &res);
     cudaFree(pDev);
+    return true;
 }
-bool MathGPU::Diag(double *pv_o, double *pm_i, int length)
+void MathGPU::Diag(double *pv_o, double *pm_i, int length)
 {
-    cublasHandle_t handle;
-    cublasDcopy(handle, length, pm_i, length + 1, pv_o, 1);
+    cublasDcopy(cublasHandle, length, pm_i, length + 1, pv_o, 1);
 }
 void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {
-    cusolverDnHandle_t handle;
     int size = 0;
     int *pdInfo;
     double *pdAux;
-    double *pm_o = pm_o;
-    double *pm_i = pm_i;
     cudaMemcpy(pm_o, pm_i, sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
-    cusolverDnDpotrf_bufferSize(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, &size);
+    cusolverDnDpotrf_bufferSize(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, &size);
     cudaMalloc(&pdInfo, sizeof(int));
     cudaMalloc(&pdAux, sizeof(double) * size);
-    cusolverDnDpotrf(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, pdAux, size, pdInfo);
+    cusolverDnDpotrf(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, pdAux, size, pdInfo);
     cudaFree(pdAux);
     cudaFree(pdInfo);
 }
@@ -268,17 +258,13 @@ void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, 
     {
         return;
     }
-    cusolverDnHandle_t handle;
     double *pm;
     cudaMalloc(&pm, sizeof(double) * M * K);
     int *pdInfo;
-    double *pm_o = pm_o;
-    double *pmL_i = pmL_i;
-    double *pmR_i = pmR_i;
     cudaMalloc(&pdInfo, sizeof(int));
     CholeskyDecomposition(pm, pmL_i, K);
     cudaMemcpy(pm_o, pmR_i, sizeof(double) * M * N, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
-    cusolverDnDpotrs(handle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, M, N, pm, M, pm_o, M, pdInfo);
+    cusolverDnDpotrs(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, M, N, pm, M, pm_o, M, pdInfo);
     cudaFree(pdInfo);
     cudaFree(pm);
 }

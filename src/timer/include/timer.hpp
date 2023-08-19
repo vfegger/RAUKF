@@ -3,7 +3,7 @@
 
 #include <chrono>
 #include <list>
-#include <cuda.h>
+#include <cuda_runtime.h>
 #include <cuda_runtime.h>
 #include "../../structure/include/pointer.hpp"
 

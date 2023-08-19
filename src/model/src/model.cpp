@@ -1,23 +1,25 @@
 #include "../include/model.hpp"
 
-void Model::Evolve(Data* pstate, Type type) {
+void Model::Evolve(Data *pstate, Type type)
+{
     if (type == Type::CPU)
     {
-        Model::EvolveCPU(pstate);
+        this->EvolveCPU(pstate);
     }
     else if (type == Type::GPU)
     {
-        Model::EvolveGPU(pstate);
+        this->EvolveGPU(pstate);
     }
 }
 
-void Model::Evaluate(Measure* pmeasure, Data* pstate, Type type) {
+void Model::Evaluate(Measure *pmeasure, Data *pstate, Type type)
+{
     if (type == Type::CPU)
     {
-        Model::EvaluateCPU(pmeasure, pstate);
+        this->EvaluateCPU(pmeasure, pstate);
     }
     else if (type == Type::GPU)
     {
-        Model::EvaluateGPU(pmeasure, pstate);
+        this->EvaluateGPU(pmeasure, pstate);
     }
 }

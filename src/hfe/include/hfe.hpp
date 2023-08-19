@@ -2,15 +2,17 @@
 #define HFE_HEADER
 
 #include "../../model/include/model.hpp"
+#include "../include/hc.hpp"
 #include <random>
+
+#define FORWARD_METHOD 2
 
 class HFE : public Model
 {
 private:
-    int Lx, Ly, Lz;
-    double Sx, Sy, Sz;
-    double dx, dy, dz;
-    double amp;
+    HC::HCParms parms;
+
+    double *workspace;
 
 protected:
     void EvolveCPU(Data *pstate) override;
@@ -18,9 +20,11 @@ protected:
     void EvaluateCPU(Measure *pmeasure, Data *pstate) override;
     void EvaluateGPU(Measure *pmeasure, Data *pstate) override;
 
-    Data &GenerateData() override;
-    Measure &GenerateMeasure() override;
+
 public:
+    void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp);
+    Data *GenerateData() override;
+    Measure *GenerateMeasure() override;
 };
 
 #endif

@@ -5,16 +5,18 @@ RAUKF::RAUKF() : pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.
 void RAUKF::SetModel(Model *pmodel)
 {
     this->pmodel = pmodel;
+    this->pstate = pmodel->GenerateData();
+    this->pmeasure = pmodel->GenerateMeasure();
 }
 
-void RAUKF::SetState(Data *pstate)
+void RAUKF::UnsetModel()
 {
-    this->pstate = pstate;
-}
-
-void RAUKF::SetMeasure(Measure *pmeasure)
-{
-    this->pmeasure = pmeasure;
+    if (this->pmodel != NULL)
+    {
+        free(this->pstate);
+        free(this->pmeasure);
+        this->pmodel = NULL;
+    }
 }
 
 void RAUKF::SetType(Type type)

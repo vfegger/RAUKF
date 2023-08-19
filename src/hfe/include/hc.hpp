@@ -16,8 +16,8 @@ namespace HC
 
     namespace CPU
     {
-        std::default_random_engine generator;
-        std::normal_distribution<double> distribution;
+        static std::default_random_engine generator;
+        static std::normal_distribution<double> distribution;
 
         void Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms);
 

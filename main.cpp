@@ -18,6 +18,7 @@ int main()
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
 
+    raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
     raukf.SetType(Type::CPU);
 

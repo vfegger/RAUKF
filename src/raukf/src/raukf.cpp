@@ -1,6 +1,13 @@
 #include "../include/raukf.hpp"
 
-RAUKF::RAUKF() : pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), lambda(0.0), type(Type::CPU) {}
+RAUKF::RAUKF() : pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU) {}
+
+void RAUKF::SetParameters(double alpha, double beta, double kappa)
+{
+    this->alpha = alpha;
+    this->beta = beta;
+    this->kappa = kappa;
+}
 
 void RAUKF::SetModel(Model *pmodel)
 {
@@ -46,6 +53,8 @@ void RAUKF::Iterate(Timer &timer)
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
     int Ly = this->pmeasure->GetMeasureLength();
+
+    double lambda = alpha * alpha * (Lx + kappa) - Lx;
 
     PxyT.alloc(Lx * Ly);
     KT.alloc(Lx * Ly);

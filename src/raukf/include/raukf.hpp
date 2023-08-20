@@ -16,7 +16,6 @@ private:
     Measure *pmeasure;
 
     double alpha, beta, kappa;
-    double lambda;
 
     Type type;
 
@@ -24,6 +23,7 @@ protected:
 public:
     RAUKF();
 
+    void SetParameters(double alpha, double beta, double kappa);
     void SetModel(Model *pmodel);
     void UnsetModel();
     void SetType(Type type);

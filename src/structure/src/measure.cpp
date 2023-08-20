@@ -6,7 +6,7 @@ MeasureInfo::MeasureInfo() : length(0), linked(false) {}
 
 MeasureInfo::MeasureInfo(int length) : length(length), linked(false) {}
 
-Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
+Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size()), length(0)
 {
     if (count == 0)
     {
@@ -39,6 +39,16 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size())
     double *pHost = pointer.host();
     double *pcHost = covariancePointer.host();
     double *pnHost = noisePointer.host();
+    for (int j = 0; j < length; ++j)
+    {
+        pdHost[j] = 0.0;
+        pHost[j] = 0.0;
+        for (int i = 0; i < length; ++i)
+        {
+            pcHost[j * length + i] = 0.0;
+            pnHost[j * length + i] = 0.0;
+        }
+    }
     for (std::map<std::string, MeasureInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         if ((*i).second.linked)
@@ -132,7 +142,5 @@ void MeasureLoader::Remove(std::string name)
 
 Measure *MeasureLoader::Load()
 {
-    Measure *pmeasure = (Measure *)malloc(sizeof(Measure));
-    *pmeasure = Measure(info);
-    return pmeasure;
+    return new Measure(info);
 }

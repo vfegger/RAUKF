@@ -13,6 +13,8 @@ namespace MathGPU
     static cublasHandle_t cublasHandle;
     static cusolverDnHandle_t cusolverDnHandle;
 
+    // Vector Zero
+    void Zero(double* pv_o, int length);
     // Vector copy
     void Copy(double *pv_o, double *pv_i, int length);
 

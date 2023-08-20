@@ -7,6 +7,8 @@
 
 namespace Math
 {
+    // Vector Zero
+    void Zero(Pointer<double> v_o, int length, Type type);
     // Vector copy
     void Copy(Pointer<double> v_o, Pointer<double> v_i, int length, Type type);
 

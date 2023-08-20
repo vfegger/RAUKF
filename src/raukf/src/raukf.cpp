@@ -13,8 +13,8 @@ void RAUKF::UnsetModel()
 {
     if (this->pmodel != NULL)
     {
-        free(this->pstate);
-        free(this->pmeasure);
+        delete this->pstate;
+        delete this->pmeasure;
         this->pmodel = NULL;
     }
 }
@@ -57,6 +57,7 @@ void RAUKF::Iterate(Timer &timer)
     std::cout << "Calculate Cholesky Decomposition\n";
     Pointer<double> cd;
     cd.alloc(Lx * Lx);
+    Math::Zero(cd, Lx * Lx, type);
     Math::Mul(Pxx, Lx + lambda, Lx * Lx, type);
     Math::CholeskyDecomposition(cd, Pxx, Lx, type);
     timer.Record(type);

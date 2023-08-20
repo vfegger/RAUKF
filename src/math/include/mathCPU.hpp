@@ -8,6 +8,8 @@
 
 namespace MathCPU
 {
+    // Vector Zero
+    void Zero(double* pv_o, int length);
     // Vector copy
     void Copy(double *pv_o, double *pv_i, int length);
 

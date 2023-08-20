@@ -1,5 +1,11 @@
 #include "../include/mathCPU.hpp"
 
+void MathCPU::Zero(double *pv_o, int length){
+    for (int i = 0; i < length; ++i)
+    {
+        pv_o[i] = 0.0;
+    }
+}
 void MathCPU::Copy(double *pv_o, double *pv_i, int length)
 {
     for (int i = 0; i < length; ++i)
@@ -225,7 +231,7 @@ void MathCPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, 
     {
         return;
     }
-    double *pm = (double*)malloc(sizeof(double) * M * K);
+    double *pm = (double *)malloc(sizeof(double) * M * K);
     CholeskyDecomposition(pm, pmL_i, K);
 
     for (int k = 0; k < N; ++k)

@@ -20,7 +20,6 @@ protected:
     void EvaluateCPU(Measure *pmeasure, Data *pstate) override;
     void EvaluateGPU(Measure *pmeasure, Data *pstate) override;
 
-
 public:
     void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp);
     Data *GenerateData() override;

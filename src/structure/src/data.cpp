@@ -37,6 +37,15 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     double *pHost = pointer.host();
     double *pcHost = covariancePointer.host();
     double *pnHost = noisePointer.host();
+    for (int j = 0; j < length; ++j)
+    {
+        pHost[j] = 0.0;
+        for (int i = 0; i < length; ++i)
+        {
+            pcHost[j * length + i] = 0.0;
+            pnHost[j * length + i] = 0.0;
+        }
+    }
     for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         if ((*i).second.linked)
@@ -123,7 +132,5 @@ void DataLoader::Remove(std::string name)
 
 Data *DataLoader::Load()
 {
-    Data *pdata = (Data *)malloc(sizeof(Data));
-    *pdata = Data(info);
-    return pdata;
+    return new Data(info);
 }

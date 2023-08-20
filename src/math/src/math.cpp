@@ -1,5 +1,16 @@
 #include "../include/math.hpp"
 
+void Math::Zero(Pointer<double> v_o, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::Zero(v_o.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::Zero(v_o.dev(), length);
+    }
+}
 void Math::Copy(Pointer<double> v_o, Pointer<double> v_i, int length, Type type)
 {
     if (type == Type::CPU)

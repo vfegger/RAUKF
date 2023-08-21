@@ -31,6 +31,25 @@ void RAUKF::SetType(Type type)
     this->type = type;
 }
 
+void RAUKF::SetWeight()
+{
+    int Lx = this->pstate->GetStateLength();
+    int Ls = this->pstate->GetSigmaLength();
+    this->lambda = alpha * alpha * (Lx + kappa) - Lx;
+    wm.alloc(Ls);
+    wc.alloc(Ls);
+    double *pwmhost = wm.host();
+    double *pwchost = wc.host();
+    pwmhost[0] = lambda / (Lx + lambda);
+    pwchost[0] = lambda / (Lx + lambda) + 1 - alpha * alpha + beta;
+    for (int i = 1; i < Ls; ++i)
+    {
+        pwmhost[i] = pwchost[1] = 1 / (2 * (Lx + lambda));
+    }
+    wm.copyHost2Dev(Ls);
+    wc.copyHost2Dev(Ls);
+}
+
 void RAUKF::Iterate(Timer &timer)
 {
     timer.Record(type);
@@ -96,9 +115,9 @@ void RAUKF::Iterate(Timer &timer)
     Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
     Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);
 
-    Math::MatMulNT(0.0, Pxx, 1.0, xs, xs, Lx, Ls, Lx, type);
-    Math::MatMulNT(0.0, Pyy, 1.0, ys, ys, Ly, Ls, Ly, type);
-    Math::MatMulNT(0.0, PxyT, 1.0, ys, xs, Ly, Ls, Lx, type);
+    Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);
+    Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
+    Math::MatMulNWT(0.0, PxyT, 1.0, ys, xs, wc, Ly, Ls, Lx, type);
     Math::Add(Pxx, Q, Lx * Lx, type);
     Math::Add(Pyy, R, Ly * Ly, type);
     timer.Record(type);

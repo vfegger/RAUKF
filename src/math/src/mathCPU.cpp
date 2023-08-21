@@ -1,6 +1,7 @@
 #include "../include/mathCPU.hpp"
 
-void MathCPU::Zero(double *pv_o, int length){
+void MathCPU::Zero(double *pv_o, int length)
+{
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = 0.0;
@@ -95,6 +96,31 @@ void MathCPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, d
     }
     free(auxL);
 }
+void MathCPU::MatMulNWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    double *auxL = (double *)malloc(sizeof(double) * M * K);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            auxL[i * K + j] = pw_i[j] * pmL_i[j * M + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+    free(auxL);
+}
 void MathCPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     double *auxL = (double *)malloc(sizeof(double) * M * K);
@@ -105,6 +131,40 @@ void MathCPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, d
         for (int i = 0; i < M; ++i)
         {
             auxL[i * K + j] = pmL_i[j * M + i];
+        }
+    }
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            auxR[i * K + j] = pmR_i[j * N + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += auxL[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+    free(auxR);
+    free(auxL);
+}
+void MathCPU::MatMulNWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    double *auxL = (double *)malloc(sizeof(double) * M * K);
+    double *auxR = (double *)malloc(sizeof(double) * K * N);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            auxL[i * K + j] = pw_i[j] * pmL_i[j * M + i];
         }
     }
     for (int j = 0; j < K; ++j)
@@ -145,6 +205,22 @@ void MathCPU::MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, d
         }
     }
 }
+void MathCPU::MatMulTWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    double acc;
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += pw_i[k] * pmL_i[i * K + k] * pmR_i[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+}
 void MathCPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     double *auxR = (double *)malloc(sizeof(double) * K * N);
@@ -154,6 +230,31 @@ void MathCPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, d
         for (int i = 0; i < N; ++i)
         {
             auxR[i * K + j] = pmR_i[j * N + i];
+        }
+    }
+    for (int j = 0; j < N; ++j)
+    {
+        for (int i = 0; i < M; ++i)
+        {
+            acc = 0.0;
+            for (int k = 0; k < K; ++k)
+            {
+                acc += pmL_i[i * K + k] * auxR[j * K + k];
+            }
+            pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
+        }
+    }
+    free(auxR);
+}
+void MathCPU::MatMulTWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    double *auxR = (double *)malloc(sizeof(double) * K * N);
+    double acc;
+    for (int j = 0; j < K; ++j)
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            auxR[i * K + j] = pw_i[j] * pmR_i[j * N + i];
         }
     }
     for (int j = 0; j < N; ++j)
@@ -182,9 +283,24 @@ void MathCPU::Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ)
         {
             pv_o[i] += pm_i[j * lengthI + i];
         }
+    }
+    double w = 1.0 / lengthJ;
+    for (int i = 0; i < lengthI; ++i)
+    {
+        pv_o[i] *= w;
+    }
+}
+void MathCPU::Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ)
+{
+    for (int i = 0; i < lengthI; ++i)
+    {
+        pv_o[i] = 0.0;
+    }
+    for (int j = 0; j < lengthJ; ++j)
+    {
         for (int i = 0; i < lengthI; ++i)
         {
-            pv_o[i] *= 1.0 / lengthJ;
+            pv_o[i] += pw_i[j] * pm_i[j * lengthI + i];
         }
     }
 }

@@ -16,6 +16,8 @@ private:
     Measure *pmeasure;
 
     double alpha, beta, kappa;
+    double lambda;
+    Pointer<double> wm, wc;
 
     Type type;
 
@@ -27,6 +29,7 @@ public:
     void SetModel(Model *pmodel);
     void UnsetModel();
     void SetType(Type type);
+    void SetWeight();
 
     void Iterate(Timer &timer);
 };

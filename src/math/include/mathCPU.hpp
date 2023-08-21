@@ -33,15 +33,25 @@ namespace MathCPU
 
     // Matrix Multiplication Natural (Line) x Natural (Column)
     void MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N);
+    // Matrix Multiplication Natural (Line) x Weight x Natural (Column)
+    void MatMulNWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N);
     // Matrix Multiplication Natural (Line) x Transposed (Line)
     void MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N);
+    // Matrix Multiplication Natural (Line) x Weight x Transposed (Line)
+    void MatMulNWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N);
     // Matrix Multiplication Transposed (Column) x Natural (Column)
     void MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N);
+    // Matrix Multiplication Transposed (Column) x Weight x Natural (Column)
+    void MatMulTWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N);
     // Matrix Multiplication Transposed (Column) x Transposed (Line)
     void MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N);
+    // Matrix Multiplication Transposed (Column) x Weight x Transposed (Line)
+    void MatMulTWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N);
 
     // Mean Operation
     void Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ);
+    // Mean with Weights Operation
+    void Mean(double *pv_o, double *pm_i, double* pw_i, int lengthI, int lengthJ);
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation

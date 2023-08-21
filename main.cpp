@@ -22,6 +22,8 @@ int main()
     raukf.SetModel(&hfe);
     raukf.SetType(Type::CPU);
 
+    raukf.SetWeight();
+
     for (int i = 0; i < Lt; i++)
     {
         raukf.Iterate(timer);

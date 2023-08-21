@@ -148,7 +148,8 @@ __global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsi
     }
 }
 
-void MathGPU::Zero(double *pv_o, int length){
+void MathGPU::Zero(double *pv_o, int length)
+{
     cudaMemset(pv_o, 0, sizeof(double) * length);
 }
 void MathGPU::Copy(double *pv_o, double *pv_i, int length)
@@ -208,7 +209,15 @@ void MathGPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, d
 {
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
 }
+void MathGPU::MatMulNWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
+}
 void MathGPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
+{
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
+}
+void MathGPU::MatMulNWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
 {
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
 }
@@ -216,11 +225,25 @@ void MathGPU::MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, d
 {
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
 }
+void MathGPU::MatMulTWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
+}
 void MathGPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
 }
+void MathGPU::MatMulTWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
+{
+    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
+}
 void MathGPU::Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ)
+{
+    dim3 T(THREAD_COUNT);
+    dim3 B(lengthJ);
+    CUDA_Mean<THREAD_COUNT><<<B, T, THREAD_COUNT * sizeof(double), 0>>>(pv_o, pm_i, lengthI, lengthJ);
+}
+void MathGPU::Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(lengthJ);

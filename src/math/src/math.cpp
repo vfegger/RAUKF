@@ -121,6 +121,17 @@ void Math::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<doub
         MathGPU::MatMulNN(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), M, K, N);
     }
 }
+void Math::MatMulNWN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, Pointer<double> w_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulNWN(beta, m_o.host(), alpha, mL_i.host(), mR_i.host(), w_i.host(), M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulNWN(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), w_i.host(), M, K, N);
+    }
+}
 void Math::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
 {
     if (type == Type::CPU)
@@ -130,6 +141,17 @@ void Math::MatMulNT(double beta, Pointer<double> m_o, double alpha, Pointer<doub
     else if (type == Type::GPU)
     {
         MathGPU::MatMulNT(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), M, K, N);
+    }
+}
+void Math::MatMulNWT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, Pointer<double> w_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulNWT(beta, m_o.host(), alpha, mL_i.host(), mR_i.host(), w_i.host(), M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulNWT(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), w_i.dev(), M, K, N);
     }
 }
 void Math::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
@@ -143,6 +165,17 @@ void Math::MatMulTN(double beta, Pointer<double> m_o, double alpha, Pointer<doub
         MathGPU::MatMulTN(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), M, K, N);
     }
 }
+void Math::MatMulTWN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, Pointer<double> w_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulTWN(beta, m_o.host(), alpha, mL_i.host(), mR_i.host(), w_i.host(), M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulTWN(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), w_i.dev(), M, K, N);
+    }
+}
 void Math::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
 {
     if (type == Type::CPU)
@@ -152,6 +185,17 @@ void Math::MatMulTT(double beta, Pointer<double> m_o, double alpha, Pointer<doub
     else if (type == Type::GPU)
     {
         MathGPU::MatMulTT(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), M, K, N);
+    }
+}
+void Math::MatMulTWT(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, Pointer<double> w_i, int M, int K, int N, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::MatMulTWT(beta, m_o.host(), alpha, mL_i.host(), mR_i.host(), w_i.host(), M, K, N);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::MatMulTWT(beta, m_o.dev(), alpha, mL_i.dev(), mR_i.dev(), w_i.dev(), M, K, N);
     }
 }
 void Math::Iterate(void (*op_i)(Pointer<double> v_io, Pointer<double> v_i, int length, Type type), Pointer<double> m_io, Pointer<double> m_i, int length, int iteration, int stride_io, int stride_i, int offset_io, int offset_i, Type type)
@@ -191,6 +235,17 @@ void Math::Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengt
     else if (type == Type::GPU)
     {
         MathGPU::Mean(v_o.dev(), m_i.dev(), lengthI, lengthJ);
+    }
+}
+void Math::Mean(Pointer<double> v_o, Pointer<double> m_i, Pointer<double> w_i, int lengthI, int lengthJ, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::Mean(v_o.host(), m_i.host(), w_i.host(), lengthI, lengthJ);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::Mean(v_o.dev(), m_i.dev(), w_i.dev(), lengthI, lengthJ);
     }
 }
 bool Math::Compare(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)

@@ -107,8 +107,8 @@ void RAUKF::Iterate(Timer &timer)
 
     // Calculate new mean and covariance for the state and measure
     std::cout << "Mean\n";
-    Math::Mean(x, xs, Lx, Ls, type);
-    Math::Mean(y, ys, Ly, Ls, type);
+    Math::Mean(x, xs, wm, Lx, Ls, type);
+    Math::Mean(y, ys, wm, Ly, Ls, type);
     timer.Record(type);
 
     std::cout << "Covariance\n";

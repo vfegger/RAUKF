@@ -75,7 +75,8 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
     }
 }
 
-void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp){
+void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+{
     parms.Lx = Lx;
     parms.Ly = Ly;
     parms.Lz = Lz;
@@ -89,6 +90,54 @@ void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double 
     parms.dz = Sz / Lz;
     parms.dt = St / Lt;
     parms.amp = amp;
+}
+
+void HFE::SetMemory(Type type)
+{
+    if (type == Type::CPU)
+    {
+#if FORWARD_METHOD == 0
+        HC::CPU::AllocWorkspaceEuler(workspace, parms);
+#elif FORWARD_METHOD == 1
+        HC::CPU::AllocWorkspaceRK4(workspace, parms);
+#elif FORWARD_METHOD == 2
+        HC::CPU::AllocWorkspaceRKF45(workspace, parms);
+#endif
+    }
+    else if (type == Type::GPU)
+    {
+#if FORWARD_METHOD == 0
+        // HC::GPU::AllocWorkspaceEuler(workspace, parms);
+#elif FORWARD_METHOD == 1
+        // HC::GPU::AllocWorkspaceRK4(workspace, parms);
+#elif FORWARD_METHOD == 2
+        // HC::GPU::AllocWorkspaceRKF45(workspace, parms);
+#endif
+    }
+}
+
+void HFE::UnsetMemory(Type type)
+{
+    if (type == Type::CPU)
+    {
+#if FORWARD_METHOD == 0
+        HC::CPU::AllocWorkspaceEuler(workspace, parms);
+#elif FORWARD_METHOD == 1
+        HC::CPU::AllocWorkspaceRK4(workspace, parms);
+#elif FORWARD_METHOD == 2
+        HC::CPU::FreeWorkspaceRKF45(workspace);
+#endif
+    }
+    else if (type == Type::GPU)
+    {
+#if FORWARD_METHOD == 0
+        // HC::GPU::AllocWorkspaceEuler(workspace, parms);
+#elif FORWARD_METHOD == 1
+        // HC::GPU::AllocWorkspaceRK4(workspace, parms);
+#elif FORWARD_METHOD == 2
+        // HC::GPU::AllocWorkspaceRKF45(workspace, parms);
+#endif
+    }
 }
 
 Data *HFE::GenerateData()

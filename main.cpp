@@ -17,6 +17,7 @@ int main()
     RAUKF raukf;
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfe.SetMemory(Type::CPU);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
@@ -30,5 +31,6 @@ int main()
     }
 
     raukf.UnsetModel();
+    hfe.UnsetMemory(Type::CPU);
     return 0;
 }

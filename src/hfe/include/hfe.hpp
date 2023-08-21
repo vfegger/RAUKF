@@ -22,6 +22,8 @@ protected:
 
 public:
     void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp);
+    void SetMemory(Type type);
+    void UnsetMemory(Type type);
     Data *GenerateData() override;
     Measure *GenerateMeasure() override;
 };

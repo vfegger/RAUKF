@@ -265,7 +265,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     auxT = K + 6 * L;
     auxQ = auxT + Lxyz;
     auxT_5 = auxQ + Lxy;
-    auxQ_5 = auxT + Lxyz;
+    auxQ_5 = auxT_5 + Lxyz;
 
     double h, hacc;
     h = dt;
@@ -290,7 +290,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
         double e = TOL8_CPU / (2.0 * sqrt(acc) + 1e-3 * TOL8_CPU);
         double alpha = sqrt(sqrt(e));
-        if (e > 1.0 || h < 1e-3 * dt)
+        if (alpha > 1.0 || h < 1e-3 * dt)
         {
             hacc += h;
             h = dt - hacc;
@@ -305,7 +305,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
         else
         {
-            h = e * h;
+            h = alpha * h;
         }
     } while (dt - hacc > 0);
     parms.dt = dt;

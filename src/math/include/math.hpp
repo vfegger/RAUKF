@@ -74,6 +74,11 @@ namespace Math
     // Diagonalization Operation
     void Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type);
 
+    // LUP Decomposition
+    void LUPDecomposition(Pointer<double> m_io, int length, Pointer<int> P, Type type);
+    // Solve Linear System with LUP
+    void LUPSolver(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type);
+
     // Cholesky Decomposition
     void CholeskyDecomposition(Pointer<double> m_o, Pointer<double> m_i, int length, Type type);
     // Solve Linear System

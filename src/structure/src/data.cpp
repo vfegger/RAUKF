@@ -34,9 +34,11 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     pointer.alloc(length);
     covariancePointer.alloc(length * length);
     noisePointer.alloc(length * length);
+    instances.alloc((2 * length + 1) * length);
     double *pHost = pointer.host();
     double *pcHost = covariancePointer.host();
     double *pnHost = noisePointer.host();
+    double *piHost = instances.host();
     for (int j = 0; j < length; ++j)
     {
         pHost[j] = 0.0;
@@ -46,14 +48,21 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
             pnHost[j * length + i] = 0.0;
         }
     }
+    for (int j = 0; j < 2 * length + 1; ++j)
+    {
+        for (int i = 0; i < length; ++i)
+        {
+            piHost[j * length + i] = 0.0;
+        }
+    }
     for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         if ((*i).second.linked)
         {
             int ii = index[(*i).first];
             double *aux0 = pHost + offset[ii];
-            double *aux1 = pcHost + offset[ii];
-            double *aux2 = pnHost + offset[ii];
+            double *aux1 = pcHost + offset2[ii];
+            double *aux2 = pnHost + offset2[ii];
             for (int j = 0; j < lengthPerOffset[ii]; j++)
             {
                 aux0[j] = (*i).second.data[j];
@@ -69,7 +78,6 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     pointer.copyHost2Dev(length);
     covariancePointer.copyHost2Dev(length * length);
     noisePointer.copyHost2Dev(length * length);
-    instances.alloc((2 * length + 1) * length);
 }
 
 Pointer<double> Data::GetStatePointer()
@@ -87,9 +95,41 @@ Pointer<double> Data::GetStateNoisePointer()
     return noisePointer;
 }
 
+void Data::GetStateData(std::string name, double *data)
+{
+    int ii = index[name];
+    double *pHost = (pointer.host() + offset[ii]);
+    int l = lengthPerOffset[ii];
+    for (int i = 0; i < l; ++i)
+    {
+        data[i] = pHost[i];
+    }
+}
+
+void Data::GetStateCovarianceData(std::string name, double *data)
+{
+    int ii = index[name];
+    double *pHost = (covariancePointer.host() + offset2[ii]);
+    int l = lengthPerOffset[ii];
+    for (int i = 0; i < l; ++i)
+    {
+        data[i] = pHost[i * length + i];
+    }
+}
+
 Pointer<double> Data::GetInstances()
 {
     return instances;
+}
+
+void Data::SetInstances()
+{
+    instances.alloc((2 * length + 1) * length);
+}
+
+void Data::UnsetInstances()
+{
+    instances.free();
 }
 
 int Data::GetStateLength()

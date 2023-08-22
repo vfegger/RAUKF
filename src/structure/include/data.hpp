@@ -39,6 +39,10 @@ public:
     Pointer<double> GetStateCovariancePointer();
     Pointer<double> GetStateNoisePointer();
     Pointer<double> GetInstances();
+    void GetStateData(std::string name, double* data);
+    void GetStateCovarianceData(std::string name, double* data);
+    void SetInstances();
+    void UnsetInstances();
     int GetStateLength();
     int GetSigmaLength();
     int GetOffset(std::string name);

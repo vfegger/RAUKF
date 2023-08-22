@@ -11,18 +11,33 @@ void RAUKF::SetParameters(double alpha, double beta, double kappa)
 
 void RAUKF::SetModel(Model *pmodel)
 {
-    this->pmodel = pmodel;
-    this->pstate = pmodel->GenerateData();
-    this->pmeasure = pmodel->GenerateMeasure();
+    if (this->pmodel == NULL)
+    {
+        this->pmodel = pmodel;
+        this->pstate = pmodel->GenerateData();
+        this->pmeasure = pmodel->GenerateMeasure();
+        pstate->SetInstances();
+        pmeasure->SetInstances(this->pstate->GetStateLength());
+    }
+    else
+    {
+        std::cout << "Error: Model is not NULL";
+    }
 }
 
 void RAUKF::UnsetModel()
 {
     if (this->pmodel != NULL)
     {
+        pmeasure->UnsetInstances();
+        pstate->UnsetInstances();
         delete this->pstate;
         delete this->pmeasure;
         this->pmodel = NULL;
+    }
+    else
+    {
+        std::cout << "Error: Model is NULL";
     }
 }
 
@@ -44,10 +59,25 @@ void RAUKF::SetWeight()
     pwchost[0] = lambda / (Lx + lambda) + 1 - alpha * alpha + beta;
     for (int i = 1; i < Ls; ++i)
     {
-        pwmhost[i] = pwchost[1] = 1 / (2 * (Lx + lambda));
+        pwmhost[i] = pwchost[i] = 1 / (2 * (Lx + lambda));
     }
     wm.copyHost2Dev(Ls);
     wc.copyHost2Dev(Ls);
+}
+
+void RAUKF::SetMeasure(std::string name, double *data)
+{
+    this->pmeasure->SetMeasureData(name, data);
+}
+
+void RAUKF::GetState(std::string name, double *data)
+{
+    this->pstate->GetStateData(name, data);
+}
+
+void RAUKF::GetStateCovariance(std::string name, double *data)
+{
+    this->pstate->GetStateCovarianceData(name, data);
 }
 
 void RAUKF::Iterate(Timer &timer)
@@ -63,7 +93,7 @@ void RAUKF::Iterate(Timer &timer)
     Pointer<double> y = this->pmeasure->GetMeasurePointer();
     Pointer<double> Pyy = this->pmeasure->GetMeasureCovariancePointer();
     Pointer<double> ys = this->pmeasure->GetInstances();
-    Pointer<double> ym = this->pmeasure->GetMeasurePointer();
+    Pointer<double> ym = this->pmeasure->GetMeasureData();
     Pointer<double> R = this->pmeasure->GetMeasureNoisePointer();
 
     Pointer<double> PxyT;
@@ -123,7 +153,7 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Kalman gain calculation by solving: Pyy * (K^T) = Pxy^T
-    Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
+    Math::LUPSolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
 
     // State Update
@@ -136,4 +166,10 @@ void RAUKF::Iterate(Timer &timer)
     Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
     Math::MatMulNN(1.0, Pxx, 1.0, PxyT, KT, Lx, Ly, Ly, type);
     timer.Record(type);
+
+    if (type == Type::GPU)
+    {
+        x.copyDev2Host(Lx);
+        Pxx.copyDev2Host(Lx * Lx);
+    }
 }

@@ -10,11 +10,11 @@ void HFE::EvolveCPU(Data *pstate)
     for (int s = 0; s < Lsigma; ++s)
     {
 #if FORWARD_METHOD == 0
-        HC::CPU::Euler(pinstance + offsetT, pinstance + offsetQ, workspace, parms);
+        HC::CPU::Euler(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #elif FORWARD_METHOD == 1
-        HC::CPU::RK4(pinstance + offsetT, pinstance + offsetQ, workspace, parms);
+        HC::CPU::RK4(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #elif FORWARD_METHOD == 2
-        HC::CPU::RKF45(pinstance + offsetT, pinstance + offsetQ, workspace, parms);
+        HC::CPU::RKF45(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #endif
     }
 }
@@ -45,7 +45,7 @@ void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
     {
         double *T = psinstance + Lstate * i + offsetT;
         double *Q = psinstance + Lstate * i + offsetQ;
-        double *Tm = pminstance + Lstate * i + offsetQ;
+        double *Tm = pminstance + Lmeasure * i + offsetTm;
         // Received Heat Flux
         for (int j = 0; j < parms.Ly; ++j)
         {

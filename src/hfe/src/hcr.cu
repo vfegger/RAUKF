@@ -1,4 +1,4 @@
-#include "../include/hc.hpp"
+#include "../include/hcr.hpp"
 
 __host__ __device__ inline double C(double T_i)
 {
@@ -17,7 +17,7 @@ __host__ __device__ inline double DiffK(double TN_in, double T_in, double TP_in,
     return (auxN + auxP) / delta_in;
 }
 
-void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
+void HCR::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCRParms &parms)
 {
     int index, offset;
     double T0, TiN, TiP, TjN, TjP, TkN, TkP;
@@ -60,6 +60,29 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
             dT[offset + index] += (amp / dz) * Q[index];
         }
     }
+    // Radiation Emission
+    offset = 0;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            index = j * Lx + i;
+            double temp = T[offset + index] * T[offset + index];
+            double dA = dx * dy;
+            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp * dA;
+        }
+    }
+    offset = (Lz - 1) * Lxy;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            index = j * Lx + i;
+            double temp = T[offset + index] * T[offset + index];
+            double dA = dx * dy;
+            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp * dA;
+        }
+    }
     // Retrieves the temporal derivative of the temperature
     for (int k = 0; k < Lz; ++k)
     {
@@ -84,17 +107,17 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     }
 }
 
-void HC::CPU::AllocWorkspaceEuler(double *&workspace, HCParms &parms)
+void HCR::CPU::AllocWorkspaceEuler(double *&workspace, HCRParms &parms)
 {
     workspace = (double *)malloc(sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
 
-void HC::CPU::FreeWorkspaceEuler(double *workspace)
+void HCR::CPU::FreeWorkspaceEuler(double *workspace)
 {
     free(workspace);
 }
 
-void HC::CPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
+void HCR::CPU::Euler(double *T, double *Q, double *workspace, HCRParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
     int Lxyz = Lxy * parms.Lz;
@@ -112,17 +135,17 @@ void HC::CPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
     }
 }
 
-void HC::CPU::AllocWorkspaceRK4(double *&workspace, HCParms &parms)
+void HCR::CPU::AllocWorkspaceRK4(double *&workspace, HCRParms &parms)
 {
     workspace = (double *)malloc(5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
 
-void HC::CPU::FreeWorkspaceRK4(double *workspace)
+void HCR::CPU::FreeWorkspaceRK4(double *workspace)
 {
     free(workspace);
 }
 
-void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
+void HCR::CPU::RK4(double *T, double *Q, double *workspace, HCRParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
     int Lxyz = Lxy * parms.Lz;
@@ -187,12 +210,12 @@ void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
     }
 }
 
-void HC::CPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)
+void HCR::CPU::AllocWorkspaceRKF45(double *&workspace, HCRParms &parms)
 {
     workspace = (double *)malloc(8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
 
-void HC::CPU::FreeWorkspaceRKF45(double *workspace)
+void HCR::CPU::FreeWorkspaceRKF45(double *workspace)
 {
     free(workspace);
 }
@@ -202,7 +225,7 @@ inline int bI(int i)
     return (i * i - i) / 2;
 }
 
-void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref1, double *ref2, int L1, int L2, HC::HCParms &parms)
+void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref1, double *ref2, int L1, int L2, HCR::HCRParms &parms)
 {
     int L = L1 + L2;
     for (int d = 0; d < n; ++d)
@@ -228,7 +251,7 @@ void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, do
                 aux01[i] += B[bI(d) + j] * h * K_j[L1 + i];
             }
         }
-        HC::CPU::Diff(K_d, K_d + L1, aux00, aux01, parms);
+        HCR::CPU::Diff(K_d, K_d + L1, aux00, aux01, parms);
     }
     for (int i = 0; i < L1; ++i)
     {
@@ -254,7 +277,7 @@ void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, do
     }
 }
 
-void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
+void HCR::CPU::RKF45(double *T, double *Q, double *workspace, HCRParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
     int Lxyz = Lxy * parms.Lz;

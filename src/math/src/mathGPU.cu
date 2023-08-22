@@ -265,6 +265,12 @@ void MathGPU::Diag(double *pv_o, double *pm_i, int length)
 {
     cublasDcopy(cublasHandle, length, pm_i, length + 1, pv_o, 1);
 }
+void MathGPU::LUPDecomposition(double *pm_io, int length, int *pP)
+{
+}
+void MathGPU::LUPSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
+{
+}
 void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {
     int size = 0;

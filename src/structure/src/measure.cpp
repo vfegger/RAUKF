@@ -92,6 +92,16 @@ Pointer<double> Measure::GetInstances()
     return instances;
 }
 
+void Measure::SetInstances(int stateLength)
+{
+    instances.alloc((2 * stateLength + 1) * length);
+}
+
+void Measure::UnsetInstances()
+{
+    instances.free();
+}
+
 int Measure::GetMeasureLength()
 {
     return length;

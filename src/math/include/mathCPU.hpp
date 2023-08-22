@@ -9,7 +9,7 @@
 namespace MathCPU
 {
     // Vector Zero
-    void Zero(double* pv_o, int length);
+    void Zero(double *pv_o, int length);
     // Vector copy
     void Copy(double *pv_o, double *pv_i, int length);
 
@@ -51,15 +51,20 @@ namespace MathCPU
     // Mean Operation
     void Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ);
     // Mean with Weights Operation
-    void Mean(double *pv_o, double *pm_i, double* pw_i, int lengthI, int lengthJ);
+    void Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ);
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation
     void Diag(double *pv_o, double *pm_i, int length);
 
+    // LUP Decomposition
+    void LUPDecomposition(double *pm_io, int length, int *pP);
+    // Solve Linear System with LUP
+    void LUPSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
+
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);
-    // Solve Linear System
+    // Solve Linear System with Cholesky
     void CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
 }
 

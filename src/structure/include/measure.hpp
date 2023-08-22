@@ -38,6 +38,8 @@ public:
     Pointer<double> GetMeasureCovariancePointer();
     Pointer<double> GetMeasureNoisePointer();
     Pointer<double> GetInstances();
+    void SetInstances(int length);
+    void UnsetInstances();
     int GetMeasureLength();
     int GetOffset(std::string name);
     int GetOffset2(std::string name);
@@ -56,7 +58,7 @@ public:
     void Add(std::string name, int length);
     void Link(std::string name, double *noiseData);
     void Remove(std::string name);
-    Measure* Load();
+    Measure *Load();
 };
 
 #endif

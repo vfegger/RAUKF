@@ -2,6 +2,8 @@
 #include "./src/hfe/include/hcr.hpp"
 #include "./src/raukf/include/raukf.hpp"
 
+#include <fstream>
+
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
     double *workspace;
@@ -76,8 +78,22 @@ int main()
         raukf.Iterate(timer);
         raukf.GetState("Temperature", resultT);
         raukf.GetState("Heat Flux", resultQ);
-        raukf.GetState("Temperature", resultCovarT);
-        raukf.GetState("Heat Flux", resultCovarQ);
+        raukf.GetStateCovariance("Temperature", resultCovarT);
+        raukf.GetStateCovariance("Heat Flux", resultCovarQ);
+        std::ofstream outFile;
+        outFile.open("data/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
+        if (outFile.is_open())
+        {
+            double resultTime = (i + 1) * Sx / Lt;
+            outFile.write((char *)(&resultTime), sizeof(double));
+            outFile.write((char *)resultT, sizeof(double) * Lx * Ly * Lz);
+            outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly * Lz);
+            outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+        }
+        outFile.close();
+        outFile.open("data/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
+        outFile.close();
     }
 
     raukf.UnsetModel();

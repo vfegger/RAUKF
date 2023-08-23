@@ -412,10 +412,6 @@ void MathCPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
         {
             sum += pm_o[k * length + j] * pm_o[k * length + j];
         }
-        if (pm_i[j * length + j] < sum)
-        {
-            return;
-        }
         pm_o[j * length + j] = sqrt(pm_i[j * length + j] - sum);
         for (int i = j + 1; i < length; ++i)
         {

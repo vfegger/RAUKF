@@ -318,79 +318,45 @@ void MathCPU::Diag(double *pv_o, double *pm_i, int length)
         pv_o[i] = pm_i[i * length + i];
     }
 }
-void MathCPU::LUPDecomposition(double *pm_io, int length, int *pP)
+void MathCPU::LUDecomposition(double *pm_o, double *pm_i, int length)
 {
-    int i, j, k, imax;
-    double maxA, aux, absA;
-
-    for (i = 0; i < length; ++i)
-        pP[i] = i; // Unit permutation matrix, P[N] initialized with N
-
-    for (i = 0; i < length; i++)
+    for (int i = 0; i < length * length; ++i)
     {
-        maxA = 0.0;
-        imax = i;
+        pm_o[i] = pm_i[i];
+    }
 
-        for (k = i; k < length; ++k)
-            if ((absA = fabs(pm_io[i * length + k])) > maxA)
-            {
-                maxA = absA;
-                imax = k;
-            }
-
-        if (maxA < TOL8_CPU)
+    for (int j = 0; j < length; ++j)
+    {
+        for (int i = j + 1; i < length; ++i)
         {
-            return; // failure, matrix is degenerate
-        }
-        if (imax != i)
-        {
-            j = pP[i];
-            pP[i] = pP[imax];
-            pP[imax] = j;
-            for (k = 0; k < length; ++k)
+            double aux = pm_o[j * length + i] / pm_o[j * length + j];
+            for (int k = j + 1; k < length; k++)
             {
-                aux = pm_io[k * length + i];
-                pm_io[k * length + i] = pm_io[k * length + imax];
-                pm_io[k * length + imax] = aux;
+                pm_o[i * length + k] -= aux * pm_o[j * length + k];
             }
-        }
-
-        for (j = i + 1; j < length; j++)
-        {
-            pm_io[j * length + i] /= pm_io[i * length + i];
-
-            for (k = i + 1; k < length; k++)
-            {
-                pm_io[j * length + k] -= pm_io[j * length + i] * pm_io[i * length + k];
-            }
+            pm_o[j * length + i] = aux;
         }
     }
 }
-void MathCPU::LUPSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
+void MathCPU::LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     if (M != K)
     {
         return;
     }
     double *pm = (double *)malloc(sizeof(double) * M * K);
-    int *P = (int *)malloc(sizeof(double) * K);
-    for (int i = 0; i < M * K; ++i)
-    {
-        pm[i] = pmL_i[i];
-    }
-    LUPDecomposition(pm, K, P);
+    LUDecomposition(pm, pmL_i, K);
 
     for (int j = 0; j < N; ++j)
     {
         for (int i = 0; i < K; i++)
         {
-            pm_o[j * K + i] = pmR_i[j * K + P[i]];
+            pm_o[j * K + i] = pmR_i[j * K + i];
             for (int k = 0; k < i; k++)
             {
                 pm_o[j * K + i] -= pm[i * K + k] * pm_o[j * K + k];
             }
         }
-
         for (int i = K - 1; i >= 0; i--)
         {
             for (int k = i + 1; k < K; k++)
@@ -400,7 +366,6 @@ void MathCPU::LUPSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K
             pm_o[j * K + i] /= pm[i * K + i];
         }
     }
-    free(P);
     free(pm);
 }
 void MathCPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)

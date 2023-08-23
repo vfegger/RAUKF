@@ -153,7 +153,7 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Kalman gain calculation by solving: Pyy * (K^T) = Pxy^T
-    Math::LUPSolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
+    Math::LUSolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
 
     // State Update

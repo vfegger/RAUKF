@@ -58,9 +58,9 @@ namespace MathCPU
     void Diag(double *pv_o, double *pm_i, int length);
 
     // LUP Decomposition
-    void LUPDecomposition(double *pm_io, int length, int *pP);
+    void LUDecomposition(double *pm_o, double *pm_i, int length);
     // Solve Linear System with LUP
-    void LUPSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
+    void LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
 
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);

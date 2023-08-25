@@ -66,6 +66,7 @@ void RAUKF::SetWeight()
     }
     wm.copyHost2Dev(Ls);
     wc.copyHost2Dev(Ls);
+    cudaDeviceSynchronize();
 }
 
 void RAUKF::SetMeasure(std::string name, double *data)
@@ -104,6 +105,7 @@ void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
 
 void RAUKF::Iterate(Timer &timer)
 {
+    cudaError_t stat = cudaSuccess;
     timer.Record(type);
 
     // Initialization of variables
@@ -146,13 +148,17 @@ void RAUKF::Iterate(Timer &timer)
     Math::Iterate(Math::Copy, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
     Math::Iterate(Math::Add, xs, cd, Lx, Lx, Lx, Lx, Lx, 0, type);
     Math::Iterate(Math::Sub, xs, cd, Lx, Lx, Lx, Lx, Lx * (Lx + 1), 0, type);
-
     cd.free();
+
+    xs.copyDev2Host(Lx * Ls);
+
     timer.Record(type);
     // Evolve and Measure each state given by each sigma point
     std::cout << "Evolution Step\n";
     pmodel->Evolve(pstate, type);
-    timer.Record(type);
+
+    xs.copyDev2Host(Lx * Ls);
+
     std::cout << "Evaluation Step\n";
     pmodel->Evaluate(pmeasure, pstate, type);
     timer.Record(type);
@@ -175,6 +181,7 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Kalman gain calculation by solving: Pyy * (K^T) = Pxy^T
+    std::cout << "Kalman Gain\n";
     Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
 
@@ -186,14 +193,15 @@ void RAUKF::Iterate(Timer &timer)
 
     std::cout << "State Covariance Update\n";
     Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
-    Math::MatMulNN(1.0, Pxx, 1.0, PxyT, KT, Lx, Ly, Ly, type);
+    Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
     timer.Record(type);
 
+    KT.free();
+    PxyT.free();
     if (type == Type::GPU)
     {
         x.copyDev2Host(Lx);
         Pxx.copyDev2Host(Lx * Lx);
-    }
-    if (type == Type::GPU)
         cudaDeviceSynchronize();
+    }
 }

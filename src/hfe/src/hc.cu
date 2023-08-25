@@ -338,7 +338,7 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
     {
         Ts[thread - tStrideX] = (xIndex == 0) ? temp : T[index - 1u];
     }
-    if (threadIdx.x == min(Lx - blockIdx.x * blockDim.x, blockDim.x))
+    if (threadIdx.x == min(Lx - blockIdx.x * blockDim.x, blockDim.x) - 1)
     {
         Ts[thread + tStrideX] = (xIndex == Lx - 1) ? temp : T[index + 1u];
     }
@@ -347,7 +347,7 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
     {
         Ts[thread - tStrideY] = (yIndex == 0) ? temp : T[index - Lx];
     }
-    if (threadIdx.x == min(Ly - blockIdx.y * blockDim.y, blockDim.y))
+    if (threadIdx.y == min(Ly - blockIdx.y * blockDim.y, blockDim.y) - 1)
     {
         Ts[thread + tStrideY] = (yIndex == Ly - 1) ? temp : T[index + Lx];
     }
@@ -356,15 +356,17 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
     {
         Ts[thread - tStrideZ] = (zIndex == 0) ? temp : T[index - Lx * Ly];
     }
-    if (threadIdx.x == min(Lz - blockIdx.z * blockDim.z, blockDim.z))
+    if (threadIdx.z == min(Lz - blockIdx.z * blockDim.z, blockDim.z) - 1)
     {
         Ts[thread + tStrideZ] = (zIndex == Lz - 1) ? temp : T[index + Lx * Ly];
     }
     __syncthreads();
 
+    double aux = DiffK(Ts[thread - tStrideX], Ts[thread], Ts[thread + tStrideX], dx) + DiffK(Ts[thread - tStrideY], Ts[thread], Ts[thread + tStrideY], dy) + DiffK(Ts[thread - tStrideZ], Ts[thread], Ts[thread + tStrideZ], dz);
+
     if (inside)
     {
-        dT[index] = DiffK(Ts[thread - tStrideX], Ts[thread], Ts[thread + tStrideX], dx) + DiffK(Ts[thread - tStrideY], Ts[thread], Ts[thread + tStrideY], dy) + DiffK(Ts[thread - tStrideZ], Ts[thread], Ts[thread + tStrideZ], dz);
+        dT[index] = aux;
     }
 }
 __global__ void HeatFluxContribution(double *dT, double *Q, double amp, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
@@ -399,35 +401,40 @@ void HC::GPU::AddNoise(double *Q, HCParms &parms)
 void HC::GPU::SetNoise(HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
-    cudaMalloc(&noise, sizeof(double) * Lxy);
-    curandCreateGenerator(&generator, curandRngType_t::CURAND_RNG_PSEUDO_DEFAULT);
+    cudaMallocAsync(&noise, sizeof(double) * Lxy, cudaStreamDefault);
+    cudaDeviceSynchronize();
+    curandCreateGenerator(&generator, curandRngType_t::CURAND_RNG_PSEUDO_XORWOW);
     curandSetPseudoRandomGeneratorSeed(generator, 1234llu);
     curandSetGeneratorOffset(generator, offset);
-    curandGenerateNormalDouble(generator, noise, Lxy, 1.0, parms.dt);
-    offset = offset + Lxy;
+    curandGenerateNormalDouble(generator, noise, Lxy, 0.0, parms.dt);
+    cudaDeviceSynchronize();
+    offset += Lxy;
 }
 void HC::GPU::UnsetNoise()
 {
     curandDestroyGenerator(generator);
-    cudaFree(noise);
+    cudaFreeAsync(noise, cudaStreamDefault);
 }
 void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
+    cudaError_t stat;
     dim3 T3(16, 16, 4);
     dim3 T2(32, 32);
     dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
     dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
-    Diffusion<<<B3, T3, 0, 0>>>(dT, T, parms.dx, parms.dy, parms.dz, parms.Lx, parms.Ly, parms.Lz);
-    HeatFluxContribution<<<B2, T2, 0, 0>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
-    ThermalCapacity<<<B3, T3, 0, 0>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);
+    Diffusion<<<B3, T3, sizeof(double) * (T3.x + 2) * (T3.y + 2) * (T3.z + 2), cudaStreamDefault>>>(dT, T, parms.dx, parms.dy, parms.dz, parms.Lx, parms.Ly, parms.Lz);
+    HeatFluxContribution<<<B2, T2, 0, cudaStreamDefault>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
+    ThermalCapacity<<<B3, T3, 0, cudaStreamDefault>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);
+    MathGPU::Zero(dQ, parms.Lx * parms.Ly);
+    stat = cudaDeviceSynchronize();
 }
 void HC::GPU::AllocWorkspaceEuler(double *&workspace, HCParms &parms)
 {
-    cudaMalloc(&workspace, sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+    cudaMallocAsync(&workspace, sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1), cudaStreamDefault);
 }
 void HC::GPU::FreeWorkspaceEuler(double *workspace)
 {
-    cudaFree(workspace);
+    cudaFreeAsync(workspace, cudaStreamDefault);
 }
 void HC::GPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
 {
@@ -449,11 +456,11 @@ void HC::GPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
 }
 void HC::GPU::AllocWorkspaceRK4(double *&workspace, HCParms &parms)
 {
-    cudaMalloc(&workspace, 5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+    cudaMallocAsync(&workspace, 5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1), cudaStreamDefault);
 }
 void HC::GPU::FreeWorkspaceRK4(double *workspace)
 {
-    cudaFree(workspace);
+    cudaFreeAsync(workspace, cudaStreamDefault);
 }
 void HC::GPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
 {
@@ -498,14 +505,15 @@ void HC::GPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
     MathGPU::Add(K1, K2, L);
     MathGPU::Add(T, K1, Lxyz);
     MathGPU::Add(Q, K1 + Lxyz, Lxy);
+    cudaDeviceSynchronize();
 }
 void HC::GPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)
 {
-    cudaMalloc(&workspace, 8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+    cudaMallocAsync(&workspace, 8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1), cudaStreamDefault);
 }
 void HC::GPU::FreeWorkspaceRKF45(double *workspace)
 {
-    cudaFree(workspace);
+    cudaFreeAsync(workspace, cudaStreamDefault);
 }
 void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
 {

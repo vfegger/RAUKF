@@ -42,8 +42,9 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
 
 int main()
 {
-    Type type = Type::GPU; 
-    if(type == Type::GPU){
+    Type type = Type::CPU;
+    if (type == Type::GPU)
+    {
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
@@ -103,7 +104,8 @@ int main()
 
     raukf.UnsetModel();
     hfe.UnsetMemory(type);
-    if(type == Type::GPU){
+    if (type == Type::GPU)
+    {
         MathGPU::DestroyHandles();
         cudaDeviceReset();
     }

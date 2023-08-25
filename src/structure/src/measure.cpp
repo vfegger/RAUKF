@@ -69,7 +69,7 @@ Measure::Measure(std::map<std::string, MeasureInfo> &info) : count(info.size()),
         }
     }
     noisePointer.copyHost2Dev(length * length);
-    instances.alloc((2 * length + 1) * length);
+    cudaGetLastError();
 }
 
 Pointer<double> Measure::GetMeasurePointer()
@@ -131,6 +131,8 @@ void Measure::SetMeasureData(std::string name, double *data)
 Pointer<double> Measure::GetMeasureData()
 {
     data.copyHost2Dev(length);
+    cudaDeviceSynchronize();
+
     return data;
 }
 

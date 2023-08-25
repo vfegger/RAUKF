@@ -23,7 +23,8 @@ void HFE::EvolveCPU(Data *pstate)
 }
 void HFE::EvolveGPU(Data *pstate)
 {
-    double *pinstance = pstate->GetInstances().dev();
+    Pointer<double> instance = pstate->GetInstances();
+    double *pinstance = instance.dev();
     int Lstate = pstate->GetStateLength();
     int Lsigma = pstate->GetSigmaLength();
     int offsetT = pstate->GetOffset("Temperature");

@@ -66,82 +66,31 @@ __global__ void CUDA_Mul(double *pv_o, double *pvL_i, double *pvR_i, unsigned in
     }
 }
 
-template <unsigned int blockSize>
-__device__ void warpReduce(volatile double *psv, unsigned int tid)
+__global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsigned int lengthJ)
 {
-    if (blockSize >= 64u)
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < lengthI)
     {
-        psv[tid] += psv[tid + 32u];
-    }
-    if (blockSize >= 32u)
-    {
-        psv[tid] += psv[tid + 16u];
-    }
-    if (blockSize >= 16u)
-    {
-        psv[tid] += psv[tid + 8u];
-    }
-    if (blockSize >= 8u)
-    {
-        psv[tid] += psv[tid + 4u];
-    }
-    if (blockSize >= 4u)
-    {
-        psv[tid] += psv[tid + 2u];
-    }
-    if (blockSize >= 2u)
-    {
-        psv[tid] += psv[tid + 1u];
+        double acc = 0.0;
+        for (unsigned j = 0; j < lengthJ; ++j)
+        {
+            acc += pm_i[j * lengthI + index];
+        }
+        pv_o[index] = acc / lengthJ;
     }
 }
 
-template <unsigned int blockSize>
-__global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsigned int lengthJ)
+__global__ void CUDA_Mean(double *pv_o, double *pm_i, double *pw_i, unsigned int lengthI, unsigned int lengthJ)
 {
-    extern __shared__ double psv[];
-    unsigned int tid = threadIdx.x;
-    unsigned int bid = blockIdx.x;
-    unsigned int stride = 2u * blockSize;
-    unsigned int j;
-    j = 2u * blockSize + tid;
-    psv[tid] = 0;
-    while (j < lengthJ)
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < lengthI)
     {
-        psv[tid] += pm_i[(j)*lengthI + bid] + pm_i[(j + blockSize) * lengthI + bid];
-        j += stride;
-    }
-    __syncthreads();
-    if (blockSize >= 512u)
-    {
-        if (tid < 256u)
+        double acc = 0.0;
+        for (unsigned j = 0; j < lengthJ; ++j)
         {
-            psv[tid] += psv[tid + 256u];
+            acc += pw_i[j] * pm_i[j * lengthI + index];
         }
-        __syncthreads();
-    }
-    if (blockSize >= 256)
-    {
-        if (tid < 128)
-        {
-            psv[tid] += psv[tid + 128u];
-        }
-        __syncthreads();
-    }
-    if (blockSize >= 128)
-    {
-        if (tid < 64)
-        {
-            psv[tid] += psv[tid + 64u];
-        }
-        __syncthreads();
-    }
-    if (tid < 32)
-    {
-        warpReduce<blockSize>(psv, tid);
-    }
-    if (tid == 0)
-    {
-        pv_o[bid] = psv[0] / lengthJ;
+        pv_o[index] = acc;
     }
 }
 
@@ -158,7 +107,7 @@ void MathGPU::DestroyHandles()
 
 void MathGPU::Zero(double *pv_o, int length)
 {
-    cudaMemset(pv_o, 0, sizeof(double) * length);
+    cudaMemsetAsync(pv_o, 0, sizeof(double) * length, cudaStreamDefault);
 }
 void MathGPU::Copy(double *pv_o, double *pv_i, int length)
 {
@@ -169,93 +118,153 @@ void MathGPU::Add(double *pv_io, double *pv_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Add<<<B, T, 0, 0>>>(pv_io, pv_i, length);
+    CUDA_Add<<<B, T, 0, cudaStreamDefault>>>(pv_io, pv_i, length);
 }
 void MathGPU::Sub(double *pv_io, double *pv_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Sub<<<B, T, 0, 0>>>(pv_io, pv_i, length);
+    CUDA_Sub<<<B, T, 0, cudaStreamDefault>>>(pv_io, pv_i, length);
 }
 void MathGPU::Mul(double *pv_io, double v_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Mul<<<B, T, 0, 0>>>(pv_io, v_i, length);
+    CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_io, v_i, length);
 }
 void MathGPU::Mul(double *pv_io, double *pv_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Mul<<<B, T, 0, 0>>>(pv_io, pv_i, length);
+    CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_io, pv_i, length);
 }
 void MathGPU::Add(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Add<<<B, T, 0, 0>>>(pv_o, pvL_i, pvR_i, length);
+    CUDA_Add<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
 }
 void MathGPU::Sub(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Sub<<<B, T, 0, 0>>>(pv_o, pvL_i, pvR_i, length);
+    CUDA_Sub<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
 }
 void MathGPU::Mul(double *pv_o, double *pvL_i, double vR_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Mul<<<B, T, 0, 0>>>(pv_o, pvL_i, vR_i, length);
+    CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, vR_i, length);
 }
 void MathGPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
-    CUDA_Mul<<<B, T, 0, 0>>>(pv_o, pvL_i, pvR_i, length);
+    CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
 }
 void MathGPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
+    cublasSetStream(cublasHandle, cudaStreamDefault);
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
 }
 void MathGPU::MatMulNWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
 {
-    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, pmR_i, K, &beta, pm_o, M);
+    double *aux;
+    cublasSetStream(cublasHandle, cudaStreamDefault);
+    cudaMallocAsync(&aux, sizeof(double) * min(M, N) * K, cudaStreamDefault);
+    Zero(aux, min(M, N) * K);
+    if (M < N)
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_RIGHT, M, K, pmL_i, M, pw_i, 1, aux, M);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, aux, M, pmR_i, K, &beta, pm_o, M);
+    }
+    else
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_LEFT, K, N, pmR_i, K, pw_i, 1, aux, K);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, M, aux, K, &beta, pm_o, M);
+    }
+    cudaFreeAsync(aux, cudaStreamDefault);
 }
 void MathGPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
+    cublasSetStream(cublasHandle, cudaStreamDefault);
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
 }
 void MathGPU::MatMulNWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
 {
-    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, pmR_i, N, &beta, pm_o, M);
+    double *aux;
+    cublasSetStream(cublasHandle, cudaStreamDefault);
+    cudaMallocAsync(&aux, sizeof(double) * min(M, N) * K, cudaStreamDefault);
+    Zero(aux, min(M, N) * K);
+    if (M < N)
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_RIGHT, M, K, pmL_i, M, pw_i, 1, aux, M);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, aux, M, pmR_i, N, &beta, pm_o, M);
+    }
+    else
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_RIGHT, N, K, pmR_i, M, pw_i, 1, aux, M);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_N, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, M, aux, N, &beta, pm_o, M);
+    }
+    cudaFreeAsync(aux, cudaStreamDefault);
 }
 void MathGPU::MatMulTN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
+    cublasSetStream(cublasHandle, cudaStreamDefault);
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
 }
 void MathGPU::MatMulTWN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
 {
-    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, pmR_i, K, &beta, pm_o, M);
+    double *aux;
+    cublasSetStream(cublasHandle, cudaStreamDefault);
+    cudaMallocAsync(&aux, sizeof(double) * min(M, N) * K, cudaStreamDefault);
+    Zero(aux, min(M, N) * K);
+    if (M < N)
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_LEFT, K, M, pmL_i, K, pw_i, 1, aux, K);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, aux, K, pmR_i, K, &beta, pm_o, M);
+    }
+    else
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_LEFT, K, N, pmR_i, K, pw_i, 1, aux, K);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, pmL_i, K, aux, K, &beta, pm_o, M);
+    }
+    cudaFreeAsync(aux, cudaStreamDefault);
 }
 void MathGPU::MatMulTT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
+    cublasSetStream(cublasHandle, cudaStreamDefault);
     cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
 }
 void MathGPU::MatMulTWT(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, double *pw_i, int M, int K, int N)
 {
-    cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, pmR_i, N, &beta, pm_o, M);
+    double *aux;
+    cublasSetStream(cublasHandle, cudaStreamDefault);
+    cudaMallocAsync(&aux, sizeof(double) * min(M, N) * K, cudaStreamDefault);
+    Zero(aux, min(M, N) * K);
+    if (M < N)
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_LEFT, K, M, pmL_i, K, pw_i, 1, aux, K);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_N, M, N, K, &alpha, aux, K, pmR_i, N, &beta, pm_o, M);
+    }
+    else
+    {
+        cublasDdgmm(cublasHandle, cublasSideMode_t::CUBLAS_SIDE_RIGHT, N, K, pmR_i, M, pw_i, 1, aux, M);
+        cublasDgemm(cublasHandle, cublasOperation_t::CUBLAS_OP_T, cublasOperation_t::CUBLAS_OP_T, M, N, K, &alpha, pmL_i, K, aux, N, &beta, pm_o, M);
+    }
+    cudaFreeAsync(aux, cudaStreamDefault);
 }
 void MathGPU::Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ)
 {
     dim3 T(THREAD_COUNT);
-    dim3 B(lengthJ);
-    CUDA_Mean<THREAD_COUNT><<<B, T, THREAD_COUNT * sizeof(double), 0>>>(pv_o, pm_i, lengthI, lengthJ);
+    dim3 B(CEIL(lengthI, T.x));
+    CUDA_Mean<<<B, T, 0, cudaStreamDefault>>>(pv_o, pm_i, lengthI, lengthJ);
 }
 void MathGPU::Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ)
 {
     dim3 T(THREAD_COUNT);
-    dim3 B(lengthJ);
-    CUDA_Mean<THREAD_COUNT><<<B, T, THREAD_COUNT * sizeof(double), 0>>>(pv_o, pm_i, lengthI, lengthJ);
+    dim3 B(CEIL(lengthI, T.x));
+    CUDA_Mean<<<B, T, 0, cudaStreamDefault>>>(pv_o, pm_i, pw_i, lengthI, lengthJ);
 }
 bool MathGPU::Compare(double *pvL_i, double *pvR_i, int length)
 {
@@ -263,10 +272,11 @@ bool MathGPU::Compare(double *pvL_i, double *pvR_i, int length)
     dim3 B(CEIL(length, T.x));
     double *pDev;
     double res = -1.0;
-    cudaMalloc(&pDev, sizeof(double) * length);
-    CUDA_Sub<<<B, T, 0, 0>>>(pDev, pvL_i, pvR_i, length);
+    cublasSetStream(cublasHandle, cudaStreamDefault);
+    cudaMallocAsync(&pDev, sizeof(double) * length, cudaStreamDefault);
+    CUDA_Sub<<<B, T, 0, cudaStreamDefault>>>(pDev, pvL_i, pvR_i, length);
     cublasDnrm2(cublasHandle, length, pDev, 1, &res);
-    cudaFree(pDev);
+    cudaFreeAsync(pDev, cudaStreamDefault);
     return true;
 }
 void MathGPU::Diag(double *pv_o, double *pm_i, int length)
@@ -278,13 +288,14 @@ void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
     int size = 0;
     int *pdInfo;
     double *pdAux;
-    cudaMemcpy(pm_o, pm_i, sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
+    cusolverDnSetStream(cusolverDnHandle, cudaStreamDefault);
+    cudaMemcpyAsync(pm_o, pm_i, sizeof(double) * length * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
     cusolverDnDpotrf_bufferSize(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, &size);
-    cudaMalloc(&pdInfo, sizeof(int));
-    cudaMalloc(&pdAux, sizeof(double) * size);
+    cudaMallocAsync(&pdInfo, sizeof(int), cudaStreamDefault);
+    cudaMallocAsync(&pdAux, sizeof(double) * size, cudaStreamDefault);
     cusolverDnDpotrf(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, pdAux, size, pdInfo);
-    cudaFree(pdAux);
-    cudaFree(pdInfo);
+    cudaFreeAsync(pdAux, cudaStreamDefault);
+    cudaFreeAsync(pdInfo, cudaStreamDefault);
 }
 void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
@@ -293,12 +304,14 @@ void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, 
         return;
     }
     double *pm;
-    cudaMalloc(&pm, sizeof(double) * M * K);
     int *pdInfo;
-    cudaMalloc(&pdInfo, sizeof(int));
+    cusolverDnSetStream(cusolverDnHandle, cudaStreamDefault);
+    cudaMallocAsync(&pm, sizeof(double) * M * K, cudaStreamDefault);
+    cudaMallocAsync(&pdInfo, sizeof(int), cudaStreamDefault);
     CholeskyDecomposition(pm, pmL_i, K);
-    cudaMemcpy(pm_o, pmR_i, sizeof(double) * M * N, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
+    cudaMemcpyAsync(pm_o, pmR_i, sizeof(double) * M * N, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
     cusolverDnDpotrs(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, M, N, pm, M, pm_o, M, pdInfo);
-    cudaFree(pdInfo);
-    cudaFree(pm);
+    cudaFreeAsync(pdInfo, cudaStreamDefault);
+    cudaFreeAsync(pm, cudaStreamDefault);
+    cudaDeviceSynchronize();
 }

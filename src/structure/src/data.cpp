@@ -78,6 +78,7 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     pointer.copyHost2Dev(length);
     covariancePointer.copyHost2Dev(length * length);
     noisePointer.copyHost2Dev(length * length);
+    cudaDeviceSynchronize();
 }
 
 Pointer<double> Data::GetStatePointer()

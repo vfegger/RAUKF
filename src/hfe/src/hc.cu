@@ -4,19 +4,33 @@ __host__ __device__ inline double C(double T_i)
 {
     return 1324.75 * T_i + 3557900.0;
 }
-
 __host__ __device__ inline double K(double T_i)
 {
     return (14e-3 + 2.517e-6 * T_i) * T_i + 12.45;
 }
-
-__host__ __device__ inline double DiffK(double TN_in, double T_in, double TP_in, double delta_in)
+__host__ __device__ inline double DiffK(double TN_i, double T_i, double TP_i, double delta_i)
 {
-    double auxN = 2.0 * (K(TN_in) * K(T_in)) / (K(TN_in) + K(T_in)) * (TN_in - T_in) / delta_in;
-    double auxP = 2.0 * (K(TP_in) * K(T_in)) / (K(TP_in) + K(T_in)) * (TP_in - T_in) / delta_in;
-    return (auxN + auxP) / delta_in;
+    double auxN = 2.0 * (K(TN_i) * K(T_i)) / (K(TN_i) + K(T_i)) * (TN_i - T_i) / delta_i;
+    double auxP = 2.0 * (K(TP_i) * K(T_i)) / (K(TP_i) + K(T_i)) * (TP_i - T_i) / delta_i;
+    return (auxN + auxP) / delta_i;
 }
-
+void HC::CPU::AddNoise(double *Q, HCParms &parms)
+{
+    MathCPU::Add(Q, noise, parms.Lx * parms.Ly);
+}
+void HC::CPU::SetNoise(HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+    noise = (double *)malloc(sizeof(double) * Lxy);
+    for (int i = 0; i < Lxy; ++i)
+    {
+        noise[i] = parms.dt * distribution(generator);
+    }
+}
+void HC::CPU::UnsetNoise()
+{
+    free(noise);
+}
 void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
     int index, offset;
@@ -83,17 +97,14 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
         }
     }
 }
-
 void HC::CPU::AllocWorkspaceEuler(double *&workspace, HCParms &parms)
 {
     workspace = (double *)malloc(sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
-
 void HC::CPU::FreeWorkspaceEuler(double *workspace)
 {
     free(workspace);
 }
-
 void HC::CPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
@@ -111,17 +122,14 @@ void HC::CPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
         Q[i] = Q[i] + dt * work[i];
     }
 }
-
 void HC::CPU::AllocWorkspaceRK4(double *&workspace, HCParms &parms)
 {
     workspace = (double *)malloc(5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
-
 void HC::CPU::FreeWorkspaceRK4(double *workspace)
 {
     free(workspace);
 }
-
 void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
@@ -186,22 +194,18 @@ void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
         Q[i] = Q[i] + (dt / 6) * (K1[i] + 2.0 * (K2[i] + K3[i]) + K4[i]);
     }
 }
-
 void HC::CPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)
 {
     workspace = (double *)malloc(8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
 }
-
 void HC::CPU::FreeWorkspaceRKF45(double *workspace)
 {
     free(workspace);
 }
-
 inline int bI(int i)
 {
     return (i * i - i) / 2;
 }
-
 void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref1, double *ref2, int L1, int L2, HC::HCParms &parms)
 {
     int L = L1 + L2;
@@ -253,7 +257,6 @@ void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, do
         }
     }
 }
-
 void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
@@ -309,4 +312,205 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
     } while (dt - hacc > 0);
     parms.dt = dt;
+}
+
+__global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
+{
+    unsigned xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned zIndex = blockIdx.z * blockDim.z + threadIdx.z;
+    unsigned index = (zIndex * Ly + yIndex) * Lx + xIndex;
+    extern __shared__ double Ts[];
+    unsigned tStrideX = 1u;
+    unsigned tStrideY = (blockDim.x + 2u);
+    unsigned tStrideZ = (blockDim.x + 2u) * (blockDim.y + 2u);
+    unsigned thread = ((threadIdx.z + 1u) * (blockDim.y + 2) + (threadIdx.y + 1u)) * (blockDim.x + 2u) + (threadIdx.x + 1u);
+    bool inside = xIndex < Lx && yIndex < Ly && zIndex < Lz;
+    double temp = 0.0;
+    if (inside)
+    {
+        temp = T[index];
+    }
+    Ts[thread] = temp;
+    __syncthreads();
+
+    if (threadIdx.x == 0u)
+    {
+        Ts[thread - tStrideX] = (xIndex == 0) ? temp : T[index - 1u];
+    }
+    if (threadIdx.x == min(Lx - blockIdx.x * blockDim.x, blockDim.x))
+    {
+        Ts[thread + tStrideX] = (xIndex == Lx - 1) ? temp : T[index + 1u];
+    }
+
+    if (threadIdx.y == 0u)
+    {
+        Ts[thread - tStrideY] = (yIndex == 0) ? temp : T[index - Lx];
+    }
+    if (threadIdx.x == min(Ly - blockIdx.y * blockDim.y, blockDim.y))
+    {
+        Ts[thread + tStrideY] = (yIndex == Ly - 1) ? temp : T[index + Lx];
+    }
+
+    if (threadIdx.z == 0u)
+    {
+        Ts[thread - tStrideZ] = (zIndex == 0) ? temp : T[index - Lx * Ly];
+    }
+    if (threadIdx.x == min(Lz - blockIdx.z * blockDim.z, blockDim.z))
+    {
+        Ts[thread + tStrideZ] = (zIndex == Lz - 1) ? temp : T[index + Lx * Ly];
+    }
+    __syncthreads();
+
+    if (inside)
+    {
+        dT[index] = DiffK(Ts[thread - tStrideX], Ts[thread], Ts[thread + tStrideX], dx) + DiffK(Ts[thread - tStrideY], Ts[thread], Ts[thread + tStrideY], dy) + DiffK(Ts[thread - tStrideZ], Ts[thread], Ts[thread + tStrideZ], dz);
+    }
+}
+__global__ void HeatFluxContribution(double *dT, double *Q, double amp, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
+{
+    unsigned xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned index = yIndex * Lx + xIndex;
+    bool inside = xIndex < Lx && yIndex < Ly;
+    unsigned offset = Lx * Ly * (Lz - 1u);
+    if (inside)
+    {
+        dT[offset + index] += (amp / dz) * Q[index];
+    }
+}
+__global__ void ThermalCapacity(double *dT, double *T, unsigned Lx, unsigned Ly, unsigned Lz)
+{
+    unsigned xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned zIndex = blockIdx.z * blockDim.z + threadIdx.z;
+    unsigned index = (zIndex * Ly + yIndex) * Lx + xIndex;
+    bool inside = xIndex < Lx && yIndex < Ly && zIndex < Lz;
+    if (inside)
+    {
+        dT[index] /= C(T[index]);
+    }
+}
+
+void HC::GPU::AddNoise(double *Q, HCParms &parms)
+{
+    MathGPU::Add(Q, noise, parms.Lx * parms.Ly);
+}
+void HC::GPU::SetNoise(HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+    cudaMalloc(&noise, sizeof(double) * Lxy);
+    curandCreateGenerator(&generator, curandRngType_t::CURAND_RNG_PSEUDO_DEFAULT);
+    curandSetPseudoRandomGeneratorSeed(generator, 1234llu);
+    curandSetGeneratorOffset(generator, offset);
+    curandGenerateNormalDouble(generator, noise, Lxy, 1.0, parms.dt);
+    offset = offset + Lxy;
+}
+void HC::GPU::UnsetNoise()
+{
+    curandDestroyGenerator(generator);
+    cudaFree(noise);
+}
+void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
+{
+    dim3 T3(16, 16, 4);
+    dim3 T2(32, 32);
+    dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
+    dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
+    Diffusion<<<B3, T3, 0, 0>>>(dT, T, parms.dx, parms.dy, parms.dz, parms.Lx, parms.Ly, parms.Lz);
+    HeatFluxContribution<<<B2, T2, 0, 0>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
+    ThermalCapacity<<<B3, T3, 0, 0>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);
+}
+void HC::GPU::AllocWorkspaceEuler(double *&workspace, HCParms &parms)
+{
+    cudaMalloc(&workspace, sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+}
+void HC::GPU::FreeWorkspaceEuler(double *workspace)
+{
+    cudaFree(workspace);
+}
+void HC::GPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+    int Lxyz = Lxy * parms.Lz;
+    double dt = parms.dt;
+    double *dT = workspace;
+    double *dQ = workspace + Lxyz;
+    dim3 T3(16, 16, 4);
+    dim3 T2(32, 32);
+    dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
+    dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
+
+    Diff(dT, dQ, T, Q, parms);
+    MathGPU::Mul(dT, dt, Lxyz);
+    MathGPU::Mul(dQ, dt, Lxy);
+    MathGPU::Add(T, dT, Lxyz);
+    MathGPU::Add(Q, dQ, Lxy);
+}
+void HC::GPU::AllocWorkspaceRK4(double *&workspace, HCParms &parms)
+{
+    cudaMalloc(&workspace, 5 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+}
+void HC::GPU::FreeWorkspaceRK4(double *workspace)
+{
+    cudaFree(workspace);
+}
+void HC::GPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+    int Lxyz = Lxy * parms.Lz;
+    int L = Lxyz + Lxy;
+    dim3 T3(16, 16, 4);
+    dim3 T2(32, 32);
+    dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
+    dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
+    double dt = parms.dt;
+    double *K1, *K2, *K3, *K4, *aux, *auxT, *auxQ;
+    K1 = workspace;
+    K2 = K1 + L;
+    K3 = K2 + L;
+    K4 = K3 + L;
+    aux = K4 + L;
+    auxT = aux;
+    auxQ = auxT + Lxyz;
+
+    Diff(K1, K1 + Lxyz, T, Q, parms);
+
+    MathGPU::Mul(aux, K1, 0.5 * dt, L);
+    MathGPU::Add(auxT, T, Lxyz);
+    MathGPU::Add(auxQ, Q, Lxy);
+    Diff(K2, K2 + Lxyz, auxT, auxQ, parms);
+
+    MathGPU::Mul(aux, K2, 0.5 * dt, L);
+    MathGPU::Add(auxT, T, Lxyz);
+    MathGPU::Add(auxQ, Q, Lxy);
+    Diff(K3, K3 + Lxyz, auxT, auxQ, parms);
+
+    MathGPU::Mul(aux, K3, dt, L);
+    MathGPU::Add(auxT, T, Lxyz);
+    MathGPU::Add(auxQ, Q, Lxy);
+    Diff(K4, K4 + Lxyz, auxT, auxQ, parms);
+
+    MathGPU::Add(K1, K4, L);
+    MathGPU::Add(K2, K3, L);
+    MathGPU::Mul(K1, dt / 6.0, L);
+    MathGPU::Mul(K2, dt / 3.0, L);
+    MathGPU::Add(K1, K2, L);
+    MathGPU::Add(T, K1, Lxyz);
+    MathGPU::Add(Q, K1 + Lxyz, Lxy);
+}
+void HC::GPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)
+{
+    cudaMalloc(&workspace, 8 * sizeof(double) * parms.Lx * parms.Ly * (parms.Lz + 1));
+}
+void HC::GPU::FreeWorkspaceRKF45(double *workspace)
+{
+    cudaFree(workspace);
+}
+void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+    int Lxyz = Lxy * parms.Lz;
+    int L = Lxyz + Lxy;
+    double dt = parms.dt;
 }

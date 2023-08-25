@@ -1,5 +1,8 @@
 #include "../include/raukf.hpp"
 
+#include <iomanip>
+#include <fstream>
+
 RAUKF::RAUKF() : pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU) {}
 
 void RAUKF::SetParameters(double alpha, double beta, double kappa)
@@ -80,6 +83,25 @@ void RAUKF::GetStateCovariance(std::string name, double *data)
     this->pstate->GetStateCovarianceData(name, data);
 }
 
+void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
+{
+    std::ofstream fp;
+    fp.open(name + ".csv");
+    for (int i = 0; i < lengthI; ++i)
+    {
+        for (int j = 0; j < lengthJ; ++j)
+        {
+            fp << mat[j * lengthI + i];
+            if (j < lengthJ)
+            {
+                fp << ",";
+            }
+        }
+        fp << "\n";
+    }
+    fp.close();
+}
+
 void RAUKF::Iterate(Timer &timer)
 {
     timer.Record(type);
@@ -153,7 +175,7 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Kalman gain calculation by solving: Pyy * (K^T) = Pxy^T
-    Math::LUSolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
+    Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
 
     // State Update

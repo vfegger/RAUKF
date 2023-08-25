@@ -31,7 +31,7 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
     for (int i = 0; i < Lt; ++i)
     {
-        HCR::CPU::Euler(T, Q, workspace, parms);
+        HCR::CPU::RK4(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
             measures[i * Lx * Ly + j] = T[j];
@@ -42,6 +42,10 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
 
 int main()
 {
+    Type type = Type::GPU; 
+    if(type == Type::GPU){
+        cudaDeviceReset();
+    }
     int Lx = 24;
     int Ly = 24;
     int Lz = 6;
@@ -57,11 +61,11 @@ int main()
     RAUKF raukf;
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
-    hfe.SetMemory(Type::CPU);
+    hfe.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
-    raukf.SetType(Type::CPU);
+    raukf.SetType(type);
 
     raukf.SetWeight();
 
@@ -84,7 +88,7 @@ int main()
         outFile.open("data/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {
-            double resultTime = (i + 1) * Sx / Lt;
+            double resultTime = (i + 1) * St / Lt;
             outFile.write((char *)(&resultTime), sizeof(double));
             outFile.write((char *)resultT, sizeof(double) * Lx * Ly * Lz);
             outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly * Lz);
@@ -97,6 +101,6 @@ int main()
     }
 
     raukf.UnsetModel();
-    hfe.UnsetMemory(Type::CPU);
+    hfe.UnsetMemory(type);
     return 0;
 }

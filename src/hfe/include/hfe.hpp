@@ -5,7 +5,7 @@
 #include "../include/hc.hpp"
 #include <random>
 
-#define FORWARD_METHOD 0
+#define FORWARD_METHOD 1
 
 class HFE : public Model
 {

@@ -147,7 +147,7 @@ void MathCPU::MatMulNT(double beta, double *pm_o, double alpha, double *pmL_i, d
             acc = 0.0;
             for (int k = 0; k < K; ++k)
             {
-                acc += auxL[i * K + k] * pmR_i[j * K + k];
+                acc += auxL[i * K + k] * auxR[j * K + k];
             }
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
@@ -181,7 +181,7 @@ void MathCPU::MatMulNWT(double beta, double *pm_o, double alpha, double *pmL_i, 
             acc = 0.0;
             for (int k = 0; k < K; ++k)
             {
-                acc += auxL[i * K + k] * pmR_i[j * K + k];
+                acc += auxL[i * K + k] * auxR[j * K + k];
             }
             pm_o[j * M + i] = beta * pm_o[j * M + i] + alpha * acc;
         }
@@ -317,56 +317,6 @@ void MathCPU::Diag(double *pv_o, double *pm_i, int length)
     {
         pv_o[i] = pm_i[i * length + i];
     }
-}
-void MathCPU::LUDecomposition(double *pm_o, double *pm_i, int length)
-{
-    for (int i = 0; i < length * length; ++i)
-    {
-        pm_o[i] = pm_i[i];
-    }
-
-    for (int j = 0; j < length; ++j)
-    {
-        for (int i = j + 1; i < length; ++i)
-        {
-            double aux = pm_o[j * length + i] / pm_o[j * length + j];
-            for (int k = j + 1; k < length; k++)
-            {
-                pm_o[i * length + k] -= aux * pm_o[j * length + k];
-            }
-            pm_o[j * length + i] = aux;
-        }
-    }
-}
-void MathCPU::LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
-{
-    if (M != K)
-    {
-        return;
-    }
-    double *pm = (double *)malloc(sizeof(double) * M * K);
-    LUDecomposition(pm, pmL_i, K);
-
-    for (int j = 0; j < N; ++j)
-    {
-        for (int i = 0; i < K; i++)
-        {
-            pm_o[j * K + i] = pmR_i[j * K + i];
-            for (int k = 0; k < i; k++)
-            {
-                pm_o[j * K + i] -= pm[i * K + k] * pm_o[j * K + k];
-            }
-        }
-        for (int i = K - 1; i >= 0; i--)
-        {
-            for (int k = i + 1; k < K; k++)
-            {
-                pm_o[j * K + i] -= pm[i * K + k] * pm_o[j * K + k];
-            }
-            pm_o[j * K + i] /= pm[i * K + i];
-        }
-    }
-    free(pm);
 }
 void MathCPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {

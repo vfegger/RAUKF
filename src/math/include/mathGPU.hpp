@@ -7,6 +7,8 @@
 #include <cusolverDn.h>
 
 #define TOL8_GPU 1e-8
+#define THREAD_COUNT 1024
+#define CEIL(value, div) ((value + div - 1) / div)
 
 namespace MathGPU
 {
@@ -61,11 +63,6 @@ namespace MathGPU
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation
     void Diag(double *pv_o, double *pm_i, int length);
-
-    // LUP Decomposition
-    void LUDecomposition(double *pm_o, double *pm_i, int length);
-    // Solve Linear System with LUP
-    void LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
 
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);

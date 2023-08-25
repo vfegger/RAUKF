@@ -1,8 +1,5 @@
 #include "../include/mathGPU.hpp"
 
-#define THREAD_COUNT 1024
-#define CEIL(value, div) ((value + div - 1) / div)
-
 __global__ void CUDA_Add(double *pv_io, double *pv_i, unsigned int length)
 {
     unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
@@ -264,12 +261,6 @@ bool MathGPU::Compare(double *pvL_i, double *pvR_i, int length)
 void MathGPU::Diag(double *pv_o, double *pm_i, int length)
 {
     cublasDcopy(cublasHandle, length, pm_i, length + 1, pv_o, 1);
-}
-void MathGPU::LUDecomposition(double *pm_o, double *pm_i, int length)
-{
-}
-void MathGPU::LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
-{
 }
 void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {

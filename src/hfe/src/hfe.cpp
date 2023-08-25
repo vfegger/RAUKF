@@ -7,8 +7,10 @@ void HFE::EvolveCPU(Data *pstate)
     int Lsigma = pstate->GetSigmaLength();
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
+    HC::CPU::SetNoise(parms);
     for (int s = 0; s < Lsigma; ++s)
     {
+        HC::CPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
 #if FORWARD_METHOD == 0
         HC::CPU::Euler(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #elif FORWARD_METHOD == 1
@@ -17,6 +19,7 @@ void HFE::EvolveCPU(Data *pstate)
         HC::CPU::RKF45(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #endif
     }
+    HC::CPU::UnsetNoise();
 }
 void HFE::EvolveGPU(Data *pstate)
 {
@@ -25,11 +28,19 @@ void HFE::EvolveGPU(Data *pstate)
     int Lsigma = pstate->GetSigmaLength();
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    for (int i = 0; i < Lsigma; ++i)
+    HC::GPU::SetNoise(parms);
+    for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = pinstance + Lstate * i + offsetT;
-        double *Q = pinstance + Lstate * i + offsetQ;
+        HC::GPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
+#if FORWARD_METHOD == 0
+        HC::GPU::Euler(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
+#elif FORWARD_METHOD == 1
+        HC::GPU::RK4(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
+#elif FORWARD_METHOD == 2
+        HC::GPU::RKF45(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
+#endif
     }
+    HC::GPU::UnsetNoise();
 }
 void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
 {
@@ -41,20 +52,13 @@ void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
-    for (int i = 0; i < Lsigma; ++i)
+    for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = psinstance + Lstate * i + offsetT;
-        double *Q = psinstance + Lstate * i + offsetQ;
-        double *Tm = pminstance + Lmeasure * i + offsetTm;
+        double *T = psinstance + Lstate * s + offsetT;
+        double *Q = psinstance + Lstate * s + offsetQ;
+        double *Tm = pminstance + Lmeasure * s + offsetTm;
         // Received Heat Flux
-        for (int j = 0; j < parms.Ly; ++j)
-        {
-            for (int i = 0; i < parms.Lx; ++i)
-            {
-                int index = j * parms.Lx + i;
-                Tm[index] = T[index];
-            }
-        }
+        MathCPU::Copy(Tm, T, parms.Lx * parms.Ly);
     }
 }
 void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
@@ -67,11 +71,12 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
-    for (int i = 0; i < Lsigma; ++i)
+    for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = psinstance + Lstate * i + offsetT;
-        double *Q = psinstance + Lstate * i + offsetQ;
-        double *Tm = pminstance + Lmeasure * i + offsetTm;
+        double *T = psinstance + Lstate * s + offsetT;
+        double *Q = psinstance + Lstate * s + offsetQ;
+        double *Tm = pminstance + Lmeasure * s + offsetTm;
+        MathGPU::Copy(Tm, T, parms.Lx * parms.Ly);
     }
 }
 
@@ -107,11 +112,11 @@ void HFE::SetMemory(Type type)
     else if (type == Type::GPU)
     {
 #if FORWARD_METHOD == 0
-        // HC::GPU::AllocWorkspaceEuler(workspace, parms);
+        HC::GPU::AllocWorkspaceEuler(workspace, parms);
 #elif FORWARD_METHOD == 1
-        // HC::GPU::AllocWorkspaceRK4(workspace, parms);
+        HC::GPU::AllocWorkspaceRK4(workspace, parms);
 #elif FORWARD_METHOD == 2
-        // HC::GPU::AllocWorkspaceRKF45(workspace, parms);
+        HC::GPU::AllocWorkspaceRKF45(workspace, parms);
 #endif
     }
 }

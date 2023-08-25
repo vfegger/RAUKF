@@ -57,11 +57,6 @@ namespace MathCPU
     // Diagonalization Operation
     void Diag(double *pv_o, double *pm_i, int length);
 
-    // LUP Decomposition
-    void LUDecomposition(double *pm_o, double *pm_i, int length);
-    // Solve Linear System with LUP
-    void LUSolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N);
-
     // Cholesky Decomposition
     void CholeskyDecomposition(double *pm_o, double *pm_i, int length);
     // Solve Linear System with Cholesky

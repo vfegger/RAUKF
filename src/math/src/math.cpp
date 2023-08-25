@@ -271,28 +271,6 @@ void Math::Diag(Pointer<double> v_o, Pointer<double> m_i, int length, Type type)
         MathGPU::Diag(v_o.dev(), m_i.dev(), length);
     }
 }
-void Math::LUDecomposition(Pointer<double> m_o, Pointer<double> m_i, int length, Type type)
-{
-    if (type == Type::CPU)
-    {
-        MathCPU::LUDecomposition(m_o.host(), m_i.host(), length);
-    }
-    else if (type == Type::GPU)
-    {
-        MathGPU::LUDecomposition(m_o.dev(), m_i.dev(), length);
-    }
-}
-void Math::LUSolver(Pointer<double> m_o, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
-{
-    if (type == Type::CPU)
-    {
-        MathCPU::LUSolver(m_o.host(), mL_i.host(), mR_i.host(), M, K, N);
-    }
-    else if (type == Type::GPU)
-    {
-        MathGPU::LUSolver(m_o.dev(), mL_i.dev(), mR_i.dev(), M, K, N);
-    }
-}
 void Math::CholeskyDecomposition(Pointer<double> m_o, Pointer<double> m_i, int length, Type type)
 {
     if (type == Type::CPU)

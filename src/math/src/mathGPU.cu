@@ -145,13 +145,24 @@ __global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsi
     }
 }
 
+void MathGPU::CreateHandles()
+{
+    cublasCreate(&cublasHandle);
+    cusolverDnCreate(&cusolverDnHandle);
+}
+void MathGPU::DestroyHandles()
+{
+    cublasDestroy(cublasHandle);
+    cusolverDnDestroy(cusolverDnHandle);
+}
+
 void MathGPU::Zero(double *pv_o, int length)
 {
     cudaMemset(pv_o, 0, sizeof(double) * length);
 }
 void MathGPU::Copy(double *pv_o, double *pv_i, int length)
 {
-    cudaMemcpy(pv_o, pv_i, sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice);
+    cudaMemcpyAsync(pv_o, pv_i, sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
 }
 
 void MathGPU::Add(double *pv_io, double *pv_i, int length)

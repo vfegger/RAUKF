@@ -194,4 +194,6 @@ void RAUKF::Iterate(Timer &timer)
         x.copyDev2Host(Lx);
         Pxx.copyDev2Host(Lx * Lx);
     }
+    if (type == Type::GPU)
+        cudaDeviceSynchronize();
 }

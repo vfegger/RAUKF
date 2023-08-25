@@ -45,6 +45,7 @@ int main()
     Type type = Type::GPU; 
     if(type == Type::GPU){
         cudaDeviceReset();
+        MathGPU::CreateHandles();
     }
     int Lx = 24;
     int Ly = 24;
@@ -102,5 +103,9 @@ int main()
 
     raukf.UnsetModel();
     hfe.UnsetMemory(type);
+    if(type == Type::GPU){
+        MathGPU::DestroyHandles();
+        cudaDeviceReset();
+    }
     return 0;
 }

@@ -42,23 +42,23 @@ public:
 
     void alloc(unsigned length)
     {
-        pHost = (T *)malloc(sizeof(T) * length);
-        cudaMalloc(&pDev, sizeof(T) * length);
+        cudaMallocHost(&pHost, sizeof(T) * length);
+        cudaMallocAsync(&pDev, sizeof(T) * length, cudaStreamDefault);
     }
 
     void free()
     {
-        ::free(pHost);
-        cudaFree(pDev);
+        cudaFreeHost(pHost);
+        cudaFreeAsync(pDev, cudaStreamDefault);
     }
 
     void copyHost2Dev(unsigned length)
     {
-        cudaMemcpy(pDev, pHost, sizeof(T) * length, cudaMemcpyKind::cudaMemcpyHostToDevice);
+        cudaMemcpyAsync(pDev, pHost, sizeof(T) * length, cudaMemcpyKind::cudaMemcpyHostToDevice, cudaStreamDefault);
     }
     void copyDev2Host(unsigned length)
     {
-        cudaMemcpy(pHost, pDev, sizeof(T) * length, cudaMemcpyKind::cudaMemcpyDeviceToHost);
+        cudaMemcpyAsync(pHost, pDev, sizeof(T) * length, cudaMemcpyKind::cudaMemcpyDeviceToHost, cudaStreamDefault);
     }
 
     Pointer<T> operator+(int v_i)

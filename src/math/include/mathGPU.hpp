@@ -15,8 +15,11 @@ namespace MathGPU
     static cublasHandle_t cublasHandle;
     static cusolverDnHandle_t cusolverDnHandle;
 
+    void CreateHandles();
+    void DestroyHandles();
+
     // Vector Zero
-    void Zero(double* pv_o, int length);
+    void Zero(double *pv_o, int length);
     // Vector copy
     void Copy(double *pv_o, double *pv_i, int length);
 
@@ -58,7 +61,7 @@ namespace MathGPU
     // Mean Operation
     void Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ);
     // Mean with Weights Operation
-    void Mean(double *pv_o, double *pm_i, double* pw_i, int lengthI, int lengthJ);
+    void Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ);
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation

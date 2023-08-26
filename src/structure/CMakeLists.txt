@@ -12,3 +12,4 @@ find_package(CUDAToolkit)
 add_library(${target} ${source})
 
 target_include_directories(${target} PUBLIC ${include_path} PRIVATE CUDA::cudart)
+target_link_libraries(${target} PRIVATE CUDA::cudart)

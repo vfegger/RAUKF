@@ -55,11 +55,8 @@ void HFE::EvaluateCPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = psinstance + Lstate * s + offsetT;
-        double *Q = psinstance + Lstate * s + offsetQ;
-        double *Tm = pminstance + Lmeasure * s + offsetTm;
-        // Received Heat Flux
-        MathCPU::Copy(Tm, T, parms.Lx * parms.Ly);
+        // Surface Temperature Values
+        MathCPU::Copy(pminstance + Lmeasure * s + offsetTm, psinstance + Lstate * s + offsetT, parms.Lx * parms.Ly);
     }
 }
 void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
@@ -74,10 +71,8 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int s = 0; s < Lsigma; ++s)
     {
-        double *T = psinstance + Lstate * s + offsetT;
-        double *Q = psinstance + Lstate * s + offsetQ;
-        double *Tm = pminstance + Lmeasure * s + offsetTm;
-        MathGPU::Copy(Tm, T, parms.Lx * parms.Ly);
+        // Surface Temperature Values
+        MathGPU::Copy(pminstance + Lmeasure * s + offsetTm, psinstance + Lstate * s + offsetT, parms.Lx * parms.Ly);
     }
 }
 
@@ -127,9 +122,9 @@ void HFE::UnsetMemory(Type type)
     if (type == Type::CPU)
     {
 #if FORWARD_METHOD == 0
-        HC::CPU::AllocWorkspaceEuler(workspace, parms);
+        HC::CPU::FreeWorkspaceEuler(workspace);
 #elif FORWARD_METHOD == 1
-        HC::CPU::AllocWorkspaceRK4(workspace, parms);
+        HC::CPU::FreeWorkspaceRK4(workspace);
 #elif FORWARD_METHOD == 2
         HC::CPU::FreeWorkspaceRKF45(workspace);
 #endif
@@ -137,11 +132,11 @@ void HFE::UnsetMemory(Type type)
     else if (type == Type::GPU)
     {
 #if FORWARD_METHOD == 0
-        // HC::GPU::AllocWorkspaceEuler(workspace, parms);
+        HC::GPU::FreeWorkspaceEuler(workspace);
 #elif FORWARD_METHOD == 1
-        // HC::GPU::AllocWorkspaceRK4(workspace, parms);
+        HC::GPU::FreeWorkspaceRK4(workspace);
 #elif FORWARD_METHOD == 2
-        // HC::GPU::AllocWorkspaceRKF45(workspace, parms);
+        HC::GPU::FreeWorkspaceRKF45(workspace);
 #endif
     }
 }

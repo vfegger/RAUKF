@@ -59,14 +59,19 @@ void RAUKF::SetWeight()
     double *pwmhost = wm.host();
     double *pwchost = wc.host();
     pwmhost[0] = lambda / (Lx + lambda);
-    pwchost[0] = lambda / (Lx + lambda) + 1 - alpha * alpha + beta;
+    pwchost[0] = lambda / (Lx + lambda) + 1.0 - alpha * alpha + beta;
     for (int i = 1; i < Ls; ++i)
     {
-        pwmhost[i] = pwchost[i] = 1 / (2 * (Lx + lambda));
+        pwmhost[i] = pwchost[i] = 0.5 / (Lx + lambda);
     }
     wm.copyHost2Dev(Ls);
     wc.copyHost2Dev(Ls);
     cudaDeviceSynchronize();
+}
+
+void RAUKF::UnsetWeight(){
+    wm.free();
+    wc.free();
 }
 
 void RAUKF::SetMeasure(std::string name, double *data)
@@ -105,7 +110,6 @@ void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
 
 void RAUKF::Iterate(Timer &timer)
 {
-    cudaError_t stat = cudaSuccess;
     timer.Record(type);
 
     // Initialization of variables
@@ -122,23 +126,21 @@ void RAUKF::Iterate(Timer &timer)
 
     Pointer<double> PxyT;
     Pointer<double> KT;
+    Pointer<double> cd;
 
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
     int Ly = this->pmeasure->GetMeasureLength();
 
-    double lambda = alpha * alpha * (Lx + kappa) - Lx;
-
     PxyT.alloc(Lx * Ly);
     KT.alloc(Lx * Ly);
+    cd.alloc(Lx * Lx);
 
     std::cout << "State length: " << Lx << "; Observation length: " << Ly << "; Sigma points: " << Ls << "\n";
     timer.Record(type);
 
     // Generation of sigma points through the use of cholesky decomposition
     std::cout << "Calculate Cholesky Decomposition\n";
-    Pointer<double> cd;
-    cd.alloc(Lx * Lx);
     Math::Zero(cd, Lx * Lx, type);
     Math::Mul(Pxx, Lx + lambda, Lx * Lx, type);
     Math::CholeskyDecomposition(cd, Pxx, Lx, type);
@@ -148,16 +150,12 @@ void RAUKF::Iterate(Timer &timer)
     Math::Iterate(Math::Copy, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
     Math::Iterate(Math::Add, xs, cd, Lx, Lx, Lx, Lx, Lx, 0, type);
     Math::Iterate(Math::Sub, xs, cd, Lx, Lx, Lx, Lx, Lx * (Lx + 1), 0, type);
-    cd.free();
-
-    xs.copyDev2Host(Lx * Ls);
 
     timer.Record(type);
     // Evolve and Measure each state given by each sigma point
     std::cout << "Evolution Step\n";
     pmodel->Evolve(pstate, type);
-
-    xs.copyDev2Host(Lx * Ls);
+    timer.Record(type);
 
     std::cout << "Evaluation Step\n";
     pmodel->Evaluate(pmeasure, pstate, type);
@@ -184,6 +182,7 @@ void RAUKF::Iterate(Timer &timer)
     std::cout << "Kalman Gain\n";
     Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
+    Math::MatMulNN(0.0, cd, 1.0, Pyy, KT, Ly, Ly, Lx, type);
 
     // State Update
     std::cout << "State Update\n";
@@ -196,6 +195,7 @@ void RAUKF::Iterate(Timer &timer)
     Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
     timer.Record(type);
 
+    cd.free();
     KT.free();
     PxyT.free();
     if (type == Type::GPU)

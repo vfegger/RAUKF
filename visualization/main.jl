@@ -7,11 +7,11 @@ using FileIO
 const raukfDataPath = "../data/"
 const raukfDataReadyPath = "../data/ready/"
 
-ioT = PipeBuffer()
-ioQ = PipeBuffer()
+const ioT = PipeBuffer()
+const ioQ = PipeBuffer()
 
-Lx = 24
-Ly = 24
+Lx = 12
+Ly = 12
 Lz = 6
 Lt = 100
 
@@ -28,16 +28,13 @@ cQ = zeros(0)
 
 files = []
 
-windowAlive = true
+windowAlive = [true]
 
-function plotGraphT(t,T,cT,stride)
-    plotT = plot(t, [T[begin:stride:end] (T[begin:stride:end].+cT[begin:stride:end]) (T[begin:stride:end].-cT[begin:stride:end])])
-    show(ioT, MIME("image/png"), plotT)
-end
+plotT = [Plots.plot()]
+plotQ = [Plots.plot()] 
 
-function plotGraphQ(t,Q,cQ,stride)
-    plotQ = plot(t, [Q[begin:stride:end] (Q[begin:stride:end].+cQ[begin:stride:end]) (Q[begin:stride:end].-cQ[begin:stride:end])])
-    show(ioQ, MIME("image/png"), plotQ)
+function plotGraph(plot,t,var,cvar,stride,offset)
+    plot[] = Plots.plot(t, [var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))])
 end
 
 function checkNewFiles(oldNames)
@@ -72,25 +69,38 @@ function checkNewFiles(oldNames)
             
             push!(oldNames,name)
         end
-        empty!(newFiles)
         return true
     end
     return false
 end
 
-function plotCanvas(h = 900, w = 800, type = :v)
-    win = GtkWindow("Normal Histogram Widget", h, w) |> (box = GtkBox(type))
+function cleanLists(t,T,cT,Q,cQ,files)
+    empty!(t)
+    empty!(T)
+    empty!(cT)
+    empty!(Q)
+    empty!(cQ)
+    empty!(files)
+end
+
+function plotCanvas(h = 1000, w = 600, type = :v)
+    win = GtkWindow("Data Monitor", h, w) |> (box = GtkBox(type))
     set_gtk_property!(box,:spacing,10)
     canT = GtkCanvas()
     canQ = GtkCanvas()
+    buttonRefresh = GtkButton()
+    buttonClean = GtkButton()
     push!(box, canT)
     push!(box, canQ)
+    push!(box, buttonRefresh)
+    push!(box, buttonClean)
     set_gtk_property!(box, :expand, canT, true)
     set_gtk_property!(box, :expand, canQ, true)
+    set_gtk_property!(buttonRefresh, :label, "Refresh")
+    set_gtk_property!(buttonClean, :label, "Clean")
     @guarded draw(canT) do widget
         ctx = getgc(canT)
-        checkNewFiles(files)
-        plotGraphT(t,T,cT,Lxyz)
+        show(ioT, MIME("image/png"), plotT[])
         imgT = read_from_png(ioT)
         Cairo.save(ctx)
         s = min(width(canT)/width(imgT),height(canT)/height(imgT))
@@ -101,8 +111,7 @@ function plotCanvas(h = 900, w = 800, type = :v)
     end
     @guarded draw(canQ) do widget
         ctx = getgc(canQ)
-        checkNewFiles(files)
-        plotGraphQ(t,Q,cQ,Lxy)
+        show(ioQ, MIME("image/png"), plotQ[])
         imgQ = read_from_png(ioQ)
         Cairo.save(ctx)
         s = min(width(canQ)/width(imgQ),height(canQ)/height(imgQ))
@@ -112,32 +121,37 @@ function plotCanvas(h = 900, w = 800, type = :v)
         Cairo.restore(ctx)
     end
     id = signal_connect(win,"destroy") do widget
-        global windowAlive = false
+        windowAlive[] = false
+    end
+    id = signal_connect(buttonRefresh,"clicked") do widget
+        if checkNewFiles(files)
+            plotGraph(plotT,t,T,cT,Lxyz,Int(Lxy/2+Lx/2))
+            plotGraph(plotQ,t,Q,cQ,Lxy,Int(Lxy/2+Lx/2))
+        end
+        draw(canT)
+        draw(canQ)
+    end
+    id = signal_connect(buttonClean,"clicked") do widget
+        cleanLists(t,T,cT,Q,cQ,files)
     end
     showall(win)
     show(canT)
     show(canQ)
-    return [win canT canQ]
+    show(buttonRefresh)
+    show(buttonClean)
 end
 
 function startMonitor()
-    global windowAlive = true
-    elements = plotCanvas()
+    windowAlive[] = true
+    plotCanvas()
 
-    while windowAlive == true
-        reveal(elements[2],true)
-        reveal(elements[3],true)
-        sleep(3)
+    if !isinteractive()
+        c = Condition()
+        signal_connect(win, :destroy) do widget
+            notify(c)
+        end
+        @async Gtk.gtk_main()
+        wait(c)
+        cleanLists(t,T,cT,Q,cQ,files)
     end
-end
-
-function cleanMonitor(t, T, cT, Q, cQ, files)
-    t = zeros(0)
-    T = zeros(0)
-    cT = zeros(0)
-    Q = zeros(0)
-    cQ = zeros(0)
-    
-    files = []
-    println("All data cleaned.")
 end

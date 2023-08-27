@@ -24,7 +24,7 @@ void HC::CPU::SetNoise(HCParms &parms)
     noise = (double *)malloc(sizeof(double) * Lxy);
     for (int i = 0; i < Lxy; ++i)
     {
-        noise[i] = parms.dt * distribution(generator);
+        noise[i] = distribution(generator);
     }
 }
 void HC::CPU::UnsetNoise()
@@ -42,7 +42,6 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     double dx = parms.dx;
     double dy = parms.dy;
     double dz = parms.dz;
-    double dt = parms.dt;
     double amp = parms.amp;
     // Difusion Contribution
     for (int k = 0; k < Lz; ++k)
@@ -406,7 +405,7 @@ void HC::GPU::SetNoise(HCParms &parms)
     curandCreateGenerator(&generator, curandRngType_t::CURAND_RNG_PSEUDO_XORWOW);
     curandSetPseudoRandomGeneratorSeed(generator, 1234llu);
     curandSetGeneratorOffset(generator, offset);
-    curandGenerateNormalDouble(generator, noise, Lxy, 0.0, parms.dt);
+    curandGenerateNormalDouble(generator, noise, Lxy, 0.0, 1.0);
     cudaDeviceSynchronize();
     offset += Lxy;
 }
@@ -417,7 +416,6 @@ void HC::GPU::UnsetNoise()
 }
 void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
-    cudaError_t stat;
     dim3 T3(16, 16, 4);
     dim3 T2(32, 32);
     dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
@@ -426,7 +424,6 @@ void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     HeatFluxContribution<<<B2, T2, 0, cudaStreamDefault>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
     ThermalCapacity<<<B3, T3, 0, cudaStreamDefault>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);
     MathGPU::Zero(dQ, parms.Lx * parms.Ly);
-    stat = cudaDeviceSynchronize();
 }
 void HC::GPU::AllocWorkspaceEuler(double *&workspace, HCParms &parms)
 {
@@ -443,10 +440,6 @@ void HC::GPU::Euler(double *T, double *Q, double *workspace, HCParms &parms)
     double dt = parms.dt;
     double *dT = workspace;
     double *dQ = workspace + Lxyz;
-    dim3 T3(16, 16, 4);
-    dim3 T2(32, 32);
-    dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
-    dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
 
     Diff(dT, dQ, T, Q, parms);
     MathGPU::Mul(dT, dt, Lxyz);
@@ -467,10 +460,6 @@ void HC::GPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
     int Lxy = parms.Lx * parms.Ly;
     int Lxyz = Lxy * parms.Lz;
     int L = Lxyz + Lxy;
-    dim3 T3(16, 16, 4);
-    dim3 T2(32, 32);
-    dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
-    dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
     double dt = parms.dt;
     double *K1, *K2, *K3, *K4, *aux, *auxT, *auxQ;
     K1 = workspace;
@@ -517,8 +506,8 @@ void HC::GPU::FreeWorkspaceRKF45(double *workspace)
 }
 void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
 {
-    int Lxy = parms.Lx * parms.Ly;
-    int Lxyz = Lxy * parms.Lz;
-    int L = Lxyz + Lxy;
-    double dt = parms.dt;
+    //int Lxy = parms.Lx * parms.Ly;
+    //int Lxyz = Lxy * parms.Lz;
+    //int L = Lxyz + Lxy;
+    //double dt = parms.dt;
 }

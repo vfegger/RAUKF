@@ -28,28 +28,41 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         T[i] = 300.0;
     }
     MathCPU::Zero(Q, Lx * Ly);
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            bool xCond = (i + 0.5) * Sx / Lx > 0.3 * Sx && (i + 0.5) * Sx / Lx < 0.7 * Sx;
+            Q[j * Lx + i] = (xCond) ? 100.0 : 0.0;
+        }
+    }
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
     for (int i = 0; i < Lt; ++i)
     {
         HCR::CPU::RK4(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
-            measures[i * Lx * Ly + j] = T[j];
+            measures[i * Lx * Ly + j] = T[j] + HC::CPU::distribution(HC::CPU::generator);
         }
     }
     HCR::CPU::FreeWorkspaceRKF45(workspace);
+    free(Q);
+    free(T);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     Type type = Type::CPU;
+    if(argc > 1){
+        type = (std::stoi(argv[1]) == 0) ? Type::CPU : Type::GPU;
+    }
     if (type == Type::GPU)
     {
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    int Lx = 24;
-    int Ly = 24;
+    int Lx = 12;
+    int Ly = 12;
     int Lz = 6;
     int Lt = 100;
     double Sx = 0.12;
@@ -68,7 +81,6 @@ int main()
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
     raukf.SetType(type);
-
     raukf.SetWeight();
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
@@ -102,6 +114,13 @@ int main()
         outFile.close();
     }
 
+    free(resultCovarQ);
+    free(resultCovarT);
+    free(resultQ);
+    free(resultT);
+    free(measures);
+
+    raukf.UnsetWeight();
     raukf.UnsetModel();
     hfe.UnsetMemory(type);
     if (type == Type::GPU)

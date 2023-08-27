@@ -132,7 +132,6 @@ Pointer<double> Measure::GetMeasureData()
 {
     data.copyHost2Dev(length);
     cudaDeviceSynchronize();
-
     return data;
 }
 

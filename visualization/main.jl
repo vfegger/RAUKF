@@ -10,8 +10,8 @@ const raukfDataReadyPath = "../data/ready/"
 const ioT = PipeBuffer()
 const ioQ = PipeBuffer()
 
-Lx = 12
-Ly = 12
+Lx = 24
+Ly = 24
 Lz = 6
 Lt = 100
 

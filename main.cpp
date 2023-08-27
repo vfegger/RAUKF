@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    int Lx = 12;
-    int Ly = 12;
+    int Lx = 24;
+    int Ly = 24;
     int Lz = 6;
     int Lt = 100;
     double Sx = 0.12;

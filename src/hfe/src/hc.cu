@@ -326,6 +326,7 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
     unsigned thread = ((threadIdx.z + 1u) * (blockDim.y + 2) + (threadIdx.y + 1u)) * (blockDim.x + 2u) + (threadIdx.x + 1u);
     bool inside = xIndex < Lx && yIndex < Ly && zIndex < Lz;
     double temp = 0.0;
+    unsigned begin, end;
     if (inside)
     {
         temp = T[index];
@@ -333,16 +334,20 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
     Ts[thread] = temp;
     __syncthreads();
 
-    if (threadIdx.x == 0u)
+    begin = 0u;
+    end = min(Lx, (blockIdx.x + 1u) * blockDim.x) - blockIdx.x * blockDim.x - 1u;
+    if (threadIdx.x == begin)
     {
         Ts[thread - tStrideX] = (xIndex == 0) ? temp : T[index - 1u];
     }
-    if (threadIdx.x == min(Lx - blockIdx.x * blockDim.x, blockDim.x) - 1)
+    if (threadIdx.x == end)
     {
         Ts[thread + tStrideX] = (xIndex == Lx - 1) ? temp : T[index + 1u];
     }
 
-    if (threadIdx.y == 0u)
+    begin = 0u;
+    end = min(Ly, (blockIdx.y + 1u) * blockDim.y) - blockIdx.y * blockDim.y - 1u;
+    if (threadIdx.y == begin)
     {
         Ts[thread - tStrideY] = (yIndex == 0) ? temp : T[index - Lx];
     }
@@ -351,11 +356,13 @@ __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz
         Ts[thread + tStrideY] = (yIndex == Ly - 1) ? temp : T[index + Lx];
     }
 
-    if (threadIdx.z == 0u)
+    begin = 0u;
+    end = min(Lz, (blockIdx.z + 1u) * blockDim.z) - blockIdx.z * blockDim.z - 1u;
+    if (threadIdx.z == begin)
     {
         Ts[thread - tStrideZ] = (zIndex == 0) ? temp : T[index - Lx * Ly];
     }
-    if (threadIdx.z == min(Lz - blockIdx.z * blockDim.z, blockDim.z) - 1)
+    if (threadIdx.z == end)
     {
         Ts[thread + tStrideZ] = (zIndex == Lz - 1) ? temp : T[index + Lx * Ly];
     }
@@ -420,6 +427,7 @@ void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     dim3 T2(32, 32);
     dim3 B3(CEIL(parms.Lx, 16), CEIL(parms.Ly, 16), CEIL(parms.Lz, 4));
     dim3 B2(CEIL(parms.Lx, 32), CEIL(parms.Ly, 32));
+    MathGPU::Zero(dT, parms.Lx * parms.Ly * parms.Lz);
     Diffusion<<<B3, T3, sizeof(double) * (T3.x + 2) * (T3.y + 2) * (T3.z + 2), cudaStreamDefault>>>(dT, T, parms.dx, parms.dy, parms.dz, parms.Lx, parms.Ly, parms.Lz);
     HeatFluxContribution<<<B2, T2, 0, cudaStreamDefault>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
     ThermalCapacity<<<B3, T3, 0, cudaStreamDefault>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);

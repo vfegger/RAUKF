@@ -94,6 +94,14 @@ __global__ void CUDA_Mean(double *pv_o, double *pm_i, double *pw_i, unsigned int
     }
 }
 
+__global__ void ZeroUpper(double *pv_io, unsigned lengthI, unsigned lengthJ){
+    unsigned i = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned j = blockDim.y * blockIdx.y + threadIdx.y;
+    if(i < lengthI && j < lengthJ && j > i){
+        pv_io[j*lengthI + i] = 0.0;
+    }
+}
+
 void MathGPU::CreateHandles()
 {
     cublasCreate(&cublasHandle);
@@ -285,17 +293,36 @@ void MathGPU::Diag(double *pv_o, double *pm_i, int length)
 }
 void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
 {
-    int size = 0;
+    size_t dSize = 0lu;
+    size_t hSize = 0lu;
+    double *pdWork = NULL;
+    double *phWork = NULL;
     int *pdInfo;
-    double *pdAux;
     cusolverDnSetStream(cusolverDnHandle, cudaStreamDefault);
-    cudaMemcpyAsync(pm_o, pm_i, sizeof(double) * length * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
-    cusolverDnDpotrf_bufferSize(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, &size);
     cudaMallocAsync(&pdInfo, sizeof(int), cudaStreamDefault);
-    cudaMallocAsync(&pdAux, sizeof(double) * size, cudaStreamDefault);
-    cusolverDnDpotrf(cusolverDnHandle, cublasFillMode_t::CUBLAS_FILL_MODE_LOWER, length, pm_o, length, pdAux, size, pdInfo);
-    cudaFreeAsync(pdAux, cudaStreamDefault);
+    cudaMemcpyAsync(pm_o, pm_i, sizeof(double) * length * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
+    cusolverDnXpotrf_bufferSize(cusolverDnHandle, NULL, CUBLAS_FILL_MODE_LOWER, length, CUDA_R_64F, pm_o, length, CUDA_R_64F, &dSize, &hSize);
+    if (dSize > 0)
+    {
+        cudaMallocAsync(&pdWork, dSize, cudaStreamDefault);
+    }
+    if (hSize > 0)
+    {
+        cudaMallocHost(&phWork, hSize);
+    }
+    cusolverDnXpotrf(cusolverDnHandle, NULL, CUBLAS_FILL_MODE_LOWER, length, CUDA_R_64F, pm_o, length, CUDA_R_64F, pdWork, dSize, phWork, hSize, pdInfo);
+    if (dSize > 0)
+    {
+        cudaFreeAsync(pdWork, cudaStreamDefault);
+    }
+    if (hSize > 0)
+    {
+        cudaFreeHost(phWork);
+    }
     cudaFreeAsync(pdInfo, cudaStreamDefault);
+    dim3 T(32,32);
+    dim3 B(CEIL(length, T.x),CEIL(length, T.y));
+    ZeroUpper<<<B,T,0,cudaStreamDefault>>>(pm_o, length, length);
 }
 void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
 {

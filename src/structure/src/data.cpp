@@ -34,11 +34,9 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     pointer.alloc(length);
     covariancePointer.alloc(length * length);
     noisePointer.alloc(length * length);
-    instances.alloc((2 * length + 1) * length);
     double *pHost = pointer.host();
     double *pcHost = covariancePointer.host();
     double *pnHost = noisePointer.host();
-    double *piHost = instances.host();
     for (int j = 0; j < length; ++j)
     {
         pHost[j] = 0.0;
@@ -46,13 +44,6 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
         {
             pcHost[j * length + i] = 0.0;
             pnHost[j * length + i] = 0.0;
-        }
-    }
-    for (int j = 0; j < 2 * length + 1; ++j)
-    {
-        for (int i = 0; i < length; ++i)
-        {
-            piHost[j * length + i] = 0.0;
         }
     }
     for (std::map<std::string, DataInfo>::reverse_iterator i = info.rbegin(); i != info.rend(); ++i)

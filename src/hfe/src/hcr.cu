@@ -28,7 +28,6 @@ void HCR::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCRParms &parm
     double dx = parms.dx;
     double dy = parms.dy;
     double dz = parms.dz;
-    double dt = parms.dt;
     double amp = parms.amp;
     // Difusion Contribution
     for (int k = 0; k < Lz; ++k)
@@ -225,55 +224,34 @@ inline int bI(int i)
     return (i * i - i) / 2;
 }
 
-void RKTable(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref1, double *ref2, int L1, int L2, HCR::HCRParms &parms)
+void HCR::CPU::ButcherTableau(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref0, double *ref1, int L0, int L1, HCRParms &parms)
 {
-    int L = L1 + L2;
+    int L = L0 + L1;
     for (int d = 0; d < n; ++d)
     {
-        for (int i = 0; i < L1; ++i)
-        {
-            aux00[i] = ref1[i];
-        }
-        for (int i = 0; i < L2; ++i)
-        {
-            aux01[i] = ref2[i];
-        }
         double *K_d = K + L * d;
+        MathCPU::Copy(aux00, ref0, L0);
+        MathCPU::Copy(aux01, ref1, L1);
         for (int j = 0; j < d; ++j)
         {
             double *K_j = K + L * j;
-            for (int i = 0; i < L1; ++i)
-            {
-                aux00[i] += B[bI(d) + j] * h * K_j[i];
-            }
-            for (int i = 0; i < L2; ++i)
-            {
-                aux01[i] += B[bI(d) + j] * h * K_j[L1 + i];
-            }
+            MathCPU::LRPO(aux00, K_j, B[bI(d) + j] * h, L0);
+            MathCPU::LRPO(aux01, K_j + L0, B[bI(d) + j] * h, L1);
         }
-        HCR::CPU::Diff(K_d, K_d + L1, aux00, aux01, parms);
+        HCR::CPU::Diff(K_d, K_d + L0, aux00, aux01, parms);
     }
-    for (int i = 0; i < L1; ++i)
-    {
-        aux10[i] = aux00[i] = ref1[i];
-    }
-    for (int i = 0; i < L2; ++i)
-    {
-        aux11[i] = aux01[i] = ref2[i];
-    }
+    MathCPU::Copy(aux00, ref0, L0);
+    MathCPU::Copy(aux10, ref0, L0);
+    MathCPU::Copy(aux01, ref1, L1);
+    MathCPU::Copy(aux11, ref1, L1);
     for (int j = 0; j < n; ++j)
     {
         double *K_j = K + L * j;
-        for (int i = 0; i < L1; ++i)
-        {
-            aux00[i] += C[j] * h * K_j[i];
-            aux10[i] += C[n + j] * h * K_j[i];
-        }
-        for (int i = 0; i < L2; ++i)
-        {
-            aux01[i] += C[j] * h * K_j[L1 + i];
-            aux11[i] += C[n + j] * h * K_j[L1 + i];
-        }
+        double temp = C[j] * h;
+        MathCPU::LRPO(aux00, K_j, C[j] * h, L0);
+        MathCPU::LRPO(aux01, K_j + L0, C[j] * h, L1);
+        MathCPU::LRPO(aux10, K_j, C[n + j] * h, L0);
+        MathCPU::LRPO(aux11, K_j + L0, C[n + j] * h, L1);
     }
 }
 
@@ -283,11 +261,13 @@ void HCR::CPU::RKF45(double *T, double *Q, double *workspace, HCRParms &parms)
     int Lxyz = Lxy * parms.Lz;
     int L = Lxyz + Lxy;
     double dt = parms.dt;
-    double *K, *auxT, *auxQ, *auxT_5, *auxQ_5;
+    double *K, *aux, *auxT, *auxQ, *aux_5, *auxT_5, *auxQ_5;
     K = workspace;
-    auxT = K + 6 * L;
+    aux = K + 6 * L;
+    auxT = aux;
     auxQ = auxT + Lxyz;
-    auxT_5 = auxQ + Lxy;
+    aux_5 = aux + L;
+    auxT_5 = aux_5;
     auxQ_5 = auxT_5 + Lxyz;
 
     double h, hacc;
@@ -298,33 +278,15 @@ void HCR::CPU::RKF45(double *T, double *Q, double *workspace, HCRParms &parms)
     do
     {
         parms.dt = h;
-        RKTable(6, B, C, h, K, auxT, auxQ, auxT_5, auxQ_5, T, Q, Lxyz, Lxy, parms);
+        ButcherTableau(6, B, C, h, K, auxT, auxQ, auxT_5, auxQ_5, T, Q, Lxyz, Lxy, parms);
 
-        double acc = 0.0;
-        for (int i = 0; i < Lxyz; ++i)
-        {
-            double temp = (auxT_5[i] - auxT[i]);
-            acc += temp * temp;
-        }
-        for (int i = 0; i < Lxy; ++i)
-        {
-            double temp = (auxQ_5[i] - auxQ[i]);
-            acc += temp * temp;
-        }
-        double e = TOL8_CPU / (2.0 * sqrt(acc) + 1e-3 * TOL8_CPU);
-        double alpha = sqrt(sqrt(e));
+        double alpha = sqrt(sqrt(TOL8_CPU / (2.0 * sqrt(MathCPU::Distance(aux, aux_5, L)) + 1e-3 * TOL8_CPU)));
         if (alpha > 1.0 || h <= 1e-1 * dt)
         {
             hacc += h;
             h = dt - hacc;
-            for (int i = 0; i < Lxyz; ++i)
-            {
-                T[i] = auxT[i];
-            }
-            for (int i = 0; i < Lxy; ++i)
-            {
-                Q[i] = auxQ[i];
-            }
+            MathCPU::Copy(T, auxT, Lxyz);
+            MathCPU::Copy(Q, auxQ, Lxy);
         }
         else
         {

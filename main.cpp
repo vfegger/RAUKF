@@ -39,7 +39,7 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
     for (int i = 0; i < Lt; ++i)
     {
-        HCR::CPU::RK4(T, Q, workspace, parms);
+        HCR::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
             measures[i * Lx * Ly + j] = T[j] + HC::CPU::distribution(HC::CPU::generator);

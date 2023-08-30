@@ -143,43 +143,29 @@ void RAUKF::Iterate(Timer &timer)
     // Generation of sigma points through the use of cholesky decomposition
     std::cout << "Calculate Cholesky Decomposition\n";
     Math::Zero(cd, Lx * Lx, type);
-    cd.copyDev2Host(Lx * Lx);
-    cudaDeviceSynchronize();
     Math::Mul(Pxx, Lx + lambda, Lx * Lx, type);
     Math::CholeskyDecomposition(cd, Pxx, Lx, type);
     timer.Record(type);
-    Pxx.copyDev2Host(Lx * Lx);
-    cd.copyDev2Host(Lx * Lx);
-    cudaDeviceSynchronize();
 
     std::cout << "Generate Sigma Points based on Cholesky Decompostion\n";
     Math::Iterate(Math::Copy, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
     Math::Iterate(Math::Add, xs, cd, Lx, Lx, Lx, Lx, Lx, 0, type);
     Math::Iterate(Math::Sub, xs, cd, Lx, Lx, Lx, Lx, Lx * (Lx + 1), 0, type);
-    xs.copyDev2Host(Lx * Ls);
-    ys.copyDev2Host(Lx * Ls);
-    cudaDeviceSynchronize();
 
     timer.Record(type);
     // Evolve and Measure each state given by each sigma point
     std::cout << "Evolution Step\n";
     pmodel->Evolve(pstate, type);
-    xs.copyDev2Host(Lx * Ls);
-    cudaDeviceSynchronize();
     timer.Record(type);
 
     std::cout << "Evaluation Step\n";
     pmodel->Evaluate(pmeasure, pstate, type);
-    ys.copyDev2Host(Lx * Ls);
-    cudaDeviceSynchronize();
     timer.Record(type);
 
     // Calculate new mean and covariance for the state and measure
     std::cout << "Mean\n";
     Math::Mean(x, xs, wm, Lx, Ls, type);
     Math::Mean(y, ys, wm, Ly, Ls, type);
-    x.copyDev2Host(Lx);
-    cudaDeviceSynchronize();
     timer.Record(type);
 
     std::cout << "Covariance\n";
@@ -197,7 +183,6 @@ void RAUKF::Iterate(Timer &timer)
     std::cout << "Kalman Gain\n";
     Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
-    Math::MatMulNN(0.0, cd, 1.0, Pyy, KT, Ly, Ly, Lx, type);
 
     // State Update
     std::cout << "State Update\n";

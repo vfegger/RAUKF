@@ -33,6 +33,7 @@ namespace HCR
 
         void AllocWorkspaceRKF45(double *&workspace, HCRParms &parms);
         void FreeWorkspaceRKF45(double *workspace);
+        void ButcherTableau(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref0, double *ref1, int L0, int L1, HCRParms &parms);
         void RKF45(double *T, double *Q, double *workspace, HCRParms &parms);
     }
     namespace GPU

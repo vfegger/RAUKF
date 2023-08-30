@@ -110,15 +110,15 @@ void Math::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, 
         MathGPU::Mul(v_o.dev(), vL_i.dev(), vR_i.dev(), length);
     }
 }
-void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, double vR_i, int length, Type type)
 {
     if (type == Type::CPU)
     {
-        MathCPU::LRPO(v_io.host(), vL_i.host(), vR_i.host(), length);
+        MathCPU::LRPO(v_io.host(), vL_i.host(), vR_i, length);
     }
     else if (type == Type::GPU)
     {
-        MathGPU::LRPO(v_io.dev(), vL_i.dev(), vR_i.dev(), length);
+        MathGPU::LRPO(v_io.dev(), vL_i.dev(), vR_i, length);
     }
 }
 void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
@@ -325,4 +325,5 @@ double Math::Distance(Pointer<double> vL_i, Pointer<double> vR_i, int length, Ty
     {
         return MathGPU::Distance(vL_i.dev(), vR_i.dev(), length);
     }
+    return 0.0;
 }

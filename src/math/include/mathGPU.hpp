@@ -40,6 +40,10 @@ namespace MathGPU
     void Mul(double *pv_o, double *pvL_i, double vR_i, int length);
     // Vector Element-wise Multiplication Out-place
     void Mul(double *pv_o, double *pvL_i, double *pvR_i, int length);
+    // Vector Constant Multiplication Addition Out-place
+    void LRPO(double *pv_io, double *pvL_i, double vR_i, int length);
+    // Vector Element-wise Multiplication Addition Out-place
+    void LRPO(double *pv_io, double *pvL_i, double *pvR_i, int length);
 
     // Matrix Multiplication Natural (Line) x Natural (Column)
     void MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N);
@@ -62,6 +66,8 @@ namespace MathGPU
     void Mean(double *pv_o, double *pm_i, int lengthI, int lengthJ);
     // Mean with Weights Operation
     void Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ);
+    // Dot Product Operation
+    double Distance(double *pvL_i, double *pvR_i, int length);
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation

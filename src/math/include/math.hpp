@@ -29,6 +29,10 @@ namespace Math
     void Mul(Pointer<double> v_o, Pointer<double> vL_i, double vR_i, int length, Type type);
     // Vector Element-wise Multiplication Out-place
     void Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
+    // Vector Constant Multiplication Addition Out-place
+    void LRPO(Pointer<double> v_io, Pointer<double> vL_i, double vR_i, int length, Type type);
+    // Vector Element-wise Multiplication Addition Out-place
+    void LRPO(Pointer<double> v_io, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
 
     // Matrix Multiplication Natural (Line) x Natural (Column)
     void MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type);
@@ -61,8 +65,8 @@ namespace Math
     void Mean(Pointer<double> v_o, Pointer<double> m_i, int lengthI, int lengthJ, Type type);
     // Mean with Weights Operation
     void Mean(Pointer<double> v_o, Pointer<double> m_i, Pointer<double> w_i, int lengthI, int lengthJ, Type type);
-    // Dot Operation
-    double Dot(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
+    // Distance Operation
+    double Distance(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
     // Norm-1 Operation
     double Norm1(Pointer<double> v_i, int length, Type type);
     // Norm-2 Operation

@@ -65,6 +65,22 @@ __global__ void CUDA_Mul(double *pv_o, double *pvL_i, double *pvR_i, unsigned in
         pv_o[index] = pvL_i[index] * pvR_i[index];
     }
 }
+__global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double vR_i, unsigned int length)
+{
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < length)
+    {
+        pv_io[index] = pvL_i[index] * vR_i;
+    }
+}
+__global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double *pvR_i, unsigned int length)
+{
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < length)
+    {
+        pv_io[index] = pvL_i[index] * pvR_i[index];
+    }
+}
 
 __global__ void CUDA_Mean(double *pv_o, double *pm_i, unsigned int lengthI, unsigned int lengthJ)
 {
@@ -94,11 +110,13 @@ __global__ void CUDA_Mean(double *pv_o, double *pm_i, double *pw_i, unsigned int
     }
 }
 
-__global__ void ZeroUpper(double *pv_io, unsigned lengthI, unsigned lengthJ){
+__global__ void ZeroUpper(double *pv_io, unsigned lengthI, unsigned lengthJ)
+{
     unsigned i = blockDim.x * blockIdx.x + threadIdx.x;
     unsigned j = blockDim.y * blockIdx.y + threadIdx.y;
-    if(i < lengthI && j < lengthJ && j > i){
-        pv_io[j*lengthI + i] = 0.0;
+    if (i < lengthI && j < lengthJ && j > i)
+    {
+        pv_io[j * lengthI + i] = 0.0;
     }
 }
 
@@ -169,6 +187,18 @@ void MathGPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
     CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
+}
+void MathGPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length)
+{
+    dim3 T(THREAD_COUNT);
+    dim3 B(CEIL(length, T.x));
+    CUDA_LRPO<<<B, T, 0, cudaStreamDefault>>>(pv_io, pvL_i, vR_i, length);
+}
+void MathGPU::LRPO(double *pv_io, double *pvL_i, double *pvR_i, int length)
+{
+    dim3 T(THREAD_COUNT);
+    dim3 B(CEIL(length, T.x));
+    CUDA_LRPO<<<B, T, 0, cudaStreamDefault>>>(pv_io, pvL_i, pvR_i, length);
 }
 void MathGPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
@@ -320,9 +350,9 @@ void MathGPU::CholeskyDecomposition(double *pm_o, double *pm_i, int length)
         cudaFreeHost(phWork);
     }
     cudaFreeAsync(pdInfo, cudaStreamDefault);
-    dim3 T(32,32);
-    dim3 B(CEIL(length, T.x),CEIL(length, T.y));
-    ZeroUpper<<<B,T,0,cudaStreamDefault>>>(pm_o, length, length);
+    dim3 T(32, 32);
+    dim3 B(CEIL(length, T.x), CEIL(length, T.y));
+    ZeroUpper<<<B, T, 0, cudaStreamDefault>>>(pm_o, length, length);
 }
 void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
@@ -341,4 +371,14 @@ void MathGPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, 
     cudaFreeAsync(pdInfo, cudaStreamDefault);
     cudaFreeAsync(pm, cudaStreamDefault);
     cudaDeviceSynchronize();
+}
+double MathGPU::Distance(double *pvL_i, double *pvR_i, int length)
+{
+    double acc = 0.0;
+    double *aux = NULL;
+    cudaMallocAsync(&aux, sizeof(double) * length, cudaStreamDefault);
+    Sub(aux, pvL_i, pvR_i, length);
+    cublasDnrm2(cublasHandle, length, pvL_i, 1, &acc);
+    cudaFreeAsync(aux, cudaStreamDefault);
+    return acc;
 }

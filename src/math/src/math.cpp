@@ -110,6 +110,28 @@ void Math::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, 
         MathGPU::Mul(v_o.dev(), vL_i.dev(), vR_i.dev(), length);
     }
 }
+void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::LRPO(v_io.host(), vL_i.host(), vR_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::LRPO(v_io.dev(), vL_i.dev(), vR_i.dev(), length);
+    }
+}
+void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::LRPO(v_io.host(), vL_i.host(), vR_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::LRPO(v_io.dev(), vL_i.dev(), vR_i.dev(), length);
+    }
+}
 void Math::MatMulNN(double beta, Pointer<double> m_o, double alpha, Pointer<double> mL_i, Pointer<double> mR_i, int M, int K, int N, Type type)
 {
     if (type == Type::CPU)
@@ -291,5 +313,16 @@ void Math::CholeskySolver(Pointer<double> m_o, Pointer<double> mL_i, Pointer<dou
     else if (type == Type::GPU)
     {
         MathGPU::CholeskySolver(m_o.dev(), mL_i.dev(), mR_i.dev(), M, K, N);
+    }
+}
+double Math::Distance(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        return MathCPU::Distance(vL_i.host(), vR_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        return MathGPU::Distance(vL_i.dev(), vR_i.dev(), length);
     }
 }

@@ -71,6 +71,18 @@ void MathCPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
         pv_o[i] = pvL_i[i] * pvR_i[i];
     }
 }
+void MathCPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length){
+    for (int i = 0; i < length; ++i)
+    {
+        pv_io[i] += pvL_i[i] * vR_i;
+    }
+}
+void MathCPU::LRPO(double *pv_io, double *pvL_i, double *pvR_i, int length){
+    for (int i = 0; i < length; ++i)
+    {
+        pv_io[i] += pvL_i[i] * pvR_i[i];
+    }
+}
 void MathCPU::MatMulNN(double beta, double *pm_o, double alpha, double *pmL_i, double *pmR_i, int M, int K, int N)
 {
     double *auxL = (double *)malloc(sizeof(double) * M * K);
@@ -370,4 +382,14 @@ void MathCPU::CholeskySolver(double *pm_o, double *pmL_i, double *pmR_i, int M, 
         }
     }
     free(pm);
+}
+double MathCPU::Distance(double *pvL_i, double *pvR_i, int length)
+{
+    double acc = 0.0;
+    for (int i = 0; i < length; i++)
+    {
+        double temp = pvL_i[i] - pvR_i[i];
+        acc += temp * temp;
+    }
+    return acc;
 }

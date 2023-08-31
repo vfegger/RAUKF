@@ -1,0 +1,437 @@
+========= COMPUTE-SANITIZER
+========= Leaked 130.056.192 bytes at 0x7f49a6000000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:37:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x1049b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 130.056.192 bytes at 0x7f49ae000000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:36:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x10469]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 32.256 bytes at 0x7f49b6800000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:35:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x10437]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 4.608 bytes at 0x7f49b6807e00
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:35:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a08]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 4.608 bytes at 0x7f49b6809000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:36:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a2a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 2.654.208 bytes at 0x7f49b6a00000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:37:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a5c]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 2.654.208 bytes at 0x7f49b6e00000
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x2ba495]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x4605e]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame: [0x1623f]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaHostAlloc [0x54bc8]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:506:cudaMallocHost(void**, unsigned long, unsigned int) [0x10f28]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:777:cudaError cudaMallocHost<double>(double**, unsigned long, unsigned int) [0x11c25]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:46:Pointer<double>::alloc(unsigned int) [0x1147a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:38:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a8e]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 32.256 bytes at 0x6e4027600
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:35:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x10437]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 130.056.192 bytes at 0x6e402f400
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:36:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x10469]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 130.056.192 bytes at 0x6ebc37400
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:37:Data::Data(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, DataInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, DataInfo> > >&) [0x1049b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/data.cpp:167:DataLoader::Load() [0x10e63]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:173:HFE::GenerateData() [0x21ba7]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:20:RAUKF::SetModel(Model*) [0x340ad]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 4.608 bytes at 0x6f383f400
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:35:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a08]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 4.608 bytes at 0x6f3840600
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:36:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a2a]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 2.654.208 bytes at 0x6f3841800
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:37:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a5c]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= Leaked 2.654.208 bytes at 0x6f3ac9800
+=========     Saved host backtrace up to driver entry point at allocation time
+=========     Host Frame: [0x31545c]
+=========                in /lib/x86_64-linux-gnu/libcuda.so.1
+=========     Host Frame: [0x1712d]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:cudaMallocAsync [0x73c6b]
+=========                in /usr/local/cuda/lib64/libcudart.so.12
+=========     Host Frame:/usr/local/cuda/include/cuda_runtime.h:828:cudaError cudaMallocAsync<double>(double**, unsigned long, CUstream_st*) [0x11c52]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/../include/../../structure/include/pointer.hpp:47:Pointer<double>::alloc(unsigned int) [0x1149d]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:38:Measure::Measure(std::map<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, MeasureInfo, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, MeasureInfo> > >&) [0x14a8e]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/structure/src/measure.cpp:156:MeasureLoader::Load() [0x152d9]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/hfe/src/hfe.cpp:190:HFE::GenerateMeasure() [0x21e2b]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/src/raukf/src/raukf.cpp:21:RAUKF::SetModel(Model*) [0x340cc]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:/home/soul/Projects/RAUKF/main.cpp:83:main [0xd5db]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+=========     Host Frame:../sysdeps/nptl/libc_start_call_main.h:58:__libc_start_call_main [0x29d90]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:../csu/libc-start.c:379:__libc_start_main [0x29e40]
+=========                in /lib/x86_64-linux-gnu/libc.so.6
+=========     Host Frame:_start [0x4da5]
+=========                in /home/soul/Projects/RAUKF/./build/HFE_RAUKF
+========= 
+========= LEAK SUMMARY: 530924544 bytes leaked in 14 allocations
+========= ERROR SUMMARY: 14 errors

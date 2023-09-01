@@ -4,7 +4,6 @@
 #include <chrono>
 #include <list>
 #include <cuda_runtime.h>
-#include <cuda_runtime.h>
 #include "../../structure/include/pointer.hpp"
 
 using Time = std::chrono::high_resolution_clock;

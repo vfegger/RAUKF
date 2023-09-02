@@ -3,7 +3,13 @@
 #include <iomanip>
 #include <fstream>
 
-RAUKF::RAUKF() : pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU) {}
+RAUKF::RAUKF() : pstatistics(NULL), pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU) {
+    pstatistics = new Statistics();
+}
+
+RAUKF::~RAUKF() {
+    delete pstatistics;
+}
 
 void RAUKF::SetParameters(double alpha, double beta, double kappa)
 {

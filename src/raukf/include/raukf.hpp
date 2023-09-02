@@ -7,10 +7,12 @@
 #include "../../math/include/math.hpp"
 #include "../../model/include/model.hpp"
 #include "../../timer/include/timer.hpp"
+#include "../../statistics/include/statistics.hpp"
 
 class RAUKF
 {
 private:
+    Statistics *pstatistics;
     Model *pmodel;
     Data *pstate;
     Measure *pmeasure;
@@ -24,6 +26,7 @@ private:
 protected:
 public:
     RAUKF();
+    ~RAUKF();
 
     void SetParameters(double alpha, double beta, double kappa);
     void SetModel(Model *pmodel);

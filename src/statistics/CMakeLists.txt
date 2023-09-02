@@ -30,5 +30,5 @@ endif()
 
 add_library(${target} ${source})
 
-target_include_directories(${target} PUBLIC ${include_path} PRIVATE ${JULIA_INCLUDE_DIR})
-target_link_libraries(${target} PRIVATE ${JULIA_LIBS})
+target_include_directories(${target} PUBLIC ${include_path} PUBLIC ${JULIA_INCLUDE_DIR})
+target_link_libraries(${target} PUBLIC ${JULIA_LIBS})

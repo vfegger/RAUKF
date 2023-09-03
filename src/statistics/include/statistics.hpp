@@ -10,7 +10,7 @@ protected:
 public:
     Statistics();
     ~Statistics();
-    double GetChi2();
+    double GetChi2(double sigma, int degree);
 };
 
 #endif

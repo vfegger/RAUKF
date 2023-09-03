@@ -10,7 +10,7 @@ void HFE::EvolveCPU(Data *pstate)
     HC::CPU::SetNoise(parms);
     for (int s = 0; s < Lsigma; ++s)
     {
-        HC::CPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
+        // HC::CPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
 #if FORWARD_METHOD == 0
         HC::CPU::Euler(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #elif FORWARD_METHOD == 1
@@ -32,7 +32,7 @@ void HFE::EvolveGPU(Data *pstate)
     HC::GPU::SetNoise(parms);
     for (int s = 0; s < Lsigma; ++s)
     {
-        HC::GPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
+        // HC::GPU::AddNoise(pinstance + offsetQ + Lstate * s, parms);
 #if FORWARD_METHOD == 0
         HC::GPU::Euler(pinstance + offsetT + Lstate * s, pinstance + offsetQ + Lstate * s, workspace, parms);
 #elif FORWARD_METHOD == 1

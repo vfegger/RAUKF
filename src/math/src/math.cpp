@@ -327,3 +327,15 @@ double Math::Distance(Pointer<double> vL_i, Pointer<double> vR_i, int length, Ty
     }
     return 0.0;
 }
+double Math::Dot(Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        return MathCPU::Dot(vL_i.host(), vR_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        return MathGPU::Dot(vL_i.dev(), vR_i.dev(), length);
+    }
+    return 0.0;
+}

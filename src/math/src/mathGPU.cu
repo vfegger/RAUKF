@@ -382,3 +382,9 @@ double MathGPU::Distance(double *pvL_i, double *pvR_i, int length)
     cudaFreeAsync(aux, cudaStreamDefault);
     return acc;
 }
+double MathGPU::Dot(double *pvL_i, double *pvR_i, int length)
+{
+    double acc = 0.0;
+    cublasDdot(cublasHandle, length, pvL_i, 1, pvR_i, 1, &acc);
+    return acc;
+}

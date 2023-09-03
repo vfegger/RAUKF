@@ -68,6 +68,8 @@ namespace MathGPU
     void Mean(double *pv_o, double *pm_i, double *pw_i, int lengthI, int lengthJ);
     // Dot Product Operation
     double Distance(double *pvL_i, double *pvR_i, int length);
+    // Dot Operation
+    double Dot(double *vL_i, double *vR_i, int length);
     // Comparison Operation
     bool Compare(double *pvL_i, double *pvR_i, int length);
     // Diagonalization Operation

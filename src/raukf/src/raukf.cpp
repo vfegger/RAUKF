@@ -3,11 +3,13 @@
 #include <iomanip>
 #include <fstream>
 
-RAUKF::RAUKF() : pstatistics(NULL), pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU) {
+RAUKF::RAUKF() : pstatistics(NULL), pmodel(NULL), pstate(NULL), pmeasure(NULL), alpha(0.0), beta(0.0), kappa(0.0), type(Type::CPU)
+{
     pstatistics = new Statistics();
 }
 
-RAUKF::~RAUKF() {
+RAUKF::~RAUKF()
+{
     delete pstatistics;
 }
 
@@ -189,6 +191,46 @@ void RAUKF::Iterate(Timer &timer)
     std::cout << "Kalman Gain\n";
     Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
+
+    // Calculation of Correction Factor
+    Pointer<double> mu, aux;
+    mu.alloc(Ly);
+    aux.alloc(Ly * Ly);
+    Math::Sub(mu, ym, y, Ly, type);
+    Math::CholeskySolver(aux, Pyy, mu, Ly, Ly, 1, type);
+    double phi = Math::Dot(mu, aux, Ly, type);
+
+    double chi2 = pstatistics->GetChi2(0.95, Ly);
+    if (phi > chi2)
+    {
+        // Update Noise Matrix Q
+        double a = 1.0;
+        double lambdaQ0 = 0.1;
+        double lambdaQ = max(lambdaQ0, (phi - a * chi2) / phi);
+        Math::MatMulNN(0.0, aux, 1.0, mu, KT, 1, Ly, Lx, type);
+        Math::MatMulTN(1.0 - lambdaQ, Q, lambdaQ, aux, aux, Lx, 1, Lx, type);
+
+        // Update Noise Matrix R
+        double b = 1.0;
+        double lambdaR0 = 0.1;
+        double lambdaR = max(lambdaR0, (phi - b * chi2) / phi);
+        // Aux =
+        Math::Sub(mu, ym, y, Ly, type);
+        Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
+        Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
+
+        // Update Matrices for State and Covariance Update
+        Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);
+        Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
+        Math::MatMulNWT(0.0, PxyT, 1.0, ys, xs, wc, Ly, Ls, Lx, type);
+        Math::Add(Pxx, Q, Lx * Lx, type);
+        Math::Add(Pyy, R, Ly * Ly, type);
+
+        Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
+        timer.Record(type);
+    }
+    aux.free();
+    mu.free();
 
     // State Update
     std::cout << "State Update\n";

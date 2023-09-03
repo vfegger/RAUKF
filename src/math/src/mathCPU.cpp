@@ -71,13 +71,15 @@ void MathCPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
         pv_o[i] = pvL_i[i] * pvR_i[i];
     }
 }
-void MathCPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length){
+void MathCPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length)
+{
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] += pvL_i[i] * vR_i;
     }
 }
-void MathCPU::LRPO(double *pv_io, double *pvL_i, double *pvR_i, int length){
+void MathCPU::LRPO(double *pv_io, double *pvL_i, double *pvR_i, int length)
+{
     for (int i = 0; i < length; ++i)
     {
         pv_io[i] += pvL_i[i] * pvR_i[i];
@@ -390,6 +392,15 @@ double MathCPU::Distance(double *pvL_i, double *pvR_i, int length)
     {
         double temp = pvL_i[i] - pvR_i[i];
         acc += temp * temp;
+    }
+    return acc;
+}
+double MathCPU::Dot(double *pvL_i, double *pvR_i, int length)
+{
+    double acc = 0.0;
+    for (int i = 0; i < length; i++)
+    {
+        acc += pvL_i[i] * pvR_i[i];
     }
     return acc;
 }

@@ -214,8 +214,6 @@ void RAUKF::Iterate(Timer &timer)
         double b = 1.0;
         double lambdaR0 = 0.1;
         double lambdaR = max(lambdaR0, (phi - b * chi2) / phi);
-        // Aux =
-        Math::Sub(mu, ym, y, Ly, type);
         Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
         Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
 

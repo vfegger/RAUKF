@@ -244,8 +244,8 @@ void RAUKF::Iterate(Timer &timer)
         double b = 5.0;
         double lambdaR0 = 0.2;
         double lambdaR = std::max<double>(lambdaR0, (phi - b * chi2) / phi);
-        Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
-        Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
+        // Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
+        // Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
 
         // Update Matrices for State and Covariance Update
         Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);

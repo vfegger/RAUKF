@@ -214,7 +214,7 @@ void RAUKF::Iterate(Timer &timer)
 
     // Calculation of Correction Factor
     Math::CholeskySolver(aux, Pyy, mu, Ly, Ly, 1, type);
-    double phi = Math::Dot(mu, aux, Ly, type);
+    double phi = 0.0; // Math::Dot(mu, aux, Ly, type);
 
     double chi2 = pstatistics->GetChi2(0.95, Ly);
     if (phi > chi2)
@@ -233,7 +233,7 @@ void RAUKF::Iterate(Timer &timer)
         pmodel->Evaluate(pmeasure, pstate, type);
 
         Math::Mean(y, ys, wm, Ly, Ls, type);
-        Math::Sub(mu, ym, x, Ly, type);
+        Math::Sub(mu, ym, xs, Ly, type);
 
         Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
         Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);

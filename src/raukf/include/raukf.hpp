@@ -24,6 +24,7 @@ private:
     Type type;
 
 protected:
+    void UnscentedTransformation(Pointer<double> xs_o, Pointer<double> x_i, Pointer<double> P_i, int Lx, int Ls, Pointer<double> workspace, Type type);
 public:
     RAUKF();
     ~RAUKF();

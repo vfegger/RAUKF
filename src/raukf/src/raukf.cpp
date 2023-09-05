@@ -150,6 +150,9 @@ void RAUKF::Iterate(Timer &timer)
     Pointer<double> KT;
     Pointer<double> workspace;
 
+    Pointer<double> mu;
+    Pointer<double> aux;
+
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
     int Ly = this->pmeasure->GetMeasureLength();
@@ -157,6 +160,8 @@ void RAUKF::Iterate(Timer &timer)
     PxyT.alloc(Lx * Ly);
     KT.alloc(Lx * Ly);
     workspace.alloc(Lx * Lx);
+    mu.alloc(Ly);
+    aux.alloc(Ly * Ly);
 
     std::cout << "State length: " << Lx << "; Observation length: " << Ly << "; Sigma points: " << Ls << "\n";
     timer.Record(type);
@@ -198,8 +203,8 @@ void RAUKF::Iterate(Timer &timer)
 
     // State Update
     std::cout << "State Update\n";
-    Math::Sub(ym, y, Ly, type);
-    Math::MatMulTN(1.0, x, 1.0, KT, ym, Lx, Ly, 1, type);
+    Math::Sub(mu, ym, y, Ly, type);
+    Math::MatMulTN(1.0, x, 1.0, KT, mu, Lx, Ly, 1, type);
     timer.Record(type);
 
     std::cout << "State Covariance Update\n";
@@ -208,10 +213,6 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Calculation of Correction Factor
-    Pointer<double> mu, aux;
-    mu.alloc(Ly);
-    aux.alloc(Ly * Ly);
-    Math::Sub(mu, ym, y, Ly, type);
     Math::CholeskySolver(aux, Pyy, mu, Ly, Ly, 1, type);
     double phi = Math::Dot(mu, aux, Ly, type);
 
@@ -256,8 +257,8 @@ void RAUKF::Iterate(Timer &timer)
         Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
 
         std::cout << "State Update\n";
-        Math::Sub(ym, y, Ly, type);
-        Math::MatMulTN(1.0, x, 1.0, KT, ym, Lx, Ly, 1, type);
+        Math::Sub(mu, ym, y, Ly, type);
+        Math::MatMulTN(1.0, x, 1.0, KT, mu, Lx, Ly, 1, type);
         timer.Record(type);
 
         std::cout << "State Covariance Update\n";

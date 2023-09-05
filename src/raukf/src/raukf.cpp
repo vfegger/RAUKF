@@ -191,6 +191,17 @@ void RAUKF::Iterate(Timer &timer)
     std::cout << "Kalman Gain\n";
     Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
     timer.Record(type);
+    
+    // State Update
+    std::cout << "State Update\n";
+    Math::Sub(ym, y, Ly, type);
+    Math::MatMulTN(1.0, x, 1.0, KT, ym, Lx, Ly, 1, type);
+    timer.Record(type);
+
+    std::cout << "State Covariance Update\n";
+    Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
+    Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
+    timer.Record(type);
 
     // Calculation of Correction Factor
     Pointer<double> mu, aux;
@@ -203,19 +214,21 @@ void RAUKF::Iterate(Timer &timer)
     double chi2 = pstatistics->GetChi2(0.95, Ly);
     if (phi > chi2)
     {
+        std::cout << "Chi-Squared Criterion Violated:\n";
+        std::cout << "\tUpdate Noise Covariances\n";
         // Update Noise Matrix Q
         double a = 1.0;
-        double lambdaQ0 = 0.1;
+        double lambdaQ0 = 0.0;
         double lambdaQ = max(lambdaQ0, (phi - a * chi2) / phi);
-        Math::MatMulNN(0.0, aux, 1.0, mu, KT, 1, Ly, Lx, type);
+        Math::MatMulTN(0.0, aux, 1.0, mu, KT, 1, Ly, Lx, type);
         Math::MatMulTN(1.0 - lambdaQ, Q, lambdaQ, aux, aux, Lx, 1, Lx, type);
 
         // Update Noise Matrix R
         double b = 1.0;
-        double lambdaR0 = 0.1;
+        double lambdaR0 = 0.0;
         double lambdaR = max(lambdaR0, (phi - b * chi2) / phi);
-        Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
-        Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
+        //Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
+        //Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
 
         // Update Matrices for State and Covariance Update
         Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);
@@ -229,17 +242,6 @@ void RAUKF::Iterate(Timer &timer)
     }
     aux.free();
     mu.free();
-
-    // State Update
-    std::cout << "State Update\n";
-    Math::Sub(ym, y, Ly, type);
-    Math::MatMulTN(1.0, x, 1.0, KT, ym, Lx, Ly, 1, type);
-    timer.Record(type);
-
-    std::cout << "State Covariance Update\n";
-    Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
-    Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
-    timer.Record(type);
 
     cd.free();
     KT.free();

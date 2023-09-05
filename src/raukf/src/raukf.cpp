@@ -223,7 +223,7 @@ void RAUKF::Iterate(Timer &timer)
         // Update Noise Matrix Q
         double a = 1.0;
         double lambdaQ0 = 0.0;
-        double lambdaQ = max(lambdaQ0, (phi - a * chi2) / phi);
+        double lambdaQ = std::max<double>(lambdaQ0, (phi - a * chi2) / phi);
         Math::MatMulTN(0.0, aux, 1.0, mu, KT, 1, Ly, Lx, type);
         Math::MatMulTN(1.0 - lambdaQ, Q, lambdaQ, aux, aux, Lx, 1, Lx, type);
 
@@ -242,7 +242,7 @@ void RAUKF::Iterate(Timer &timer)
         // Update Noise Matrix R
         double b = 1.0;
         double lambdaR0 = 0.0;
-        double lambdaR = max(lambdaR0, (phi - b * chi2) / phi);
+        double lambdaR = std::max<double>(lambdaR0, (phi - b * chi2) / phi);
         Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
         Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
 

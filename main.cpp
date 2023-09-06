@@ -3,6 +3,7 @@
 #include "./src/raukf/include/raukf.hpp"
 
 #include <fstream>
+#include <random>
 
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
@@ -37,12 +38,14 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         }
     }
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
+    std::default_random_engine generator();
+    std::normal_distribution<double> distribution(0.0,5.0);
     for (int i = 0; i < Lt; ++i)
     {
         HCR::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
-            measures[i * Lx * Ly + j] = T[j] + HC::CPU::distribution(HC::CPU::generator);
+            measures[i * Lx * Ly + j] = T[j] + distribution(generator);
         }
     }
     HCR::CPU::FreeWorkspaceRKF45(workspace);

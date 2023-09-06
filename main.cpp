@@ -38,7 +38,7 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         }
     }
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
-    std::default_random_engine generator();
+    std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0,5.0);
     for (int i = 0; i < Lt; ++i)
     {

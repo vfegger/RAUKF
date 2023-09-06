@@ -15,10 +15,10 @@ private:
     double *workspace;
 
 protected:
-    void EvolveCPU(Data *pstate) override;
-    void EvolveGPU(Data *pstate) override;
-    void EvaluateCPU(Measure *pmeasure, Data *pstate) override;
-    void EvaluateGPU(Measure *pmeasure, Data *pstate) override;
+    void EvolveCPU(Data *pstate, int index) override;
+    void EvolveGPU(Data *pstate, int index) override;
+    void EvaluateCPU(Measure *pmeasure, Data *pstate, int index) override;
+    void EvaluateGPU(Measure *pmeasure, Data *pstate, int index) override;
 
 public:
     void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp);

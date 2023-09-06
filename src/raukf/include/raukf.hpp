@@ -25,6 +25,8 @@ private:
 
 protected:
     void UnscentedTransformation(Pointer<double> xs_o, Pointer<double> x_i, Pointer<double> P_i, int Lx, int Ls, Pointer<double> workspace, Type type);
+    void AdaptNoise(Pointer<double> x, Pointer<double> Pxx, Pointer<double> Q, Pointer<double> xs, Pointer<double> y, Pointer<double> Pyy, Pointer<double> R, Pointer<double> ys, Pointer<double> ym, Pointer<double> mu, Pointer<double> PxyT, Pointer<double> KT, int Lx, int Ls, int Ly, Pointer<double> workspaceLx, Pointer<double> workspaceLy, Pointer<double> workspaceLx2);
+
 public:
     RAUKF();
     ~RAUKF();

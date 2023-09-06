@@ -14,23 +14,6 @@ __host__ __device__ inline double DiffK(double TN_i, double T_i, double TP_i, do
     double auxP = 2.0 * (K(TP_i) * K(T_i)) / (K(TP_i) + K(T_i)) * (TP_i - T_i) / delta_i;
     return (auxN + auxP) / delta_i;
 }
-void HC::CPU::AddNoise(double *Q, HCParms &parms)
-{
-    MathCPU::Add(Q, noise, parms.Lx * parms.Ly);
-}
-void HC::CPU::SetNoise(HCParms &parms)
-{
-    int Lxy = parms.Lx * parms.Ly;
-    noise = (double *)malloc(sizeof(double) * Lxy);
-    for (int i = 0; i < Lxy; ++i)
-    {
-        noise[i] = distribution(generator);
-    }
-}
-void HC::CPU::UnsetNoise()
-{
-    free(noise);
-}
 void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
     int index, offset;
@@ -362,28 +345,6 @@ __global__ void ThermalCapacity(double *dT, double *T, unsigned Lx, unsigned Ly,
         dT[index] /= C(T[index]);
     }
 }
-
-void HC::GPU::AddNoise(double *Q, HCParms &parms)
-{
-    MathGPU::Add(Q, noise, parms.Lx * parms.Ly);
-}
-void HC::GPU::SetNoise(HCParms &parms)
-{
-    int Lxy = parms.Lx * parms.Ly;
-    cudaMallocAsync(&noise, sizeof(double) * Lxy, cudaStreamDefault);
-    cudaDeviceSynchronize();
-    curandCreateGenerator(&generator, curandRngType_t::CURAND_RNG_PSEUDO_XORWOW);
-    curandSetPseudoRandomGeneratorSeed(generator, 1234llu);
-    curandSetGeneratorOffset(generator, offset);
-    curandGenerateNormalDouble(generator, noise, Lxy, 0.0, 1.0);
-    cudaDeviceSynchronize();
-    offset += Lxy;
-}
-void HC::GPU::UnsetNoise()
-{
-    curandDestroyGenerator(generator);
-    cudaFreeAsync(noise, cudaStreamDefault);
-}
 void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
 {
     dim3 T3(16, 16, 4);
@@ -475,7 +436,6 @@ void HC::GPU::FreeWorkspaceRKF45(double *workspace)
 {
     cudaFreeAsync(workspace, cudaStreamDefault);
 }
-
 void HC::GPU::ButcherTableau(int n, double *B, double *C, double h, double *K, double *aux00, double *aux01, double *aux10, double *aux11, double *ref0, double *ref1, int L0, int L1, HCParms &parms)
 {
     int L = L0 + L1;
@@ -506,7 +466,6 @@ void HC::GPU::ButcherTableau(int n, double *B, double *C, double h, double *K, d
         MathGPU::LRPO(aux11, K_j + L0, C[n + j] * h, L1);
     }
 }
-
 void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;

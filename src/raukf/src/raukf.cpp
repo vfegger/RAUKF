@@ -130,6 +130,61 @@ void RAUKF::UnscentedTransformation(Pointer<double> xs_o, Pointer<double> x_i, P
     Math::Iterate(Math::Sub, xs_o, workspace, Lx, Lx, Lx, Lx, Lx * (Lx + 1), 0, type);
 }
 
+void RAUKF::AdaptNoise(Pointer<double> x, Pointer<double> Pxx, Pointer<double> Q, Pointer<double> xs, Pointer<double> y, Pointer<double> Pyy, Pointer<double> R, Pointer<double> ys, Pointer<double> ym, Pointer<double> mu, Pointer<double> PxyT, Pointer<double> KT, int Lx, int Ls, int Ly, Pointer<double> workspaceLx, Pointer<double> workspaceLy, Pointer<double> workspaceLx2)
+{
+    // Calculation of Correction Factor
+    std::cout << "Chi-Squared Criterion Violated:\n";
+    Math::CholeskySolver(workspaceLy, Pyy, mu, Ly, Ly, 1, type);
+    double phi = Math::Dot(mu, workspaceLy, Ly, type);
+    double chi2 = pstatistics->GetChi2(0.95, Ly);
+    if (phi > chi2)
+    {
+        std::cout << "\tUpdate Noise Covariances\n";
+
+        // Update Noise Matrix Q
+        double a = 5.0;
+        double lambdaQ0 = 0.1;
+        double lambdaQ = std::max<double>(lambdaQ0, (phi - a * chi2) / phi);
+        Math::MatMulTN(0.0, workspaceLx, 1.0, mu, KT, 1, Ly, Lx, type);
+        Math::MatMulNT(1.0 - lambdaQ, Q, lambdaQ, workspaceLx, workspaceLx, Lx, 1, Lx, type);
+
+        // Update Noise Matrix R
+        double b = 5.0;
+        double lambdaR0 = 0.1;
+        double lambdaR = std::max<double>(lambdaR0, (phi - b * chi2) / phi);
+
+        UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspaceLx2, type);
+        pmodel->Evaluate(pmeasure, pstate, type);
+        pmodel->EvaluateState(pmeasure, pstate, type);
+        Math::Sub(mu, ym, y, Ly, type);
+
+        Math::MatMulNT(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
+
+        Math::Mean(y, ys, wm, Ly, Ls, type);
+        Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
+        Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);
+        Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);
+        Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
+        Math::MatMulNWT(0.0, PxyT, 1.0, ys, xs, wc, Ly, Ls, Lx, type);
+
+        Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
+
+        // Update Matrices for State and Covariance Update
+        Math::Add(Pxx, Q, Lx * Lx, type);
+        Math::Add(Pyy, R, Ly * Ly, type);
+
+        Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
+
+        std::cout << "\tState Update\n";
+        Math::Sub(mu, ym, y, Ly, type);
+        Math::MatMulTN(1.0, x, 1.0, KT, mu, Lx, Ly, 1, type);
+
+        std::cout << "\tState Covariance Update\n";
+        Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
+        Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
+    }
+}
+
 void RAUKF::Iterate(Timer &timer)
 {
     timer.Record(type);
@@ -148,10 +203,11 @@ void RAUKF::Iterate(Timer &timer)
 
     Pointer<double> PxyT;
     Pointer<double> KT;
-    Pointer<double> workspace;
+    Pointer<double> workspaceLx;
+    Pointer<double> workspaceLy;
+    Pointer<double> workspaceLx2;
 
     Pointer<double> mu;
-    Pointer<double> aux;
 
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
@@ -159,15 +215,16 @@ void RAUKF::Iterate(Timer &timer)
 
     PxyT.alloc(Lx * Ly);
     KT.alloc(Lx * Ly);
-    workspace.alloc(Lx * Lx);
+    workspaceLx.alloc(Lx);
+    workspaceLy.alloc(Ly);
+    workspaceLx2.alloc(Lx * Lx);
     mu.alloc(Ly);
-    aux.alloc(Ly * Ly);
 
     std::cout << "State length: " << Lx << "; Observation length: " << Ly << "; Sigma points: " << Ls << "\n";
     timer.Record(type);
 
     // Unscented Transformation of the state
-    UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspace, type);
+    UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspaceLx2, type);
 
     timer.Record(type);
     // Evolve and Measure each state given by each sigma point
@@ -212,66 +269,15 @@ void RAUKF::Iterate(Timer &timer)
     Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
     timer.Record(type);
 
-    // Calculation of Correction Factor
-    Math::CholeskySolver(aux, Pyy, mu, Ly, Ly, 1, type);
-    double phi = Math::Dot(mu, aux, Ly, type);
+    AdaptNoise(x, Pxx, Q, xs, y, Pyy, R, ys, ym, mu, PxyT, KT, Lx, Ls, Ly, workspaceLx, workspaceLy, workspaceLx2);
 
-    double chi2 = pstatistics->GetChi2(0.95, Ly);
-    if (phi > chi2)
-    {
-        std::cout << "Chi-Squared Criterion Violated:\n";
-        std::cout << "\tUpdate Noise Covariances\n";
-        // Update Noise Matrix Q
-        double a = 5.0;
-        double lambdaQ0 = 0.2;
-        double lambdaQ = std::max<double>(lambdaQ0, (phi - a * chi2) / phi);
-        Math::MatMulTN(0.0, aux, 1.0, mu, KT, 1, Ly, Lx, type);
-        Math::MatMulTN(1.0 - lambdaQ, Q, lambdaQ, aux, aux, Lx, 1, Lx, type);
-
-        // Re-sample sigma points with the new state
-        UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspace, type);
-        pmodel->Evaluate(pmeasure, pstate, type);
-
-        Math::Mean(y, ys, wm, Ly, Ls, type);
-        Math::Sub(mu, ym, xs, Ly, type);
-
-        Math::Iterate(Math::Sub, xs, x, Lx, Ls, Lx, 0, 0, 0, type);
-        Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);
-
-        Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
-
-        // Update Noise Matrix R
-        double b = 5.0;
-        double lambdaR0 = 0.2;
-        double lambdaR = std::max<double>(lambdaR0, (phi - b * chi2) / phi);
-        // Math::MatMulTN(1.0 - lambdaR, R, lambdaR, mu, mu, Ly, 1, Ly, type);
-        // Math::LRPO(R, Pyy, lambdaR, Ly * Ly, type);
-
-        // Update Matrices for State and Covariance Update
-        Math::MatMulNWT(0.0, Pxx, 1.0, xs, xs, wc, Lx, Ls, Lx, type);
-        // Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
-        Math::MatMulNWT(0.0, PxyT, 1.0, ys, xs, wc, Ly, Ls, Lx, type);
-        Math::Add(Pxx, Q, Lx * Lx, type);
-        Math::Add(Pyy, R, Ly * Ly, type);
-
-        Math::CholeskySolver(KT, Pyy, PxyT, Ly, Ly, Lx, type);
-
-        std::cout << "\tState Update\n";
-        Math::Sub(mu, ym, y, Ly, type);
-        Math::MatMulTN(1.0, x, 1.0, KT, mu, Lx, Ly, 1, type);
-        timer.Record(type);
-
-        std::cout << "\tState Covariance Update\n";
-        Math::MatMulTN(0.0, PxyT, 1.0, KT, Pyy, Lx, Ly, Ly, type);
-        Math::MatMulNN(1.0, Pxx, -1.0, PxyT, KT, Lx, Ly, Ly, type);
-        timer.Record(type);
-    }
-    aux.free();
     mu.free();
-
-    workspace.free();
+    workspaceLx2.free();
+    workspaceLy.free();
+    workspaceLx.free();
     KT.free();
     PxyT.free();
+
     if (type == Type::GPU)
     {
         x.copyDev2Host(Lx);

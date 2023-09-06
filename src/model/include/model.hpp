@@ -12,12 +12,14 @@ protected:
     DataLoader dataLoader;
     MeasureLoader measureLoader;
 
-    virtual void EvolveCPU(Data *pstate) = 0;
-    virtual void EvolveGPU(Data *pstate) = 0;
-    virtual void EvaluateCPU(Measure *pmeasure, Data *pstate) = 0;
-    virtual void EvaluateGPU(Measure *pmeasure, Data *pstate) = 0;
+    virtual void EvolveCPU(Data *pstate, int index) = 0;
+    virtual void EvolveGPU(Data *pstate, int index) = 0;
+    virtual void EvaluateCPU(Measure *pmeasure, Data *pstate, int index) = 0;
+    virtual void EvaluateGPU(Measure *pmeasure, Data *pstate, int index) = 0;
 
 public:
+    void EvolveState(Data *pstate, Type type);
+    void EvaluateState(Measure *pmeasure, Data *pstate, Type type);
     void Evolve(Data *pstate, Type type);
     void Evaluate(Measure *pmeasure, Data *pstate, Type type);
 

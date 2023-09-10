@@ -70,7 +70,7 @@ __global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double vR_i, unsigned in
     unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
     if (index < length)
     {
-        pv_io[index] = pvL_i[index] * vR_i;
+        pv_io[index] += pvL_i[index] * vR_i;
     }
 }
 __global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double *pvR_i, unsigned int length)
@@ -78,7 +78,7 @@ __global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double *pvR_i, unsigned 
     unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
     if (index < length)
     {
-        pv_io[index] = pvL_i[index] * pvR_i[index];
+        pv_io[index] += pvL_i[index] * pvR_i[index];
     }
 }
 

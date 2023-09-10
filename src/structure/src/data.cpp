@@ -16,7 +16,7 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
     offset2 = (int *)malloc(sizeof(int) * count);
     lengthPerOffset = (int *)malloc(sizeof(int) * count);
     int iaux = 0;
-    for (std::map<std::string, DataInfo>::reverse_iterator i = info.rbegin(); i != info.rend(); ++i)
+    for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         index[(*i).first] = iaux;
         int l = (*i).second.length;
@@ -46,7 +46,7 @@ Data::Data(std::map<std::string, DataInfo> &info) : count(info.size()), length(0
             pnHost[j * length + i] = 0.0;
         }
     }
-    for (std::map<std::string, DataInfo>::reverse_iterator i = info.rbegin(); i != info.rend(); ++i)
+    for (std::map<std::string, DataInfo>::iterator i = info.begin(); i != info.end(); ++i)
     {
         if ((*i).second.linked)
         {

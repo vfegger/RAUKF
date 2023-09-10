@@ -16,11 +16,11 @@ void Model::EvaluateState(Measure *pmeasure, Data *pstate, Type type)
 {
     if (type == Type::CPU)
     {
-        this->EvolveCPU(pstate, -1);
+        this->EvaluateCPU(pmeasure, pstate, -1);
     }
     else if (type == Type::GPU)
     {
-        this->EvolveGPU(pstate, -1);
+        this->EvaluateGPU(pmeasure, pstate, -1);
     }
 }
 

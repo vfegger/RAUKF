@@ -290,7 +290,9 @@ void RAUKF::Iterate(Timer &timer)
     Math::MatMulNN(1.0, Pxx, -1.0, workspaceLxLy, KT, Lx, Ly, Lx, type);
     timer.Record(type);
 
+#if ADAPTIVE == 1
     AdaptNoise(x, Pxx, Q, xs, y, Pyy, R, ys, ym, v_0, v_1, PxyT, KT, Lx, Ls, Ly, workspaceLx, workspaceLy, workspaceLx2, workspaceLxLy);
+#endif
 
     v_1.free();
     v_0.free();

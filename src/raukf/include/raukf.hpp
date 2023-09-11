@@ -9,6 +9,8 @@
 #include "../../timer/include/timer.hpp"
 #include "../../statistics/include/statistics.hpp"
 
+#define ADAPTIVE 0
+
 class RAUKF
 {
 private:

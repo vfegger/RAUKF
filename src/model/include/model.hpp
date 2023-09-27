@@ -27,18 +27,4 @@ public:
     virtual Measure *GenerateMeasure() = 0;
 };
 
-class LinearModel
-{
-private:
-protected:
-    virtual void EvolutionMatrixCPU(Pointer<double> m_o, Data *pstate) = 0;
-    virtual void EvolutionMatrixGPU(Pointer<double> m_o, Data *pstate) = 0;
-    virtual void EvaluationMatrixCPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate) = 0;
-    virtual void EvaluationMatrixGPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate) = 0;
-
-public:
-    void EvolutionMatrix(Pointer<double> m_o, Data *pstate, Type type);
-    void EvaluationMatrix(Pointer<double> m_o, Measure *pmeasure, Data *pstate, Type type);
-};
-
 #endif

@@ -61,26 +61,3 @@ void Model::Evaluate(Measure *pmeasure, Data *pstate, Type type)
         }
     }
 }
-
-void LinearModel::EvolutionMatrix(Pointer<double> m_o, Data *pstate, Type type)
-{
-    if (type == Type::CPU)
-    {
-        this->EvolutionMatrixCPU(m_o, pstate);
-    }
-    else if (type == Type::GPU)
-    {
-        this->EvolutionMatrixGPU(m_o, pstate);
-    }
-}
-void LinearModel::EvaluationMatrix(Pointer<double> m_o, Measure *pmeasure, Data *pstate, Type type)
-{
-    if (type == Type::CPU)
-    {
-        this->EvaluationMatrixCPU(m_o, pmeasure, pstate);
-    }
-    else if (type == Type::GPU)
-    {
-        this->EvaluationMatrixGPU(m_o, pmeasure, pstate);
-    }
-}

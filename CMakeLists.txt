@@ -15,10 +15,10 @@ add_subdirectory(src/hfe)
 add_subdirectory(src/math)
 add_subdirectory(src/model)
 add_subdirectory(src/timer)
-add_subdirectory(src/raukf)
+add_subdirectory(src/filter)
 add_subdirectory(src/statistics)
 
 # Add executables
 add_executable(${PROJECT_NAME} main.cpp)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Structure HFE Math Model Timer RAUKF Statistics)
+target_link_libraries(${PROJECT_NAME} PUBLIC Structure HFE Math Model Timer Filter Statistics)

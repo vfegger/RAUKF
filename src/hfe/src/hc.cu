@@ -259,6 +259,89 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     parms.dt = dt;
 }
 
+void HC::RM::CPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+{
+    int index;
+    int Lx = parms.Lx;
+    int Ly = parms.Ly;
+    int Lxy = parms.Lx * parms.Ly;
+    int L = Lxy + Lxy;
+    double dx = parms.dx;
+    double dy = parms.dy;
+    double dz = parms.dz;
+    double amp = parms.amp;
+
+    double CT = C(600.0);
+    double KT = K(600.0);
+
+    // Difusion Contribution
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+
+            index = j * Lx + i;
+            double aux = 0.0;
+            if (i != 0)
+            {
+                aux += KT / (CT * dx * dx);
+                pmTT_o[(index - 1) * L + index] = KT / (CT * dx * dx);
+            }
+            if (i != Lx - 1)
+            {
+                aux += KT / (CT * dx * dx);
+                pmTT_o[(index + 1) * L + index] = KT / (CT * dx * dx);
+            }
+            if (j != 0)
+            {
+                aux += KT / (CT * dy * dy);
+                pmTT_o[(index - Lx) * L + index] = KT / (CT * dy * dy);
+            }
+            if (j != Ly - 1)
+            {
+                aux += KT / (CT * dy * dy);
+                pmTT_o[(index + Lx) * L + index] = KT / (CT * dy * dy);
+            }
+            pmTT_o[index * L + index] = 1 + parms.dt * aux;
+        }
+    }
+
+    // Heat Flux Contribution
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            index = j * Lx + i;
+            pmQT_o[index * L + index] = amp / (dz * CT);
+            pmQQ_o[index * L + index] = 1;
+        }
+    }
+}
+
+void HC::RM::CPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parms)
+{
+    int index;
+    int Lx = parms.Lx;
+    int Ly = parms.Ly;
+    int Lxy = parms.Lx * parms.Ly;
+    double dz = parms.dz;
+
+    double KT = K(600.0);
+
+    // Surface Temperature
+    for (int j = 0; j < Ly; j++)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            index = j * Lx + i;
+            pmTT_o[index * Lxy + index] = 1;
+#if ILSA == 1
+            pmQT_o[index * Lxy + index] = -dz / (6 * KT);
+#endif
+        }
+    }
+}
+
 __global__ void Diffusion(double *dT, double *T, double dx, double dy, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
 {
     unsigned xIndex = blockIdx.x * blockDim.x + threadIdx.x;

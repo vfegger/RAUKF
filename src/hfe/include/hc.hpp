@@ -5,6 +5,8 @@
 #include <random>
 #include <curand.h>
 
+#define ILSA 1
+
 namespace HC
 {
     struct HCParms
@@ -13,6 +15,21 @@ namespace HC
         double Sx, Sy, Sz, St;
         double dx, dy, dz, dt;
         double amp;
+    };
+
+    namespace RM
+    {
+        namespace CPU
+        {
+            void EvolutionMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
+            void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
+        };
+
+        namespace GPU
+        {
+            void EvolutionMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
+            void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
+        };
     };
 
     namespace CPU

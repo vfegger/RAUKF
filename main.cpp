@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
         kf.GetStateCovariance("Temperature", resultCovarT);
         kf.GetStateCovariance("Heat Flux", resultCovarQ);
         
-        std::ofstream outFile;
         outFile.open("data/Values" + std::to_string(i) + "_KF.bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {

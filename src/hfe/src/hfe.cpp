@@ -55,6 +55,57 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate, int index)
     MathGPU::Copy(pminstance + Lmeasure * index + offsetTm, psinstance + Lstate * index + offsetT, parms.Lx * parms.Ly);
 }
 
+void HFE::EvolutionCPU(Pointer<double> m_o, Data *pstate)
+{
+    double *pm = m_o.host();
+    int offsetT = pstate->GetOffset("Temperature");
+    int offsetQ = pstate->GetOffset("Heat Flux");
+    int offsetT2 = pstate->GetOffset2("Temperature");
+    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    double *mTT = pm + offsetT2;
+    double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
+    double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
+    double *mQQ = pm + offsetQ2;
+    HC::RM::CPU::EvolutionMatrix(mTT, mTQ, mQT, mQQ, parms);
+}
+void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
+{
+    double *pm = m_o.dev();
+    int offsetT = pstate->GetOffset("Temperature");
+    int offsetQ = pstate->GetOffset("Heat Flux");
+    int offsetT2 = pstate->GetOffset2("Temperature");
+    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    double *mTT = pm + offsetT2;
+    double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
+    double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
+    double *mQQ = pm + offsetQ2;
+    HC::RM::GPU::EvolutionMatrix(mTT, mTQ, mQT, mQQ, parms);
+}
+void HFE::EvaluationCPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
+{
+    double *pm = m_o.host();
+    int offsetT = pstate->GetOffset("Temperature");
+    int offsetQ = pstate->GetOffset("Heat Flux");
+    int offsetT2 = pstate->GetOffset2("Temperature");
+    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int Lm = pmeasure->GetMeasureLength();
+    double *mTT = pm + offsetT * Lm;
+    double *mQT = pm + offsetQ * Lm;
+    HC::RM::CPU::EvaluationMatrix(mTT, mQT, parms);
+}
+void HFE::EvaluationGPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
+{
+    double *pm = m_o.dev();
+    int offsetT = pstate->GetOffset("Temperature");
+    int offsetQ = pstate->GetOffset("Heat Flux");
+    int offsetT2 = pstate->GetOffset2("Temperature");
+    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int Lm = pmeasure->GetMeasureLength();
+    double *mTT = pm + offsetT * Lm;
+    double *mQT = pm + offsetQ * Lm;
+    HC::RM::CPU::EvaluationMatrix(mTT, mQT, parms);
+}
+
 void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
     parms.Lx = Lx;

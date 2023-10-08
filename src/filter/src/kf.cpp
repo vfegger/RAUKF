@@ -61,7 +61,7 @@ void KF::GetStateCovariance(std::string name, double *data)
     this->pstate->GetStateCovarianceData(name, data);
 }
 
-void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
+void KF::PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
 {
     std::ofstream fp;
     fp.open(name + ".csv");
@@ -80,7 +80,7 @@ void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ)
     fp.close();
 }
 
-void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type)
+void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type)
 {
     if (type == Type::GPU)
     {

@@ -1,6 +1,7 @@
 #include "./src/hfe/include/hfe.hpp"
 #include "./src/hfe/include/hcr.hpp"
 #include "./src/filter/include/raukf.hpp"
+#include "./src/filter/include/kf.hpp"
 
 #include <fstream>
 #include <random>
@@ -76,15 +77,22 @@ int main(int argc, char *argv[])
 
     Timer timer;
     HFE hfe;
+    HFE hfeKF;
     RAUKF raukf;
+    KF kf;
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
+    hfeKF.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfeKF.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
     raukf.SetType(type);
     raukf.SetWeight();
+
+    kf.SetModel(&hfeKF);
+    kf.SetType(type);
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     Simulation(measures, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
@@ -96,11 +104,14 @@ int main(int argc, char *argv[])
     for (int i = 0; i < Lt; i++)
     {
         raukf.SetMeasure("Temperature", measures + Lx * Ly * i);
+        kf.SetMeasure("Temperature", measures + Lx * Ly * i);
+        
         raukf.Iterate(timer);
         raukf.GetState("Temperature", resultT);
         raukf.GetState("Heat Flux", resultQ);
         raukf.GetStateCovariance("Temperature", resultCovarT);
         raukf.GetStateCovariance("Heat Flux", resultCovarQ);
+        
         std::ofstream outFile;
         outFile.open("data/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
@@ -113,6 +124,26 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
         }
         outFile.close();
+
+        kf.Iterate(timer);
+        kf.GetState("Temperature", resultT);
+        kf.GetState("Heat Flux", resultQ);
+        kf.GetStateCovariance("Temperature", resultCovarT);
+        kf.GetStateCovariance("Heat Flux", resultCovarQ);
+        
+        std::ofstream outFile;
+        outFile.open("data/Values" + std::to_string(i) + "_KF.bin", std::ios::out | std::ios::binary);
+        if (outFile.is_open())
+        {
+            double resultTime = (i + 1) * St / Lt;
+            outFile.write((char *)(&resultTime), sizeof(double));
+            outFile.write((char *)resultT, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+        }
+        outFile.close();
+
         outFile.open("data/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
     }

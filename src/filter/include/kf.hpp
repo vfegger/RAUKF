@@ -20,6 +20,8 @@ private:
     Type type;
 
 protected:
+    void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ);
+    void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type);
 public:
     KF();
     ~KF();

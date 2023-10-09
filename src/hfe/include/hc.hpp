@@ -21,13 +21,13 @@ namespace HC
     {
         namespace CPU
         {
-            void EvolutionMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
+            void EvolutionJacobianMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
             void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
         };
 
         namespace GPU
         {
-            void EvolutionMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
+            void EvolutionJacobianMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
             void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
         };
     };

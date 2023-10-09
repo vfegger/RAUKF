@@ -259,7 +259,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     parms.dt = dt;
 }
 
-void HC::RM::CPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+void HC::RM::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
 {
     int index;
     int Lx = parms.Lx;
@@ -302,7 +302,7 @@ void HC::RM::CPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o
                 aux += KT / (CT * dy * dy);
                 pmTT_o[(index + Lx) * L + index] = KT / (CT * dy * dy);
             }
-            pmTT_o[index * L + index] = 1 + parms.dt * aux;
+            pmTT_o[index * L + index] = aux;
         }
     }
 
@@ -312,8 +312,7 @@ void HC::RM::CPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o
         for (int i = 0; i < Lx; ++i)
         {
             index = j * Lx + i;
-            pmQT_o[index * L + index] = parms.dt * amp / (dz * CT);
-            pmQQ_o[index * L + index] = 1;
+            pmQT_o[index * L + index] = amp / (dz * CT);
         }
     }
 }
@@ -336,7 +335,7 @@ void HC::RM::CPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parm
             index = j * Lx + i;
             pmTT_o[index * Lxy + index] = 1;
 #if ILSA == 1
-            pmQT_o[index * Lxy + index] = -dz / (6 * KT);
+            pmQT_o[index * Lxy + index] = -dz * parms.amp / (6 * KT);
 #endif
         }
     }
@@ -589,7 +588,7 @@ void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     } while (dt - hacc);
 }
 
-void HC::RM::GPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+void HC::RM::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
 
@@ -609,7 +608,7 @@ void HC::RM::GPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o
     pmQT = pm + std::max(stride22, 0) + std::max(-stride11, 0);
     pmQQ = pm + std::max(stride22, 0);
 
-    HC::RM::CPU::EvolutionMatrix(pmTT, pmQT, pmTQ, pmQQ, parms);
+    HC::RM::CPU::EvolutionJacobianMatrix(pmTT, pmQT, pmTQ, pmQQ, parms);
 
     pm_o = std::min(pmTT_o, pmQQ_o);
     cudaMemcpy(pm_o, pm, 4 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);

@@ -4,8 +4,8 @@ using Plots
 using Images
 using FileIO
 
-const raukfDataPath = "../data/"
-const raukfDataReadyPath = "../data/ready/"
+const raukfDataPath = "../data/raukf"
+const kfDataPath = "../data/kf"
 
 const ioT = PipeBuffer()
 const ioQ = PipeBuffer()
@@ -15,30 +15,59 @@ Ly = 24
 Lz = 6
 Lt = 100
 
+LLx = 24
+LLy = 24
+LLz = 1 # Z is collapsed in Reduced Linear Form
+LLt = 100
+
 Lxy = Lx*Ly
 Lxyz = Lxy*Lz
 
+LLxy = LLx*LLy
+LLxyz = LLxy*LLz
+
 Lfile = 2*Lx*Ly*(Lz+1)+1
+LLfile = 2*LLx*LLy*(LLz+1)+1
 
-t = zeros(0)
-T = zeros(0)
-cT = zeros(0)
-Q = zeros(0)
-cQ = zeros(0)
+t_ref = Array{Array{Float64,1},1}()
+T_ref = Array{Array{Float64,1},1}()
+cT_ref = Array{Array{Float64,1},1}()
+Q_ref = Array{Array{Float64,1},1}()
+cQ_ref = Array{Array{Float64,1},1}()
 
-files = []
+files_ref = Array{Array{String,1},1}()
+
+for i = 1:2
+    push!(t_ref,Array{Float64,1}())
+    push!(T_ref,Array{Float64,1}())
+    push!(cT_ref,Array{Float64,1}())
+    push!(Q_ref,Array{Float64,1}())
+    push!(cQ_ref,Array{Float64,1}())
+
+    push!(files_ref,Array{String,1}());
+end
 
 windowAlive = [true]
 
-plotT = [Plots.plot()]
-plotQ = [Plots.plot()] 
+plotT = [Plots.plot(),Plots.plot()]
+plotQ = [Plots.plot(),Plots.plot()] 
 
-function plotGraph(plot,t,var,cvar,stride,offset)
-    plot[] = Plots.plot(t, [var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))])
+graph = [Plots.plot(),Plots.plot()]
+
+function combineGraphs(graph,plot,index)
+    graph[index] = Plot.plot()
+    for i in 1:size(plot,1)
+        x, y = plot[i][1].x, plot[i][1].y
+        plot!(x,y,label=string(i))
+    end
 end
 
-function checkNewFiles(oldNames)
-    names = readdir(raukfDataReadyPath, join=false)
+function plotGraph(plot,index,t,var,cvar,stride,offset)
+    plot[index] = Plots.plot(t, [var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))])
+end
+
+function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ)
+    names = readdir(joinpath(dataPath,"ready"), join=false)
     newFiles = []
     for name in names
         if name ∉ oldNames
@@ -50,7 +79,7 @@ function checkNewFiles(oldNames)
         for index in iStr
             name = newFiles[index]
             data = Array{Float64}(undef,Lfile)
-            read!(joinpath(raukfDataPath,string("Values", name, ".bin")), data)
+            read!(joinpath(dataPath,string("Values", name, ".bin")), data)
             # Time
             offset = 0
             push!(t,data[offset+1])
@@ -75,12 +104,14 @@ function checkNewFiles(oldNames)
 end
 
 function cleanLists(t,T,cT,Q,cQ,files)
-    empty!(t)
-    empty!(T)
-    empty!(cT)
-    empty!(Q)
-    empty!(cQ)
-    empty!(files)
+    for i = 1:size(t,1)
+        empty!(t[i])
+        empty!(T[i])
+        empty!(cT[i])
+        empty!(Q[i])
+        empty!(cQ[i])
+        empty!(files[i])
+    end
 end
 
 function plotCanvas(h = 1000, w = 600, type = :v)
@@ -100,7 +131,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     set_gtk_property!(buttonClean, :label, "Clean")
     @guarded draw(canT) do widget
         ctx = getgc(canT)
-        show(ioT, MIME("image/png"), plotT[])
+        show(ioT, MIME("image/png"), graph[1])
         imgT = read_from_png(ioT)
         Cairo.save(ctx)
         s = min(width(canT)/width(imgT),height(canT)/height(imgT))
@@ -111,7 +142,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     @guarded draw(canQ) do widget
         ctx = getgc(canQ)
-        show(ioQ, MIME("image/png"), plotQ[])
+        show(ioQ, MIME("image/png"), graph[2])
         imgQ = read_from_png(ioQ)
         Cairo.save(ctx)
         s = min(width(canQ)/width(imgQ),height(canQ)/height(imgQ))
@@ -124,9 +155,13 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         windowAlive[] = false
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
-        if checkNewFiles(files)
-            plotGraph(plotT,t,T,cT,Lxyz,Int(Lxy/2+Lx/2))
-            plotGraph(plotQ,t,Q,cQ,Lxy,Int(Lxy/2+Lx/2))
+        if checkNewFiles(files[1],raukfDataPath)
+            plotGraph(plotT[1],t[1],T[1],cT[1],Lxyz,Int(Lxy/2+Lx/2))
+            plotGraph(plotQ[1],t[1],Q[1],cQ[1],Lxy,Int(Lxy/2+Lx/2))
+        end
+        if checkNewFiles(files[2],kfDataPath)
+            plotGraph(plotT[2],t[2],T[2],cT[2],LLxyz,Int(LLxy/2+LLx/2))
+            plotGraph(plotQ[2],t[2],Q[2],cQ[2],LLxy,Int(LLxy/2+LLx/2))
         end
         draw(canT)
         draw(canQ)

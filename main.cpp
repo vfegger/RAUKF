@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
         raukf.GetStateCovariance("Heat Flux", resultCovarQ);
         
         std::ofstream outFile;
-        outFile.open("data/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
+        outFile.open("data/raukf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {
             double resultTime = (i + 1) * St / Lt;
@@ -125,13 +125,16 @@ int main(int argc, char *argv[])
         }
         outFile.close();
 
+        outFile.open("data/raukf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
+        outFile.close();
+
         kf.Iterate(timer);
         kf.GetState("Temperature", resultT);
         kf.GetState("Heat Flux", resultQ);
         kf.GetStateCovariance("Temperature", resultCovarT);
         kf.GetStateCovariance("Heat Flux", resultCovarQ);
         
-        outFile.open("data/Values" + std::to_string(i) + "_KF.bin", std::ios::out | std::ios::binary);
+        outFile.open("data/kf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {
             double resultTime = (i + 1) * St / Lt;
@@ -143,7 +146,7 @@ int main(int argc, char *argv[])
         }
         outFile.close();
 
-        outFile.open("data/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
+        outFile.open("data/kf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
     }
 

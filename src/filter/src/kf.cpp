@@ -157,16 +157,21 @@ void KF::Iterate(Timer &timer)
 
     pmodel->Evaluation(H, pmeasure, pstate, type);
     timer.Record(type);
+    if (type == Type::GPU)
+    {
+        H.copyDev2Host(Ly * Lx);
+    }
+    PrintMatrix("H_evo", H.host(), Ly, Lx);
 
     Math::MatMulNN(0.0, x, 1.0, F, x, Lx, Lx, 1, type);
-    Math::MatMulNN(0.0, Pxx, 1.0, F, Pxx, Lx, Lx, Lx, type);
-    Math::MatMulNT(0.0, Pxx, 1.0, Pxx, F, Lx, Lx, Lx, type);
+    Math::MatMulNN(0.0, workspaceLx2, 1.0, F, Pxx, Lx, Lx, Lx, type);
+    Math::MatMulNT(0.0, Pxx, 1.0, workspaceLx2, F, Lx, Lx, Lx, type);
     Math::Add(Pxx, Q, Lx * Lx, type);
     timer.Record(type);
 
     Math::MatMulNN(0.0, y, 1.0, H, x, Ly, Lx, 1, type);
-    Math::MatMulNN(0.0, Pyy, 1.0, H, Pxx, Ly, Lx, Lx, type);
-    Math::MatMulNT(0.0, Pyy, 1.0, Pxx, H, Ly, Lx, Ly, type);
+    Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
+    Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     Math::Add(Pyy, R, Ly * Ly, type);
     timer.Record(type);
 

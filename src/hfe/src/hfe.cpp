@@ -57,20 +57,49 @@ void HFE::EvaluateGPU(Measure *pmeasure, Data *pstate, int index)
 
 void HFE::EvolutionCPU(Pointer<double> m_o, Data *pstate)
 {
+    int L = pstate->GetStateLength();
+    int L2 = L * L;
     double *pm = m_o.host();
+    double *pm_I = (double *)malloc(L2 * sizeof(double));
+    double *pm_P = (double *)malloc(L2 * sizeof(double));
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetT2 = pstate->GetOffset2("Temperature");
     int offsetQ2 = pstate->GetOffset2("Heat Flux");
-    double *mTT = pm + offsetT2;
-    double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
-    double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
-    double *mQQ = pm + offsetQ2;
-    HC::RM::CPU::EvolutionMatrix(mTT, mTQ, mQT, mQQ, parms);
+    MathCPU::Identity(pm, L, L);
+    MathCPU::Identity(pm_I, L, L);
+    MathCPU::Zero(pm_P, L * L);
+    HC::RM::CPU::EvolutionJacobianMatrix(pm_P + offsetT2, pm_P + offsetT2 + (offsetQ - offsetT), pm_P + offsetQ2 + (offsetT - offsetQ), pm_P + offsetQ2, parms);
+
+#if FORWARD_METHOD == 0
+    MathCPU::LRPO(pm, pm_P, parms.dt, L2);
+#elif FORWARD_METHOD == 1
+    MathCPU::LRPO(pm, pm_P, parms.dt / 4.0, L2);
+    for (int i = 1; i < 4; i++)
+    {
+        MathCPU::MatMulNN(0.0, pm_I, 1.0, pm_P, pm, L, L, L);
+        MathCPU::Identity(pm, L, L);
+        MathCPU::LRPO(pm, pm_I, parms.dt / (4.0 - i), L2);
+    }
+#elif FORWARD_METHOD == 2
+    MathCPU::LRPO(pm, pm_P, parms.dt / 4.0, L2);
+    for (int i = 1; i < 4; i++)
+    {
+        MathCPU::MatMulNN(0.0, pm_I, 1.0, pm_P, pm, L, L, L);
+        MathCPU::Identity(pm, L, L);
+        MathCPU::LRPO(pm, pm_I, parms.dt / (4.0 - i), L2);
+    }
+#endif
 }
 void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
 {
+    int L = pstate->GetStateLength();
+    int L2 = L * L;
     double *pm = m_o.dev();
+    double *pm_I = NULL;
+    double *pm_P = NULL;
+    cudaMallocAsync(&pm_I, L2 * sizeof(double), cudaStreamDefault);
+    cudaMallocAsync(&pm_P, L2 * sizeof(double), cudaStreamDefault);
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetT2 = pstate->GetOffset2("Temperature");
@@ -79,7 +108,31 @@ void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
     double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
     double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
     double *mQQ = pm + offsetQ2;
-    HC::RM::GPU::EvolutionMatrix(mTT, mTQ, mQT, mQQ, parms);
+
+    MathGPU::Identity(pm, L, L);
+    MathGPU::Identity(pm_I, L, L);
+    MathGPU::Zero(pm_P, L * L);
+    HC::RM::GPU::EvolutionJacobianMatrix(pm_P + offsetT2, pm_P + offsetT2 + (offsetQ - offsetT), pm_P + offsetQ2 + (offsetT - offsetQ), pm_P + offsetQ2, parms);
+
+#if FORWARD_METHOD == 0
+    MathGPU::LRPO(pm, pm_P, parms.dt, L2);
+#elif FORWARD_METHOD == 1
+    MathGPU::LRPO(pm, pm_P, parms.dt / 4.0, L2);
+    for (int i = 1; i < 4; i++)
+    {
+        MathGPU::MatMulNN(0.0, pm_I, 1.0, pm_P, pm, L, L, L);
+        MathGPU::Identity(pm, L, L);
+        MathGPU::LRPO(pm, pm_I, parms.dt / (4.0 - i), L2);
+    }
+#elif FORWARD_METHOD == 2
+    MathGPU::LRPO(pm, pm_P, parms.dt / 4.0, L2);
+    for (int i = 1; i < 4; i++)
+    {
+        MathGPU::MatMulNN(0.0, pm_I, 1.0, pm_P, pm, L, L, L);
+        MathGPU::Identity(pm, L, L);
+        MathGPU::LRPO(pm, pm_I, parms.dt / (4.0 - i), L2);
+    }
+#endif
 }
 void HFE::EvaluationCPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
 {
@@ -91,11 +144,14 @@ void HFE::EvaluationCPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
     int Lm = pmeasure->GetMeasureLength();
     double *mTT = pm + offsetT * Lm;
     double *mQT = pm + offsetQ * Lm;
+
     HC::RM::CPU::EvaluationMatrix(mTT, mQT, parms);
 }
 void HFE::EvaluationGPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
 {
     double *pm = m_o.dev();
+    double *pm_I = NULL;
+    double *pm_P = NULL;
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetT2 = pstate->GetOffset2("Temperature");
@@ -232,7 +288,7 @@ Data *HFE::GenerateLinearData()
     LinearModel::dataLoader.Add(nameQ, Lx * Ly);
     double *T = (double *)malloc(3 * sizeof(double) * Lx * Ly);
     double *cT = T + Lx * Ly;
-    double *nT = cT + Lx * Ly ;
+    double *nT = cT + Lx * Ly;
     double *Q = (double *)malloc(3 * sizeof(double) * Lx * Ly);
     double *cQ = Q + Lx * Ly;
     double *nQ = cQ + Lx * Ly;

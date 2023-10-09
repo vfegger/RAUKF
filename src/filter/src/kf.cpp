@@ -18,8 +18,8 @@ void KF::SetModel(LinearModel *pmodel)
     if (this->pmodel == NULL)
     {
         this->pmodel = pmodel;
-        this->pstate = pmodel->GenerateData();
-        this->pmeasure = pmodel->GenerateMeasure();
+        this->pstate = pmodel->GenerateLinearData();
+        this->pmeasure = pmodel->GenerateLinearMeasure();
     }
     else
     {
@@ -141,11 +141,19 @@ void KF::Iterate(Timer &timer)
     workspaceLx2.alloc(Lx * Lx);
     workspaceLxLy.alloc(Lx * Ly);
 
+    Math::Zero(F, Lx * Lx, type);
+    Math::Zero(H, Ly * Lx, type);
+
     std::cout << "Iteration:\n\tState length: " << Lx << "; Observation length: " << Ly << "\n";
     timer.Record(type);
 
     pmodel->Evolution(F, pstate, type);
     timer.Record(type);
+    if (type == Type::GPU)
+    {
+        F.copyDev2Host(Lx * Lx);
+    }
+    PrintMatrix("F_evo", F.host(), Lx, Lx);
 
     pmodel->Evaluation(H, pmeasure, pstate, type);
     timer.Record(type);

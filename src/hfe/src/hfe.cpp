@@ -103,7 +103,7 @@ void HFE::EvaluationGPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
     int Lm = pmeasure->GetMeasureLength();
     double *mTT = pm + offsetT * Lm;
     double *mQT = pm + offsetQ * Lm;
-    HC::RM::CPU::EvaluationMatrix(mTT, mQT, parms);
+    HC::RM::GPU::EvaluationMatrix(mTT, mQT, parms);
 }
 
 void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
@@ -178,8 +178,8 @@ Data *HFE::GenerateData()
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lz = parms.Lz;
-    dataLoader.Add(nameT, Lx * Ly * Lz);
-    dataLoader.Add(nameQ, Lx * Ly);
+    Model::dataLoader.Add(nameT, Lx * Ly * Lz);
+    Model::dataLoader.Add(nameQ, Lx * Ly);
     double *T = (double *)malloc(3 * sizeof(double) * Lx * Ly * Lz);
     double *cT = T + Lx * Ly * Lz;
     double *nT = cT + Lx * Ly * Lz;
@@ -198,9 +198,9 @@ Data *HFE::GenerateData()
         cQ[i] = 1.0;
         nQ[i] = 1.0;
     }
-    dataLoader.Link(nameT, T, cT, nT);
-    dataLoader.Link(nameQ, Q, cQ, nQ);
-    Data *pd = dataLoader.Load();
+    Model::dataLoader.Link(nameT, T, cT, nT);
+    Model::dataLoader.Link(nameQ, Q, cQ, nQ);
+    Data *pd = Model::dataLoader.Load();
     free(Q);
     free(T);
     return pd;
@@ -210,14 +210,64 @@ Measure *HFE::GenerateMeasure()
     std::string nameT = "Temperature";
     int Lx = parms.Lx;
     int Ly = parms.Ly;
-    measureLoader.Add(nameT, Lx * Ly);
+    Model::measureLoader.Add(nameT, Lx * Ly);
     double *nT = (double *)malloc(sizeof(double) * Lx * Ly);
     for (int i = 0; i < Lx * Ly; ++i)
     {
         nT[i] = 1.0;
     }
-    measureLoader.Link(nameT, nT);
-    Measure *pm = measureLoader.Load();
+    Model::measureLoader.Link(nameT, nT);
+    Measure *pm = Model::measureLoader.Load();
+    free(nT);
+    return pm;
+}
+
+Data *HFE::GenerateLinearData()
+{
+    std::string nameT = "Temperature";
+    std::string nameQ = "Heat Flux";
+    int Lx = parms.Lx;
+    int Ly = parms.Ly;
+    LinearModel::dataLoader.Add(nameT, Lx * Ly);
+    LinearModel::dataLoader.Add(nameQ, Lx * Ly);
+    double *T = (double *)malloc(3 * sizeof(double) * Lx * Ly);
+    double *cT = T + Lx * Ly;
+    double *nT = cT + Lx * Ly ;
+    double *Q = (double *)malloc(3 * sizeof(double) * Lx * Ly);
+    double *cQ = Q + Lx * Ly;
+    double *nQ = cQ + Lx * Ly;
+    for (int i = 0; i < Lx * Ly; ++i)
+    {
+        T[i] = 300.0;
+        cT[i] = 1.0;
+        nT[i] = 1.0;
+    }
+    for (int i = 0; i < Lx * Ly; ++i)
+    {
+        Q[i] = 0.0;
+        cQ[i] = 1.0;
+        nQ[i] = 1.0;
+    }
+    LinearModel::dataLoader.Link(nameT, T, cT, nT);
+    LinearModel::dataLoader.Link(nameQ, Q, cQ, nQ);
+    Data *pd = LinearModel::dataLoader.Load();
+    free(Q);
+    free(T);
+    return pd;
+}
+Measure *HFE::GenerateLinearMeasure()
+{
+    std::string nameT = "Temperature";
+    int Lx = parms.Lx;
+    int Ly = parms.Ly;
+    LinearModel::measureLoader.Add(nameT, Lx * Ly);
+    double *nT = (double *)malloc(sizeof(double) * Lx * Ly);
+    for (int i = 0; i < Lx * Ly; ++i)
+    {
+        nT[i] = 1.0;
+    }
+    LinearModel::measureLoader.Link(nameT, nT);
+    Measure *pm = LinearModel::measureLoader.Load();
     free(nT);
     return pm;
 }

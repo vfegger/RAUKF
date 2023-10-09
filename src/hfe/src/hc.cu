@@ -588,3 +588,54 @@ void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
     } while (dt - hacc);
 }
+
+void HC::RM::GPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+
+    double *pm, *pm_o, *pmTT, *pmTQ, *pmQT, *pmQQ;
+
+    int stride11 = pmTQ_o - pmTT_o;
+    int stride22 = pmQQ_o - pmTT_o;
+
+    pm = (double *)malloc(sizeof(double) * 4 * Lxy * Lxy);
+    std::memset(pm,0,sizeof(double) * 4 * Lxy * Lxy);
+
+    pmTT = pm + std::max(-stride22, 0);
+    pmTQ = pm + std::max(-stride22, 0) + std::max(stride11, 0);
+    pmQT = pm + std::max(stride22, 0) + std::max(-stride11, 0);
+    pmQQ = pm + std::max(stride22, 0);
+
+    HC::RM::CPU::EvolutionMatrix(pmTT, pmQT, pmTQ, pmQQ, parms);
+
+    pm_o = std::min(pmTT_o, pmQQ_o);
+    cudaMemcpy(pm_o, pm, 4 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);
+
+    cudaDeviceSynchronize();
+
+    free(pm);
+}
+
+void HC::RM::GPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parms)
+{
+    int Lxy = parms.Lx * parms.Ly;
+
+    double *pm, *pm_o, *pmTT, *pmQT;
+
+    int stride12 = pmQT_o - pmTT_o;
+
+    pm = (double *)malloc(sizeof(double) * 2 * Lxy * Lxy);
+    std::memset(pm,0,sizeof(double) * 2 * Lxy * Lxy);
+
+    pmTT = pm + std::max(-stride12, 0);
+    pmQT = pm + std::max(stride12, 0);
+
+    HC::RM::CPU::EvaluationMatrix(pmTT, pmQT, parms);
+
+    pm_o = std::min(pmTT_o, pmQT_o);
+    cudaMemcpy(pm_o, pm, 2 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);
+
+    cudaDeviceSynchronize();
+
+    free(pm);
+}

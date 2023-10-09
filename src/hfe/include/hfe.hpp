@@ -30,7 +30,9 @@ public:
     void SetMemory(Type type);
     void UnsetMemory(Type type);
     Data *GenerateData() override;
+    Data *GenerateLinearData() override;
     Measure *GenerateMeasure() override;
+    Measure *GenerateLinearMeasure() override;
 };
 
 #endif

@@ -253,7 +253,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
         else
         {
-            h = max(1e-1 * dt, alpha * h);
+            h = std::max(1e-1 * dt, alpha * h);
         }
     } while (dt - hacc > 0);
     parms.dt = dt;
@@ -584,7 +584,7 @@ void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
         }
         else
         {
-            h = max(1e-1 * dt, alpha * h);
+            h = std::max(1e-1 * dt, alpha * h);
         }
     } while (dt - hacc);
 }
@@ -599,7 +599,10 @@ void HC::RM::GPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o
     int stride22 = pmQQ_o - pmTT_o;
 
     pm = (double *)malloc(sizeof(double) * 4 * Lxy * Lxy);
-    std::memset(pm,0,sizeof(double) * 4 * Lxy * Lxy);
+    for (int i = 0; i < 4 * Lxy * Lxy; i++)
+    {
+        pm[i] = 0.0;
+    }
 
     pmTT = pm + std::max(-stride22, 0);
     pmTQ = pm + std::max(-stride22, 0) + std::max(stride11, 0);
@@ -625,7 +628,10 @@ void HC::RM::GPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parm
     int stride12 = pmQT_o - pmTT_o;
 
     pm = (double *)malloc(sizeof(double) * 2 * Lxy * Lxy);
-    std::memset(pm,0,sizeof(double) * 2 * Lxy * Lxy);
+    for (int i = 0; i < 2 * Lxy * Lxy; i++)
+    {
+        pm[i] = 0.0;
+    }
 
     pmTT = pm + std::max(-stride12, 0);
     pmQT = pm + std::max(stride12, 0);

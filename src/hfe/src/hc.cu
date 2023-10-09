@@ -312,7 +312,7 @@ void HC::RM::CPU::EvolutionMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o
         for (int i = 0; i < Lx; ++i)
         {
             index = j * Lx + i;
-            pmQT_o[index * L + index] = amp / (dz * CT);
+            pmQT_o[index * L + index] = parms.dt * amp / (dz * CT);
             pmQQ_o[index * L + index] = 1;
         }
     }

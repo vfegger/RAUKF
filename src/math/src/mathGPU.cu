@@ -119,6 +119,22 @@ __global__ void ZeroUpper(double *pv_io, unsigned lengthI, unsigned lengthJ)
         pv_io[j * lengthI + i] = 0.0;
     }
 }
+__global__ void CUDA_Identity(double *pm_o, unsigned lengthI, unsigned lengthJ)
+{
+    unsigned i = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned j = blockDim.y * blockIdx.y + threadIdx.y;
+    if (i < lengthI && j < lengthJ)
+    {
+        if (i == j)
+        {
+            pm_o[j * lengthI + i] = 1.0;
+        }
+        else
+        {
+            pm_o[j * lengthI + i] = 0.0;
+        }
+    }
+}
 
 void MathGPU::CreateHandles()
 {
@@ -138,6 +154,12 @@ void MathGPU::Zero(double *pv_o, int length)
 void MathGPU::Copy(double *pv_o, double *pv_i, int length)
 {
     cudaMemcpyAsync(pv_o, pv_i, sizeof(double) * length, cudaMemcpyKind::cudaMemcpyDeviceToDevice, cudaStreamDefault);
+}
+void MathGPU::Identity(double *m_o, int lengthI, int lengthJ)
+{
+    dim3 T(32u, 32u);
+    dim3 B(CEIL(lengthI, T.x), CEIL(lengthJ, T.y));
+    CUDA_Identity<<<B, T, 0, cudaStreamDefault>>>(m_o, lengthI, lengthJ);
 }
 
 void MathGPU::Add(double *pv_io, double *pv_i, int length)

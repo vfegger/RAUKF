@@ -155,19 +155,19 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         windowAlive[] = false
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
-        if checkNewFiles(files[1],raukfDataPath)
-            plotGraph(plotT[1],t[1],T[1],cT[1],Lxyz,Int(Lxy/2+Lx/2))
-            plotGraph(plotQ[1],t[1],Q[1],cQ[1],Lxy,Int(Lxy/2+Lx/2))
+        if checkNewFiles(files_ref[1],raukfDataPath)
+            plotGraph(plotT[1],t_ref[1],T_ref[1],cT_ref[1],Lxyz,Int(Lxy/2+Lx/2))
+            plotGraph(plotQ[1],t_ref[1],Q_ref[1],cQ_ref[1],Lxy,Int(Lxy/2+Lx/2))
         end
-        if checkNewFiles(files[2],kfDataPath)
-            plotGraph(plotT[2],t[2],T[2],cT[2],LLxyz,Int(LLxy/2+LLx/2))
-            plotGraph(plotQ[2],t[2],Q[2],cQ[2],LLxy,Int(LLxy/2+LLx/2))
+        if checkNewFiles(files_ref[2],kfDataPath)
+            plotGraph(plotT[2],t_ref[2],T_ref[2],cT_ref[2],LLxyz,Int(LLxy/2+LLx/2))
+            plotGraph(plotQ[2],t_ref[2],Q_ref[2],cQ_ref[2],LLxy,Int(LLxy/2+LLx/2))
         end
         draw(canT)
         draw(canQ)
     end
     id = signal_connect(buttonClean,"clicked") do widget
-        cleanLists(t,T,cT,Q,cQ,files)
+        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,files_ref)
     end
     showall(win)
     show(canT)

@@ -55,10 +55,9 @@ plotQ = [Plots.plot(),Plots.plot()]
 graph = [Plots.plot(),Plots.plot()]
 
 function combineGraphs(graph,plot,index)
-    graph[index] = Plot.plot()
-    for i in 1:size(plot,1)
-        x, y = plot[i][1].x, plot[i][1].y
-        plot!(x,y,label=string(i))
+    graph[index] = Plots.plot()
+    for i in 2:size(plot,1)
+        plot!(graph[index],plot[i][1].x,plot[i][1].y,label=string(i))
     end
 end
 

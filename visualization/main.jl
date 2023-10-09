@@ -66,7 +66,7 @@ function plotGraph(plot,index,t,var,cvar,stride,offset)
     plot[index] = Plots.plot(t, [var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))])
 end
 
-function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz)
+function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
     names = readdir(joinpath(dataPath,"ready"), join=false)
     newFiles = []
     for name in names
@@ -155,11 +155,11 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         windowAlive[] = false
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
-        if checkNewFiles(files_ref[1],raukfDataPath,t_ref[1],T_ref[1],cT_ref[1],Q_ref[1],cQ_ref[1],Lxy,Lxyz)
+        if checkNewFiles(files_ref[1],raukfDataPath,t_ref[1],T_ref[1],cT_ref[1],Q_ref[1],cQ_ref[1],Lxy,Lxyz,Lfile)
             plotGraph(plotT,1,t_ref[1],T_ref[1],cT_ref[1],Lxyz,Int(Lxy/2+Lx/2))
             plotGraph(plotQ,1,t_ref[1],Q_ref[1],cQ_ref[1],Lxy,Int(Lxy/2+Lx/2))
         end
-        if checkNewFiles(files_ref[2],kfDataPath,t_ref[2],T_ref[2],cT_ref[2],Q_ref[2],cQ_ref[2],LLxy,LLxyz)
+        if checkNewFiles(files_ref[2],kfDataPath,t_ref[2],T_ref[2],cT_ref[2],Q_ref[2],cQ_ref[2],LLxy,LLxyz,LLfile)
             plotGraph(plotT,2,t_ref[2],T_ref[2],cT_ref[2],LLxyz,Int(LLxy/2+LLx/2))
             plotGraph(plotQ,2,t_ref[2],Q_ref[2],cQ_ref[2],LLxy,Int(LLxy/2+LLx/2))
         end

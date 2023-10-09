@@ -49,20 +49,21 @@ end
 
 windowAlive = [true]
 
-plotT = [Plots.plot(),Plots.plot()]
-plotQ = [Plots.plot(),Plots.plot()] 
+dataT = Array{Array{Float64,2},1}()
+dataQ = Array{Array{Float64,2},1}()
 
 graph = [Plots.plot(),Plots.plot()]
 
-function combineGraphs(graph,plot,index)
+function combineGraphs(graph,index,data)
     graph[index] = Plots.plot()
-    for i in 2:size(plot,1)
-        plot!(graph[index],plot[i][1].x,plot[i][1].y,label=string(i))
+    for i in 1:size(data,1)
+        plot!(graph[index],data[i][1,begin:end],data[i][2:end,begin:end],label=string(i))
     end
 end
 
-function plotGraph(plot,index,t,var,cvar,stride,offset)
-    plot[index] = Plots.plot(t, [var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))])
+function dataGraph(data,index,t,var,cvar,stride,offset)
+    data[index] = [t var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))]
+    println(data[index])
 end
 
 function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
@@ -154,13 +155,20 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         windowAlive[] = false
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
+        recreateGraphs = false
         if checkNewFiles(files_ref[1],raukfDataPath,t_ref[1],T_ref[1],cT_ref[1],Q_ref[1],cQ_ref[1],Lxy,Lxyz,Lfile)
-            plotGraph(plotT,1,t_ref[1],T_ref[1],cT_ref[1],Lxyz,Int(Lxy/2+Lx/2))
-            plotGraph(plotQ,1,t_ref[1],Q_ref[1],cQ_ref[1],Lxy,Int(Lxy/2+Lx/2))
+            dataGraph(dataT,1,t_ref[1],T_ref[1],cT_ref[1],Lxyz,Int(Lxy/2+Lx/2))
+            dataGraph(dataQ,1,t_ref[1],Q_ref[1],cQ_ref[1],Lxy,Int(Lxy/2+Lx/2))
+            recreateGraphs = true
         end
         if checkNewFiles(files_ref[2],kfDataPath,t_ref[2],T_ref[2],cT_ref[2],Q_ref[2],cQ_ref[2],LLxy,LLxyz,LLfile)
-            plotGraph(plotT,2,t_ref[2],T_ref[2],cT_ref[2],LLxyz,Int(LLxy/2+LLx/2))
-            plotGraph(plotQ,2,t_ref[2],Q_ref[2],cQ_ref[2],LLxy,Int(LLxy/2+LLx/2))
+            dataGraph(dataT,2,t_ref[2],T_ref[2],cT_ref[2],LLxyz,Int(LLxy/2+LLx/2))
+            dataGraph(dataQ,2,t_ref[2],Q_ref[2],cQ_ref[2],LLxy,Int(LLxy/2+LLx/2))
+            recreateGraphs = true
+        end
+        if recreateGraphs
+            combineGraphs(graph,1,dataT)
+            combineGraphs(graph,2,dataQ)
         end
         draw(canT)
         draw(canQ)

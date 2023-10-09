@@ -37,6 +37,9 @@ cQ_ref = Array{Array{Float64,1},1}()
 
 files_ref = Array{Array{String,1},1}()
 
+dataT = Array{Array{Float64,2},1}()
+dataQ = Array{Array{Float64,2},1}()
+
 for i = 1:2
     push!(t_ref,Array{Float64,1}())
     push!(T_ref,Array{Float64,1}())
@@ -44,26 +47,25 @@ for i = 1:2
     push!(Q_ref,Array{Float64,1}())
     push!(cQ_ref,Array{Float64,1}())
 
-    push!(files_ref,Array{String,1}());
+    push!(files_ref,Array{String,1}())
+    
+    push!(dataT,Array{Float64,2}(undef,1,1))
+    push!(dataQ,Array{Float64,2}(undef,1,1))
 end
 
 windowAlive = [true]
-
-dataT = Array{Array{Float64,2},1}()
-dataQ = Array{Array{Float64,2},1}()
 
 graph = [Plots.plot(),Plots.plot()]
 
 function combineGraphs(graph,index,data)
     graph[index] = Plots.plot()
     for i in 1:size(data,1)
-        plot!(graph[index],data[i][1,begin:end],data[i][2:end,begin:end],label=string(i))
+        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=string(i))
     end
 end
 
 function dataGraph(data,index,t,var,cvar,stride,offset)
     data[index] = [t var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))]
-    println(data[index])
 end
 
 function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)

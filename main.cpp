@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
-    hfeKF.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfeKF.SetParms(Lx, Ly, 1, Lt, Sx, Sy, Sz, St, amp);
     hfeKF.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);

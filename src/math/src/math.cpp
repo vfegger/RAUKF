@@ -22,7 +22,7 @@ void Math::Copy(Pointer<double> v_o, Pointer<double> v_i, int length, Type type)
         MathGPU::Copy(v_o.dev(), v_i.dev(), length);
     }
 }
-void Identity(Pointer<double> m_o, int lengthI, int lengthJ, Type type)
+void Math::Identity(Pointer<double> m_o, int lengthI, int lengthJ, Type type)
 {
     if (type == Type::CPU)
     {

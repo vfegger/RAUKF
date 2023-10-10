@@ -259,7 +259,7 @@ void HC::CPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     parms.dt = dt;
 }
 
-void HC::RM::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+void HC::RM::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *pmQT_o, double *pmQQ_o, HCParms &parms)
 {
     int index;
     int Lx = parms.Lx;
@@ -588,7 +588,7 @@ void HC::GPU::RKF45(double *T, double *Q, double *workspace, HCParms &parms)
     } while (dt - hacc);
 }
 
-void HC::RM::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmQT_o, double *pmTQ_o, double *pmQQ_o, HCParms &parms)
+void HC::RM::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *pmQT_o, double *pmQQ_o, HCParms &parms)
 {
     int Lxy = parms.Lx * parms.Ly;
 
@@ -608,7 +608,7 @@ void HC::RM::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmQT_o, double
     pmQT = pm + std::max(stride22, 0) + std::max(-stride11, 0);
     pmQQ = pm + std::max(stride22, 0);
 
-    HC::RM::CPU::EvolutionJacobianMatrix(pmTT, pmQT, pmTQ, pmQQ, parms);
+    HC::RM::CPU::EvolutionJacobianMatrix(pmTT, pmTQ, pmQT, pmQQ, parms);
 
     pm_o = std::min(pmTT_o, pmQQ_o);
     cudaMemcpy(pm_o, pm, 4 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);

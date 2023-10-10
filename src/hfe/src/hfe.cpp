@@ -104,11 +104,6 @@ void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetT2 = pstate->GetOffset2("Temperature");
     int offsetQ2 = pstate->GetOffset2("Heat Flux");
-    double *mTT = pm + offsetT2;
-    double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
-    double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
-    double *mQQ = pm + offsetQ2;
-
     MathGPU::Identity(pm, L, L);
     MathGPU::Identity(pm_I, L, L);
     MathGPU::Zero(pm_P, L * L);
@@ -136,30 +131,19 @@ void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
 }
 void HFE::EvaluationCPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
 {
+    int Lm = pmeasure->GetMeasureLength();
     double *pm = m_o.host();
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
-    int Lm = pmeasure->GetMeasureLength();
-    double *mTT = pm + offsetT * Lm;
-    double *mQT = pm + offsetQ * Lm;
-
-    HC::RM::CPU::EvaluationMatrix(mTT, mQT, parms);
+    HC::RM::CPU::EvaluationMatrix(pm + offsetT * Lm, pm + offsetQ * Lm, parms);
 }
 void HFE::EvaluationGPU(Pointer<double> m_o, Measure *pmeasure, Data *pstate)
 {
+    int Lm = pmeasure->GetMeasureLength();
     double *pm = m_o.dev();
-    double *pm_I = NULL;
-    double *pm_P = NULL;
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
-    int Lm = pmeasure->GetMeasureLength();
-    double *mTT = pm + offsetT * Lm;
-    double *mQT = pm + offsetQ * Lm;
-    HC::RM::GPU::EvaluationMatrix(mTT, mQT, parms);
+    HC::RM::GPU::EvaluationMatrix(pm + offsetT * Lm, pm + offsetQ * Lm, parms);
 }
 
 void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)

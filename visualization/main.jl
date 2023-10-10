@@ -59,8 +59,13 @@ graph = [Plots.plot(),Plots.plot()]
 
 function combineGraphs(graph,index,data)
     graph[index] = Plots.plot()
+    pal = palette([:blue, :red], size(data,1))
     for i in 1:size(data,1)
-        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=string(i))
+        numser = size(data[i][begin:end,2:end],2)
+        labels = Array{String,2}(undef,1,numser)
+        labels[1,1] = string(i) 
+        labels[1,2:end] .= "" 
+        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=labels,color=pal[i])
     end
 end
 

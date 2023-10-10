@@ -51,6 +51,11 @@ void KF::SetMeasure(std::string name, double *data)
     this->pmeasure->SetMeasureData(name, data);
 }
 
+void KF::GetMeasure(std::string name, double *data)
+{
+    this->pmeasure->GetMeasureData(name, data);
+}
+
 void KF::GetState(std::string name, double *data)
 {
     this->pstate->GetStateData(name, data);
@@ -128,6 +133,7 @@ void KF::Iterate(Timer &timer)
     Pointer<double> v_1;
 
     Pointer<double> workspaceLx2;
+    Pointer<double> workspaceLx2_1;
     Pointer<double> workspaceLxLy;
 
     int Lx = this->pstate->GetStateLength();
@@ -139,6 +145,7 @@ void KF::Iterate(Timer &timer)
     v_0.alloc(Ly);
     v_1.alloc(Ly);
     workspaceLx2.alloc(Lx * Lx);
+    workspaceLx2_1.alloc(Lx * Lx);
     workspaceLxLy.alloc(Lx * Ly);
 
     Math::Zero(F, Lx * Lx, type);
@@ -181,14 +188,18 @@ void KF::Iterate(Timer &timer)
 
     Math::Sub(v_0, ym, y, Ly, type);
     Math::MatMulTN(1.0, x, 1.0, KT, v_0, Lx, Ly, 1, type);
+    Math::Copy(workspaceLx2_1, Pxx, Lx * Lx, type);
     Math::MatMulTN(0.0, workspaceLx2, 1.0, KT, H, Lx, Ly, Lx, type);
-    Math::MatMulNN(1.0, Pxx, -1.0, workspaceLx2, Pxx, Lx, Lx, Lx, type);
+    Math::MatMulNN(1.0, Pxx, -1.0, workspaceLx2, workspaceLx2_1, Lx, Lx, Lx, type);
 
     Math::MatMulNN(0.0, y, 1.0, H, x, Ly, Lx, 1, type);
     Math::Sub(v_1, ym, y, Ly, type);
+    Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
+    Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     timer.Record(type);
 
     workspaceLxLy.free();
+    workspaceLx2_1.free();
     workspaceLx2.free();
     v_1.free();
     v_0.free();
@@ -200,6 +211,8 @@ void KF::Iterate(Timer &timer)
     {
         x.copyDev2Host(Lx);
         Pxx.copyDev2Host(Lx * Lx);
+        y.copyDev2Host(Ly);
+        Pyy.copyDev2Host(Ly * Ly);
         v_0.copyDev2Host(Ly);
         v_1.copyDev2Host(Ly);
         cudaDeviceSynchronize();

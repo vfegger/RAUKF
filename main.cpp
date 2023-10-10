@@ -40,7 +40,7 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
     }
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
     std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0,5.0);
+    std::normal_distribution<double> distribution(0.0, 5.0);
     for (int i = 0; i < Lt; ++i)
     {
         HCR::CPU::RKF45(T, Q, workspace, parms);
@@ -57,7 +57,8 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
 int main(int argc, char *argv[])
 {
     Type type = Type::CPU;
-    if(argc > 1){
+    if (argc > 1)
+    {
         type = (std::stoi(argv[1]) == 0) ? Type::CPU : Type::GPU;
     }
     if (type == Type::GPU)
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
-    hfeKF.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfeKF.SetParms(Lx, Ly, 1, Lt, Sx, Sy, Sz, St, amp);
     hfeKF.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
@@ -105,13 +106,13 @@ int main(int argc, char *argv[])
     {
         raukf.SetMeasure("Temperature", measures + Lx * Ly * i);
         kf.SetMeasure("Temperature", measures + Lx * Ly * i);
-        
+
         raukf.Iterate(timer);
         raukf.GetState("Temperature", resultT);
         raukf.GetState("Heat Flux", resultQ);
         raukf.GetStateCovariance("Temperature", resultCovarT);
         raukf.GetStateCovariance("Heat Flux", resultCovarQ);
-        
+
         std::ofstream outFile;
         outFile.open("data/raukf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
@@ -129,11 +130,11 @@ int main(int argc, char *argv[])
         outFile.close();
 
         kf.Iterate(timer);
-        kf.GetState("Temperature", resultT);
+        kf.GetMeasure("Temperature", resultT);
         kf.GetState("Heat Flux", resultQ);
         kf.GetStateCovariance("Temperature", resultCovarT);
         kf.GetStateCovariance("Heat Flux", resultCovarQ);
-        
+
         outFile.open("data/kf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {

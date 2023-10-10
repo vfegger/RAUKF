@@ -11,7 +11,7 @@ private:
 protected:
     DataLoader dataLoader;
     MeasureLoader measureLoader;
-    
+
     virtual void EvolveCPU(Data *pstate, int index) = 0;
     virtual void EvolveGPU(Data *pstate, int index) = 0;
     virtual void EvaluateCPU(Measure *pmeasure, Data *pstate, int index) = 0;

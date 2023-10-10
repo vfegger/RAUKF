@@ -45,6 +45,8 @@ public:
     int GetOffset2(std::string name);
     void SetMeasureData(std::string name, double *data);
     Pointer<double> GetMeasureData();
+    void GetMeasureData(std::string name, double *data);
+    void GetMeasureCovarianceData(std::string name, double *data);
 };
 
 class MeasureLoader

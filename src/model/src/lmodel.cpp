@@ -1,6 +1,5 @@
 #include "../include/lmodel.hpp"
 
-
 void LinearModel::Evolution(Pointer<double> m_o, Data *pstate, Type type)
 {
     if (type == Type::CPU)

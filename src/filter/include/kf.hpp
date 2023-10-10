@@ -22,15 +22,17 @@ private:
 protected:
     void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ);
     void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type);
+
 public:
     KF();
     ~KF();
-    
+
     void SetModel(LinearModel *pmodel);
     void UnsetModel();
     void SetType(Type type);
-    
+
     void SetMeasure(std::string name, double *data);
+    void GetMeasure(std::string name, double *data);
     void GetState(std::string name, double *data);
     void GetStateCovariance(std::string name, double *data);
 

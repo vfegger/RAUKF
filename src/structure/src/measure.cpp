@@ -135,6 +135,28 @@ Pointer<double> Measure::GetMeasureData()
     return data;
 }
 
+void Measure::GetMeasureData(std::string name, double *data)
+{
+    int ii = index[name];
+    double *pHost = (pointer.host() + offset[ii]);
+    int l = lengthPerOffset[ii];
+    for (int i = 0; i < l; ++i)
+    {
+        data[i] = pHost[i];
+    }
+}
+
+void Measure::GetMeasureCovarianceData(std::string name, double *data)
+{
+    int ii = index[name];
+    double *pHost = (covariancePointer.host() + offset2[ii]);
+    int l = lengthPerOffset[ii];
+    for (int i = 0; i < l; ++i)
+    {
+        data[i] = pHost[i * length + i];
+    }
+}
+
 void MeasureLoader::Add(std::string name, int length)
 {
     info[name] = MeasureInfo(length);

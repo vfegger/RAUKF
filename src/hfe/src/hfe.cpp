@@ -104,11 +104,6 @@ void HFE::EvolutionGPU(Pointer<double> m_o, Data *pstate)
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetT2 = pstate->GetOffset2("Temperature");
     int offsetQ2 = pstate->GetOffset2("Heat Flux");
-    double *mTT = pm + offsetT2;
-    double *mTQ = pm + offsetT2 + (offsetQ - offsetT);
-    double *mQT = pm + offsetQ2 + (offsetT - offsetQ);
-    double *mQQ = pm + offsetQ2;
-
     MathGPU::Identity(pm, L, L);
     MathGPU::Identity(pm_I, L, L);
     MathGPU::Zero(pm_P, L * L);
@@ -299,7 +294,7 @@ Data *HFE::GenerateLinearData()
         nT[i] = 1.0;
     }
     for (int i = 0; i < Lx * Ly; ++i)
-    {
+    { 
         Q[i] = 0.0;
         cQ[i] = 1.0;
         nQ[i] = 1.0;

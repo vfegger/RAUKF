@@ -5,7 +5,7 @@
 #include <random>
 #include <curand.h>
 
-#define ILSA 1
+#define ILSA 0
 
 namespace HC
 {

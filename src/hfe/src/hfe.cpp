@@ -283,7 +283,7 @@ Data *HFE::GenerateLinearData()
         nT[i] = 1.0;
     }
     for (int i = 0; i < Lx * Ly; ++i)
-    {
+    { 
         Q[i] = 0.0;
         cQ[i] = 1.0;
         nQ[i] = 1.0;

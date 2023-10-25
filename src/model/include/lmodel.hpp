@@ -11,6 +11,11 @@ protected:
     virtual Pointer<double> EvolveMatrixGPU(Data *pstate) = 0;
     virtual Pointer<double> EvaluateMatrixCPU(Measure *pmeasure, Data *pstate) = 0;
     virtual Pointer<double> EvaluateMatrixGPU(Measure *pmeasure, Data *pstate) = 0;
+
+    virtual Pointer<double> EvolveStateCPU(Data *pstate) = 0;
+    virtual Pointer<double> EvolveStateGPU(Data *pstate) = 0;
+    virtual Pointer<double> EvaluateStateCPU(Measure *pmeasure, Data *pstate) = 0;
+    virtual Pointer<double> EvaluateStateGPU(Measure *pmeasure, Data *pstate) = 0;
 public:
 
     virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;

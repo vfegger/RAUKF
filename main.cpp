@@ -78,13 +78,13 @@ int main(int argc, char *argv[])
 
     Timer timer;
     HFE hfe;
-    HFE hfeKF;
+    HFE_RM hfeKF;
     RAUKF raukf;
     KF kf;
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
-    hfeKF.SetParms(Lx, Ly, 1, Lt, Sx, Sy, Sz, St, amp);
+    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp);
     hfeKF.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);

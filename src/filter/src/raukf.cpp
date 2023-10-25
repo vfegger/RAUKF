@@ -161,7 +161,7 @@ void RAUKF::UnscentedTransformation(Pointer<double> xs_o, Pointer<double> x_i, P
 void RAUKF::AdaptNoise(Pointer<double> x, Pointer<double> Pxx, Pointer<double> Q, Pointer<double> xs, Pointer<double> y, Pointer<double> Pyy, Pointer<double> R, Pointer<double> ys, Pointer<double> ym, Pointer<double> v_0, Pointer<double> v_1, Pointer<double> PxyT, Pointer<double> KT, int Lx, int Ls, int Ly, Pointer<double> workspaceLx, Pointer<double> workspaceLy, Pointer<double> workspaceLx2, Pointer<double> workspaceLxLy)
 {
     // Calculation of Correction Factor
-    pmodel->EvaluateState(pmeasure, pstate, type);
+    pmodel->Evaluate(pmeasure, pstate, ExecutionType::State, type);
     Math::Sub(v_1, ym, y, Ly, type);
     Math::CholeskySolver(workspaceLy, Pyy, v_1, Ly, Ly, 1, type);
     double phi = Math::Dot(v_1, workspaceLy, Ly, type);
@@ -184,7 +184,7 @@ void RAUKF::AdaptNoise(Pointer<double> x, Pointer<double> Pxx, Pointer<double> Q
         double lambdaR = std::max<double>(lambdaR0, (phi - b * chi2) / phi);
 
         UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspaceLx2, type);
-        pmodel->Evaluate(pmeasure, pstate, type);
+        pmodel->Evaluate(pmeasure, pstate, ExecutionType::Instance, type);
 
         Math::MatMulNT(1.0 - lambdaR, R, lambdaR, v_1, v_1, Ly, 1, Ly, type);
 
@@ -259,15 +259,15 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Evolve and Measure each state given by each sigma point
-    pmodel->Evolve(pstate, type);
+    pmodel->Evolve(pstate, ExecutionType::Instance, type);
     timer.Record(type);
 
-    pmodel->Evaluate(pmeasure, pstate, type);
+    pmodel->Evaluate(pmeasure, pstate, ExecutionType::Instance, type);
     timer.Record(type);
 
     // Calculate new mean and covariance for the state and measure
     Math::Mean(x, xs, wm, Lx, Ls, type);
-    pmodel->EvaluateState(pmeasure, pstate, type);
+    pmodel->Evaluate(pmeasure, pstate, ExecutionType::State, type);
     Math::Sub(v_0, ym, y, Ly, type);
     Math::Mean(y, ys, wm, Ly, Ls, type);
     timer.Record(type);

@@ -5,7 +5,7 @@
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
 #include "../../math/include/math.hpp"
-#include "../../model/include/lmodel.hpp"
+#include "../../model/include/model.hpp"
 #include "../../timer/include/timer.hpp"
 #include "../../statistics/include/statistics.hpp"
 
@@ -13,7 +13,7 @@ class KF
 {
 private:
     Statistics *pstatistics;
-    LinearModel *pmodel;
+    Model *pmodel;
     Data *pstate;
     Measure *pmeasure;
 
@@ -27,7 +27,7 @@ public:
     KF();
     ~KF();
 
-    void SetModel(LinearModel *pmodel);
+    void SetModel(Model *pmodel);
     void UnsetModel();
     void SetType(Type type);
 

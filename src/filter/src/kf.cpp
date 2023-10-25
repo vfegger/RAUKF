@@ -13,13 +13,13 @@ KF::~KF()
     delete pstatistics;
 }
 
-void KF::SetModel(LinearModel *pmodel)
+void KF::SetModel(Model *pmodel)
 {
     if (this->pmodel == NULL)
     {
         this->pmodel = pmodel;
-        this->pstate = pmodel->GenerateLinearData();
-        this->pmeasure = pmodel->GenerateLinearMeasure();
+        this->pstate = pmodel->GenerateData();
+        this->pmeasure = pmodel->GenerateMeasure();
     }
     else
     {
@@ -139,8 +139,6 @@ void KF::Iterate(Timer &timer)
     int Lx = this->pstate->GetStateLength();
     int Ly = this->pmeasure->GetMeasureLength();
 
-    F.alloc(Lx * Lx);
-    H.alloc(Ly * Lx);
     KT.alloc(Lx * Ly);
     v_0.alloc(Ly);
     v_1.alloc(Ly);
@@ -148,27 +146,14 @@ void KF::Iterate(Timer &timer)
     workspaceLx2_1.alloc(Lx * Lx);
     workspaceLxLy.alloc(Lx * Ly);
 
-    Math::Zero(F, Lx * Lx, type);
-    Math::Zero(H, Ly * Lx, type);
-
     std::cout << "Iteration:\n\tState length: " << Lx << "; Observation length: " << Ly << "\n";
     timer.Record(type);
 
-    pmodel->Evolution(F, pstate, type);
+    F = pmodel->Evolve(pstate, ExecutionType::Matrix, type);
     timer.Record(type);
-    if (type == Type::GPU)
-    {
-        F.copyDev2Host(Lx * Lx);
-    }
-    PrintMatrix("F_evo", F.host(), Lx, Lx);
 
-    pmodel->Evaluation(H, pmeasure, pstate, type);
+    H = pmodel->Evaluate(pmeasure, pstate, ExecutionType::Matrix, type);
     timer.Record(type);
-    if (type == Type::GPU)
-    {
-        H.copyDev2Host(Ly * Lx);
-    }
-    PrintMatrix("H_evo", H.host(), Ly, Lx);
 
     Math::MatMulNN(0.0, x, 1.0, F, x, Lx, Lx, 1, type);
     Math::MatMulNN(0.0, workspaceLx2, 1.0, F, Pxx, Lx, Lx, Lx, type);
@@ -204,8 +189,6 @@ void KF::Iterate(Timer &timer)
     v_1.free();
     v_0.free();
     KT.free();
-    H.free();
-    F.free();
 
     if (type == Type::GPU)
     {

@@ -7,16 +7,27 @@ Pointer<double> LModel::Evolve(Data *pstate, ExecutionType execType, Type type)
     case ExecutionType::Matrix:
         if (type == Type::CPU)
         {
-            this->EvolveMatrixCPU(pstate);
+            return this->EvolveMatrixCPU(pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvolveMatrixGPU(pstate);
+            return this->EvolveMatrixGPU(pstate);
         }
+    case ExecutionType::State:
+        if (type == Type::CPU)
+        {
+            return this->EvolveStateCPU(pstate);
+        }
+        else if (type == Type::GPU)
+        {
+            return this->EvolveStateGPU(pstate);
+        }
+        break;
     default:
         throw std::logic_error("LModel Evolve: Execution Type not defined.");
         break;
     }
+    return Pointer<double>();
 }
 Pointer<double> LModel::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type)
 {
@@ -25,14 +36,25 @@ Pointer<double> LModel::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType 
     case ExecutionType::Matrix:
         if (type == Type::CPU)
         {
-            this->EvaluateMatrixCPU(pmeasure, pstate);
+            return this->EvaluateMatrixCPU(pmeasure, pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvaluateMatrixGPU(pmeasure, pstate);
+            return this->EvaluateMatrixGPU(pmeasure, pstate);
         }
+    case ExecutionType::State:
+        if (type == Type::CPU)
+        {
+            return this->EvaluateStateCPU(pmeasure, pstate);
+        }
+        else if (type == Type::GPU)
+        {
+            return this->EvaluateStateGPU(pmeasure, pstate);
+        }
+        break;
     default:
         throw std::logic_error("LModel Evaluate: Execution Type not defined.");
         break;
     }
+    return Pointer<double>();
 }

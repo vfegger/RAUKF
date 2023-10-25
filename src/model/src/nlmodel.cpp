@@ -7,27 +7,28 @@ Pointer<double> NLModel::Evolve(Data *pstate, ExecutionType execType, Type type)
     case ExecutionType::State:
         if (type == Type::CPU)
         {
-            this->EvolveStateCPU(pstate);
+            return this->EvolveStateCPU(pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvolveStateGPU(pstate);
+            return this->EvolveStateGPU(pstate);
         }
         break;
     case ExecutionType::Instance:
         if (type == Type::CPU)
         {
-            this->EvolveInstanceCPU(pstate);
+            return this->EvolveInstanceCPU(pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvolveInstanceGPU(pstate);
+            return this->EvolveInstanceGPU(pstate);
         }
         break;
     default:
         throw std::logic_error("NLModel Evolve: Execution Type not defined.");
         break;
     }
+    return Pointer<double>();
 }
 Pointer<double> NLModel::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type)
 {
@@ -36,25 +37,26 @@ Pointer<double> NLModel::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType
     case ExecutionType::State:
         if (type == Type::CPU)
         {
-            this->EvaluateStateCPU(pmeasure, pstate);
+            return this->EvaluateStateCPU(pmeasure, pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvaluateStateGPU(pmeasure, pstate);
+            return this->EvaluateStateGPU(pmeasure, pstate);
         }
         break;
     case ExecutionType::Instance:
         if (type == Type::CPU)
         {
-            this->EvaluateInstanceCPU(pmeasure, pstate);
+            return this->EvaluateInstanceCPU(pmeasure, pstate);
         }
         else if (type == Type::GPU)
         {
-            this->EvaluateInstanceGPU(pmeasure, pstate);
+            return this->EvaluateInstanceGPU(pmeasure, pstate);
         }
         break;
     default:
         throw std::logic_error("NLModel Evaluate: Execution Type not defined.");
         break;
     }
+    return Pointer<double>();
 }

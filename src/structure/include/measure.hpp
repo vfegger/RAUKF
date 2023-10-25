@@ -47,6 +47,9 @@ public:
     Pointer<double> GetMeasureData();
     void GetMeasureData(std::string name, double *data);
     void GetMeasureCovarianceData(std::string name, double *data);
+    
+    // Utils for memory manipulation
+    Pointer<double> SwapMeasurePointer(Pointer<double> pmeasure);
 };
 
 class MeasureLoader

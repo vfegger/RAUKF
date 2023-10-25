@@ -157,6 +157,12 @@ void Measure::GetMeasureCovarianceData(std::string name, double *data)
     }
 }
 
+Pointer<double> Measure::SwapMeasurePointer(Pointer<double> pstate){
+    Pointer<double> temp = pointer;
+    pointer = pstate;
+    return temp;
+}
+
 void MeasureLoader::Add(std::string name, int length)
 {
     info[name] = MeasureInfo(length);

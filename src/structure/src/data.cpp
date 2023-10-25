@@ -144,6 +144,12 @@ int Data::GetOffset2(std::string name)
     return offset2[index[name]];
 }
 
+Pointer<double> Data::SwapStatePointer(Pointer<double> pstate){
+    Pointer<double> temp = pointer;
+    pointer = pstate;
+    return temp;
+}
+
 void DataLoader::Add(std::string name, int length)
 {
     info[name] = DataInfo(length);

@@ -1,24 +1,38 @@
 #include "../include/lmodel.hpp"
 
-void LinearModel::Evolution(Pointer<double> m_o, Data *pstate, Type type)
+Pointer<double> LModel::Evolve(Data *pstate, ExecutionType execType, Type type)
 {
-    if (type == Type::CPU)
+    switch (execType)
     {
-        this->EvolutionCPU(m_o, pstate);
-    }
-    else if (type == Type::GPU)
-    {
-        this->EvolutionGPU(m_o, pstate);
+    case ExecutionType::Matrix:
+        if (type == Type::CPU)
+        {
+            this->EvolveMatrixCPU(pstate);
+        }
+        else if (type == Type::GPU)
+        {
+            this->EvolveMatrixGPU(pstate);
+        }
+    default:
+        throw std::logic_error("LModel Evolve: Execution Type not defined.");
+        break;
     }
 }
-void LinearModel::Evaluation(Pointer<double> m_o, Measure *pmeasure, Data *pstate, Type type)
+Pointer<double> LModel::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type)
 {
-    if (type == Type::CPU)
+    switch (execType)
     {
-        this->EvaluationCPU(m_o, pmeasure, pstate);
-    }
-    else if (type == Type::GPU)
-    {
-        this->EvaluationGPU(m_o, pmeasure, pstate);
+    case ExecutionType::Matrix:
+        if (type == Type::CPU)
+        {
+            this->EvaluateMatrixCPU(pmeasure, pstate);
+        }
+        else if (type == Type::GPU)
+        {
+            this->EvaluateMatrixGPU(pmeasure, pstate);
+        }
+    default:
+        throw std::logic_error("LModel Evaluate: Execution Type not defined.");
+        break;
     }
 }

@@ -47,6 +47,9 @@ public:
     int GetSigmaLength();
     int GetOffset(std::string name);
     int GetOffset2(std::string name);
+
+    // Utils for memory manipulation
+    Pointer<double> SwapStatePointer(Pointer<double> pstate);
 };
 
 class DataLoader

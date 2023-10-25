@@ -5,6 +5,13 @@
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
 
+enum ExecutionType
+{
+    State,
+    Instance,
+    Matrix
+};
+
 class Model
 {
 private:
@@ -12,16 +19,12 @@ protected:
     DataLoader dataLoader;
     MeasureLoader measureLoader;
 
-    virtual void EvolveCPU(Data *pstate, int index) = 0;
-    virtual void EvolveGPU(Data *pstate, int index) = 0;
-    virtual void EvaluateCPU(Measure *pmeasure, Data *pstate, int index) = 0;
-    virtual void EvaluateGPU(Measure *pmeasure, Data *pstate, int index) = 0;
-
 public:
-    void EvolveState(Data *pstate, Type type);
-    void EvaluateState(Measure *pmeasure, Data *pstate, Type type);
-    void Evolve(Data *pstate, Type type);
-    void Evaluate(Measure *pmeasure, Data *pstate, Type type);
+    virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) = 0;
+    virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) = 0;
+
+    virtual void CorrectEstimation();
+    virtual void CorrectMeasures();
 
     virtual Data *GenerateData() = 0;
     virtual Measure *GenerateMeasure() = 0;

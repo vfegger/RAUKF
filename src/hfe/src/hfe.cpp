@@ -268,6 +268,7 @@ Pointer<double> HFE::EvolveInstanceCPU(Data *pstate)
         HC::CPU::RKF45(pinstances + offsetT + Ls * i, pinstances + offsetQ + Ls * i, workspace, parms);
 #endif
     }
+    return pstate->GetInstances();
 }
 Pointer<double> HFE::EvolveInstanceGPU(Data *pstate)
 {
@@ -287,6 +288,7 @@ Pointer<double> HFE::EvolveInstanceGPU(Data *pstate)
         HC::GPU::RKF45(pinstances + offsetT + Ls * i, pinstances + offsetQ + Ls * i, workspace, parms);
 #endif
     }
+    return pstate->GetInstances();
 }
 Pointer<double> HFE::EvaluateInstanceCPU(Measure *pmeasure, Data *pstate)
 {
@@ -303,6 +305,7 @@ Pointer<double> HFE::EvaluateInstanceCPU(Measure *pmeasure, Data *pstate)
     {
         MathCPU::Copy(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, parms.Lx * parms.Ly);
     }
+    return pmeasure->GetInstances();
 }
 Pointer<double> HFE::EvaluateInstanceGPU(Measure *pmeasure, Data *pstate)
 {
@@ -319,6 +322,7 @@ Pointer<double> HFE::EvaluateInstanceGPU(Measure *pmeasure, Data *pstate)
     {
         MathGPU::Copy(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, parms.Lx * parms.Ly);
     }
+    return pmeasure->GetInstances();
 }
 
 Pointer<double> HFE::EvolveStateCPU(Data *pstate)
@@ -336,6 +340,7 @@ Pointer<double> HFE::EvolveStateCPU(Data *pstate)
 #elif FORWARD_METHOD == 2
     HC::CPU::RKF45(ps + offsetT, ps + offsetQ, workspace, parms);
 #endif
+    return pstate->GetStatePointer();
 }
 Pointer<double> HFE::EvolveStateGPU(Data *pstate)
 {
@@ -352,6 +357,7 @@ Pointer<double> HFE::EvolveStateGPU(Data *pstate)
 #elif FORWARD_METHOD == 2
     HC::GPU::RKF45(ps + offsetT, ps + offsetQ, workspace, parms);
 #endif
+    return pstate->GetStatePointer();
 }
 Pointer<double> HFE::EvaluateStateCPU(Measure *pmeasure, Data *pstate)
 {
@@ -365,6 +371,7 @@ Pointer<double> HFE::EvaluateStateCPU(Measure *pmeasure, Data *pstate)
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
     MathCPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
+    return pmeasure->GetMeasurePointer();
 }
 Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
 {
@@ -378,6 +385,7 @@ Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
     MathCPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
+    return pmeasure->GetMeasurePointer();
 }
 
 void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)

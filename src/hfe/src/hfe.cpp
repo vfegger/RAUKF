@@ -384,7 +384,7 @@ Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
-    MathCPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
+    MathGPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
     return pmeasure->GetMeasurePointer();
 }
 

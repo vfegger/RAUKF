@@ -161,11 +161,15 @@ void KF::Iterate(Timer &timer)
     Math::Add(Pxx, Q, Lx * Lx, type);
     timer.Record(type);
 
+    pmodel->CorrectEstimation(pstate, type);
+
     Math::MatMulNN(0.0, y, 1.0, H, x, Ly, Lx, 1, type);
     Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
     Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     Math::Add(Pyy, R, Ly * Ly, type);
     timer.Record(type);
+
+    pmodel->CorrectEvaluation(pmeasure, pstate, type);
 
     Math::MatMulNT(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
     Math::CholeskySolver(KT, Pyy, workspaceLxLy, Ly, Ly, Lx, type);

@@ -28,6 +28,20 @@ void AEM::SampleStates(Type type)
     NSamples = N;
 }
 
+void AEM::CorrectEstimation(Data *pstate, Type type)
+{
+    int L = pstate->GetStateLength();
+    Math::Add(pstate->GetStatePointer(), errorState, L, type);
+    Math::Add(pstate->GetStateCovariancePointer(), covarState, L * L, type);
+}
+
+void AEM::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
+{
+    int L = pmeasure->GetMeasureLength();
+    Math::Add(pmeasure->GetMeasurePointer(), errorMeasure, L, type);
+    Math::Add(pmeasure->GetMeasureCovariancePointer(), covarMeasure, L * L, type);
+}
+
 Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
 {
     unsigned Lr = prState->GetStateLength();

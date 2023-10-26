@@ -23,8 +23,8 @@ public:
     virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) = 0;
     virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) = 0;
 
-    virtual void CorrectEstimation();
-    virtual void CorrectMeasures();
+    virtual void CorrectEstimation(Data *pstate, Type type);
+    virtual void CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type);
 
     virtual Data *GenerateData() = 0;
     virtual Measure *GenerateMeasure() = 0;

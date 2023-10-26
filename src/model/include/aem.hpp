@@ -34,6 +34,9 @@ public:
     virtual void C2R(Data *pcState, Data *prState) = 0;
     virtual void C2R(Measure *pcMeasure, Measure *prMeasure) = 0;
 
+    void CorrectEstimation(Data *pstate, Type type) override;
+    void CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type) override;
+
     virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;
     virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
 };

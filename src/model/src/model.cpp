@@ -1,8 +1,10 @@
 #include "../include/model.hpp"
 
-void Model::CorrectEstimation(){
+void Model::CorrectEstimation(Data *pstate, Type type)
+{
     return;
 }
-void Model::CorrectMeasures(){
+void Model::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
+{
     return;
 }

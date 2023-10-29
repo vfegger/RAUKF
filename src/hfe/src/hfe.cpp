@@ -15,6 +15,8 @@ Pointer<double> HFE_RM::EvolveMatrixCPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
+        MathCPU::Mul(pwork,parms.dt,L2);
+        MathCPU::AddIdentity(pwork,L,L);
         isValidState = true;
     }
 
@@ -35,6 +37,8 @@ Pointer<double> HFE_RM::EvolveMatrixGPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
+        MathGPU::Mul(pwork,parms.dt,L2);
+        MathGPU::AddIdentity(pwork,L,L);
         isValidState = true;
     }
 
@@ -96,6 +100,8 @@ Pointer<double> HFE_RM::EvolveStateCPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
+        MathCPU::Mul(pwork,parms.dt,L2);
+        MathCPU::AddIdentity(pwork,L,L);
         isValidState = true;
     }
 
@@ -123,6 +129,8 @@ Pointer<double> HFE_RM::EvolveStateGPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
+        MathGPU::Mul(pwork,parms.dt,L2);
+        MathGPU::AddIdentity(pwork,L,L);
         isValidState = true;
     }
 
@@ -194,7 +202,10 @@ void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, d
 }
 void HFE_RM::SetMemory(Type type)
 {
-    workspace.alloc(3u * parms.Lx * parms.Ly);
+    int Lxy = parms.Lx * parms.Ly;
+    workspace.alloc(6u * Lxy * Lxy);
+    isValidState = false;
+    isValidMeasure = false;
 }
 void HFE_RM::UnsetMemory(Type type)
 {

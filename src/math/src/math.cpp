@@ -33,6 +33,17 @@ void Math::Identity(Pointer<double> m_o, int lengthI, int lengthJ, Type type)
         MathGPU::Identity(m_o.dev(), lengthI, lengthJ);
     }
 }
+void AddIdentity(Pointer<double> m_o, int lengthI, int lengthJ, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::AddIdentity(m_o.host(), lengthI, lengthJ);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::AddIdentity(m_o.dev(), lengthI, lengthJ);
+    }
+}
 void Math::Add(Pointer<double> v_io, Pointer<double> v_i, int length, Type type)
 {
     if (type == Type::CPU)

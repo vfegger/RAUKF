@@ -39,6 +39,9 @@ public:
 
     virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;
     virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
+    
+    Data *GenerateData() override;
+    Measure *GenerateMeasure() override;
 };
 
 #endif

@@ -119,3 +119,19 @@ Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType exe
 
     return reducedModel->Evaluate(pmeasure, pstate, execType, type);
 }
+
+Data *AEM::GenerateData()
+{
+    prState = reducedModel->GenerateData();
+    pcState = completeModel->GenerateData();
+
+    return prState;
+}
+
+Measure *AEM::GenerateMeasure()
+{
+    prMeasure = reducedModel->GenerateMeasure();
+    pcMeasure = completeModel->GenerateMeasure();
+
+    return prMeasure;
+}

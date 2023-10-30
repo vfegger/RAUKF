@@ -24,6 +24,8 @@ namespace MathGPU
     void Copy(double *pv_o, double *pv_i, int length);
     // Matrix Identity
     void Identity(double *m_o, int lengthI, int lengthJ);
+    // Add Matrix Identity
+    void AddIdentity(double *m_o, int lengthI, int lengthJ);
 
     // Vector Element-wise Addition In-place
     void Add(double *pv_io, double *pv_i, int length);

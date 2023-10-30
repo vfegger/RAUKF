@@ -13,6 +13,8 @@ namespace Math
     void Copy(Pointer<double> v_o, Pointer<double> v_i, int length, Type type);
     // Matrix Identity
     void Identity(Pointer<double> m_o, int lengthI, int lengthJ, Type type);
+    // Add Matrix Identity
+    void AddIdentity(Pointer<double> m_o, int lengthI, int lengthJ, Type type);
 
     // Vector Element-wise Addition In-place
     void Add(Pointer<double> v_io, Pointer<double> v_i, int length, Type type);

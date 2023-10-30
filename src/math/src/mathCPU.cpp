@@ -23,6 +23,15 @@ void MathCPU::Identity(double *m_o, int lengthI, int lengthJ)
         m_o[(i + 1) * l] = 1;
     }
 }
+void MathCPU::AddIdentity(double *m_o, int lengthI, int lengthJ)
+{
+    int l = (lengthI > lengthJ) ? lengthJ : lengthI;
+    Zero(m_o, lengthI * lengthJ);
+    for (int i = 0; i < l; ++i)
+    {
+        m_o[(i + 1) * l] += 1;
+    }
+}
 
 void MathCPU::Add(double *pv_io, double *pv_i, int length)
 {

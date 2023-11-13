@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     Timer timer;
     HFE hfe;
     HFE_RM hfeKF;
+    HFE_AEM hfeAEM;
     RAUKF raukf;
     KF kf;
 
@@ -86,6 +87,9 @@ int main(int argc, char *argv[])
     hfe.SetMemory(type);
     hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp);
     hfeKF.SetMemory(type);
+
+    hfeAEM.SetModel(&hfeKF, &hfe);
+    hfeAEM.SetMemory(type);
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);

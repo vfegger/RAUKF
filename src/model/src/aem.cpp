@@ -28,6 +28,12 @@ void AEM::SampleStates(Type type)
     NSamples = N;
 }
 
+void AEM::SetModel(Model *rm, Model *cm)
+{
+    reducedModel = rm;
+    completeModel = cm;
+}
+
 void AEM::CorrectEstimation(Data *pstate, Type type)
 {
     int L = pstate->GetStateLength();

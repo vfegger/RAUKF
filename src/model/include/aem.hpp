@@ -27,6 +27,7 @@ protected:
 
     // Need to allocate samples with the following data: [Reduced State] + [State Error] + [Complete State] and [Reduced Measure] + [Measure Error] + [Complete Measure]
     virtual void SampleStates(Type type);
+    void SetModel(Model *rm, Model *cm);
 
 public:
     virtual void R2C(Data *prState, Data *pcState) = 0;
@@ -37,9 +38,9 @@ public:
     void CorrectEstimation(Data *pstate, Type type) override;
     void CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type) override;
 
-    virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;
-    virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
-    
+    Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;
+    Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
+
     Data *GenerateData() override;
     Measure *GenerateMeasure() override;
 };

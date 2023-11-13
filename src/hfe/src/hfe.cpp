@@ -15,8 +15,8 @@ Pointer<double> HFE_RM::EvolveMatrixCPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        MathCPU::Mul(pwork,parms.dt,L2);
-        MathCPU::AddIdentity(pwork,L,L);
+        MathCPU::Mul(pwork, parms.dt, L2);
+        MathCPU::AddIdentity(pwork, L, L);
         isValidState = true;
     }
 
@@ -37,8 +37,8 @@ Pointer<double> HFE_RM::EvolveMatrixGPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        MathGPU::Mul(pwork,parms.dt,L2);
-        MathGPU::AddIdentity(pwork,L,L);
+        MathGPU::Mul(pwork, parms.dt, L2);
+        MathGPU::AddIdentity(pwork, L, L);
         isValidState = true;
     }
 
@@ -100,8 +100,8 @@ Pointer<double> HFE_RM::EvolveStateCPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        MathCPU::Mul(pwork,parms.dt,L2);
-        MathCPU::AddIdentity(pwork,L,L);
+        MathCPU::Mul(pwork, parms.dt, L2);
+        MathCPU::AddIdentity(pwork, L, L);
         isValidState = true;
     }
 
@@ -129,8 +129,8 @@ Pointer<double> HFE_RM::EvolveStateGPU(Data *pstate)
     if (!isValidState)
     {
         HC::RM::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        MathGPU::Mul(pwork,parms.dt,L2);
-        MathGPU::AddIdentity(pwork,L,L);
+        MathGPU::Mul(pwork, parms.dt, L2);
+        MathGPU::AddIdentity(pwork, L, L);
         isValidState = true;
     }
 
@@ -510,4 +510,111 @@ Measure *HFE::GenerateMeasure()
     Measure *pm = Model::measureLoader.Load();
     free(nT);
     return pm;
+}
+
+void HFE_AEM::SetModel(HFE_RM* rm, HFE* cm){
+    AEM::SetModel(rm,cm);
+}
+
+void HFE_AEM::SetMemory(Type type)
+{
+    workspace.alloc(((HFE*)completeModel)->parms.Lx * ((HFE*)completeModel)->parms.Ly);
+}
+void HFE_AEM::UnsetMemory(Type type)
+{
+    workspace.free();
+}
+
+void HFE_AEM::R2C(Data *prState, Data *pcState)
+{
+    Pointer<double> rx = prState->GetStatePointer();
+    Pointer<double> cx = pcState->GetStatePointer();
+
+    int rOffsetT = prState->GetOffset("Temperature");
+    int rOffsetQ = prState->GetOffset("Heat Flux");
+    int cOffsetT = pcState->GetOffset("Temperature");
+    int cOffsetQ = pcState->GetOffset("Heat Flux");
+
+    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+
+    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
+    int Lcx = ((HFE*)completeModel)->parms.Lx;
+    int Lcy = ((HFE*)completeModel)->parms.Ly;
+    int Lcz = ((HFE*)completeModel)->parms.Lz;
+
+    Interpolation::Rescale(rx + rOffsetT, Lrx, Lry, workspace, Lcx, Lcy, Sx, Sy, type);
+    Interpolation::Rescale(rx + rOffsetQ, Lrx, Lry, cx + cOffsetQ, Lcx, Lcy, Sx, Sy, type);
+
+    for (int k = 0; k < Lcz; k++)
+    {
+        double z = (k + 0.5) * Sz / Lcz;
+        double temp = InterpolationCPU::Lerp(z, 0, Sz, -Sz / (6 * KT), Sz / (3 * KT));
+        Math::Copy(cx + cOffsetT + k * Lcx * Lcy, workspace, Lcx * Lcy, type);
+        Math::LRPO(cx + cOffsetT + k * Lcx * Lcy, cx + cOffsetQ, temp, Lcx * Lcy, type);
+    }
+}
+void HFE_AEM::R2C(Measure *prMeasure, Measure *pcMeasure)
+{
+    Pointer<double> ry = prMeasure->GetMeasurePointer();
+    Pointer<double> cy = pcMeasure->GetMeasurePointer();
+
+    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+
+    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
+    int Lcx = ((HFE*)completeModel)->parms.Lx;
+    int Lcy = ((HFE*)completeModel)->parms.Ly;
+    int Lcz = ((HFE*)completeModel)->parms.Lz;
+
+    Interpolation::Rescale(ry, Lrx, Lry, cy, Lcx, Lcy, Sx, Sy, type);
+}
+void HFE_AEM::C2R(Data *pcState, Data *prState)
+{
+    Pointer<double> rx = prState->GetStatePointer();
+    Pointer<double> cx = pcState->GetStatePointer();
+
+    int rOffsetT = prState->GetOffset("Temperature");
+    int rOffsetQ = prState->GetOffset("Heat Flux");
+    int cOffsetT = pcState->GetOffset("Temperature");
+    int cOffsetQ = pcState->GetOffset("Heat Flux");
+    
+    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+
+    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
+    int Lcx = ((HFE*)completeModel)->parms.Lx;
+    int Lcy = ((HFE*)completeModel)->parms.Ly;
+    int Lcz = ((HFE*)completeModel)->parms.Lz;
+
+    Math::Mean(workspace, cx + cOffsetT, Lcx * Lcy, Lcz, type);
+    Interpolation::Rescale(workspace, Lcx, Lcy, rx + rOffsetT, Lrx, Lry, Sx, Sy, type);
+    Interpolation::Rescale(cx + cOffsetQ, Lcx, Lcy, rx + rOffsetQ, Lrx, Lry, Sx, Sy, type);
+}
+void HFE_AEM::C2R(Measure *pcMeasure, Measure *prMeasure)
+{
+    Pointer<double> ry = prMeasure->GetMeasurePointer();
+    Pointer<double> cy = pcMeasure->GetMeasurePointer();
+
+    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+
+    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
+    int Lcx = ((HFE*)completeModel)->parms.Lx;
+    int Lcy = ((HFE*)completeModel)->parms.Ly;
+    int Lcz = ((HFE*)completeModel)->parms.Lz;
+
+    Interpolation::Rescale(cy, Lcx, Lcy, ry, Lrx, Lry, Sx, Sy, type);
 }

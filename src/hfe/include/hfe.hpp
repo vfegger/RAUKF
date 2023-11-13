@@ -5,6 +5,7 @@
 #include "../../model/include/nlmodel.hpp"
 #include "../../model/include/lmodel.hpp"
 #include "../include/hc.hpp"
+#include "../../math/include/interpolation.hpp"
 
 #define FORWARD_METHOD 1
 
@@ -34,6 +35,8 @@ public:
     void UnsetMemory(Type type);
     Data *GenerateData() override;
     Measure *GenerateMeasure() override;
+
+    friend class HFE_AEM;
 };
 
 class HFE : public NLModel
@@ -60,6 +63,24 @@ public:
     void UnsetMemory(Type type);
     Data *GenerateData() override;
     Measure *GenerateMeasure() override;
+    
+    friend class HFE_AEM;
 };
 
+class HFE_AEM : public AEM
+{
+private:    
+    Pointer<double> workspace;
+    Type type;
+protected:
+public:
+    void SetModel(HFE_RM* rm, HFE* cm);
+    void SetMemory(Type type);
+    void UnsetMemory(Type type);
+
+    void R2C(Data *prState, Data *pcState) override;
+    void R2C(Measure *prMeasure, Measure *pcMeasure) override;
+    void C2R(Data *pcState, Data *prState) override;
+    void C2R(Measure *pcMeasure, Measure *prMeasure) override;
+};
 #endif

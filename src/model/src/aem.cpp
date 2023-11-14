@@ -1,5 +1,21 @@
 #include "../include/aem.hpp"
 
+void AEM::SetMemory(int Lcs, int Lcm, int Lrs, int Lrm, Type type)
+{
+    errorState.alloc(Lrs);
+    errorMeasure.alloc(Lrm);
+    covarState.alloc(Lrs * Lrs);
+    covarMeasure.alloc(Lrm * Lrm);
+    int Ns = GetSampleLength(Lrs);
+    samplesState.alloc(Ns * (2 * Lrs + Lcs));
+    samplesMeasure.alloc(Ns * (2 * Lrm + Lcm));
+}
+
+int AEM::GetSampleLength(int Lrs)
+{
+    return 2 * Lrs + 1;
+}
+
 void AEM::SampleStates(Type type)
 {
     unsigned Lrs = prState->GetStateLength();
@@ -12,8 +28,6 @@ void AEM::SampleStates(Type type)
     unsigned N = 2 * Lrs + 1;
     unsigned NLs = Ls * N;
     unsigned NLm = Lm * N;
-    samplesState.alloc(NLs);
-    samplesMeasure.alloc(NLm);
     Math::Zero(samplesState, NLs, type);
     Math::Zero(samplesMeasure, NLm, type);
 

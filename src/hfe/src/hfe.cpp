@@ -514,13 +514,28 @@ Measure *HFE::GenerateMeasure()
     return pm;
 }
 
-void HFE_AEM::SetModel(HFE_RM* rm, HFE* cm){
-    AEM::SetModel(rm,cm);
+void HFE_AEM::SetModel(HFE_RM *rm, HFE *cm)
+{
+    AEM::SetModel(rm, cm);
 }
 
 void HFE_AEM::SetMemory(Type type)
 {
-    workspace.alloc(((HFE*)completeModel)->parms.Lx * ((HFE*)completeModel)->parms.Ly);
+
+    int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM *)reducedModel)->parms.Lz;
+    int Lcx = ((HFE *)completeModel)->parms.Lx;
+    int Lcy = ((HFE *)completeModel)->parms.Ly;
+    int Lcz = ((HFE *)completeModel)->parms.Lz;
+
+    int Lcs = Lcx * Lcy * (Lcz + 1);
+    int Lcm = Lcx * Lcy;
+    int Lrs = Lrx * Lry * (Lrz + 1);
+    int Lrm = Lrx * Lry;
+
+    workspace.alloc(Lcx * Lcy);
+    AEM::SetMemory(Lcs, Lcm, Lrs, Lrm, type);
 }
 void HFE_AEM::UnsetMemory(Type type)
 {
@@ -537,21 +552,21 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
     int cOffsetT = pcState->GetOffset("Temperature");
     int cOffsetQ = pcState->GetOffset("Heat Flux");
 
-    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
-    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
-    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
-    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
-    int Lcx = ((HFE*)completeModel)->parms.Lx;
-    int Lcy = ((HFE*)completeModel)->parms.Ly;
-    int Lcz = ((HFE*)completeModel)->parms.Lz;
+    int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM *)reducedModel)->parms.Lz;
+    int Lcx = ((HFE *)completeModel)->parms.Lx;
+    int Lcy = ((HFE *)completeModel)->parms.Ly;
+    int Lcz = ((HFE *)completeModel)->parms.Lz;
 
     Interpolation::Rescale(rx + rOffsetT, Lrx, Lry, workspace, Lcx, Lcy, Sx, Sy, type);
     Interpolation::Rescale(rx + rOffsetQ, Lrx, Lry, cx + cOffsetQ, Lcx, Lcy, Sx, Sy, type);
 
-    double KT = HC::K(((HFE_RM*)reducedModel)->parms.T_ref);
+    double KT = HC::K(((HFE_RM *)reducedModel)->parms.T_ref);
     for (int k = 0; k < Lcz; k++)
     {
         double z = (k + 0.5) * Sz / Lcz;
@@ -565,16 +580,16 @@ void HFE_AEM::R2C(Measure *prMeasure, Measure *pcMeasure)
     Pointer<double> ry = prMeasure->GetMeasurePointer();
     Pointer<double> cy = pcMeasure->GetMeasurePointer();
 
-    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
-    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
-    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
-    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
-    int Lcx = ((HFE*)completeModel)->parms.Lx;
-    int Lcy = ((HFE*)completeModel)->parms.Ly;
-    int Lcz = ((HFE*)completeModel)->parms.Lz;
+    int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM *)reducedModel)->parms.Lz;
+    int Lcx = ((HFE *)completeModel)->parms.Lx;
+    int Lcy = ((HFE *)completeModel)->parms.Ly;
+    int Lcz = ((HFE *)completeModel)->parms.Lz;
 
     Interpolation::Rescale(ry, Lrx, Lry, cy, Lcx, Lcy, Sx, Sy, type);
 }
@@ -587,17 +602,17 @@ void HFE_AEM::C2R(Data *pcState, Data *prState)
     int rOffsetQ = prState->GetOffset("Heat Flux");
     int cOffsetT = pcState->GetOffset("Temperature");
     int cOffsetQ = pcState->GetOffset("Heat Flux");
-    
-    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
 
-    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
-    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
-    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
-    int Lcx = ((HFE*)completeModel)->parms.Lx;
-    int Lcy = ((HFE*)completeModel)->parms.Ly;
-    int Lcz = ((HFE*)completeModel)->parms.Lz;
+    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
+
+    int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM *)reducedModel)->parms.Lz;
+    int Lcx = ((HFE *)completeModel)->parms.Lx;
+    int Lcy = ((HFE *)completeModel)->parms.Ly;
+    int Lcz = ((HFE *)completeModel)->parms.Lz;
 
     Math::Mean(workspace, cx + cOffsetT, Lcx * Lcy, Lcz, type);
     Interpolation::Rescale(workspace, Lcx, Lcy, rx + rOffsetT, Lrx, Lry, Sx, Sy, type);
@@ -608,16 +623,16 @@ void HFE_AEM::C2R(Measure *pcMeasure, Measure *prMeasure)
     Pointer<double> ry = prMeasure->GetMeasurePointer();
     Pointer<double> cy = pcMeasure->GetMeasurePointer();
 
-    int Sx = ((HFE_RM*)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM*)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM*)reducedModel)->parms.Sz;
+    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
-    int Lrx = ((HFE_RM*)reducedModel)->parms.Lx;
-    int Lry = ((HFE_RM*)reducedModel)->parms.Ly;
-    int Lrz = ((HFE_RM*)reducedModel)->parms.Lz;
-    int Lcx = ((HFE*)completeModel)->parms.Lx;
-    int Lcy = ((HFE*)completeModel)->parms.Ly;
-    int Lcz = ((HFE*)completeModel)->parms.Lz;
+    int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
+    int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
+    int Lrz = ((HFE_RM *)reducedModel)->parms.Lz;
+    int Lcx = ((HFE *)completeModel)->parms.Lx;
+    int Lcy = ((HFE *)completeModel)->parms.Ly;
+    int Lcz = ((HFE *)completeModel)->parms.Lz;
 
     Interpolation::Rescale(cy, Lcx, Lcy, ry, Lrx, Lry, Sx, Sy, type);
 }

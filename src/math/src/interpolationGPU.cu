@@ -1,4 +1,4 @@
-#include "..\include\interpolationGPU.hpp"
+#include "../include/interpolationGPU.hpp"
 
 __device__ inline double lerp(double x, double x0, double x1, double v0, double v1)
 {

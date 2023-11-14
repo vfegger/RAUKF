@@ -1,4 +1,4 @@
-#include "..\include\interpolation.hpp"
+#include "../include/interpolation.hpp"
 
 void Interpolation::Rescale(Pointer<double> p_i, int Lx_i,
              Pointer<double> p_o, int Lx_o,

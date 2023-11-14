@@ -1,4 +1,4 @@
-#include "..\include\interpolationCPU.hpp"
+#include "../include/interpolationCPU.hpp"
 
 #include <algorithm>
 

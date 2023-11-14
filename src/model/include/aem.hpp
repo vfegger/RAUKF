@@ -27,6 +27,7 @@ protected:
 
     // Need to allocate samples with the following data: [Reduced State] + [State Error] + [Complete State] and [Reduced Measure] + [Measure Error] + [Complete Measure]
     void SetMemory(int Lcs, int Lcm, int Lrs, int Lrm, Type type);
+    void UnsetMemory(Type type);
     virtual int GetSampleLength(int Lrs);
     virtual void SampleStates(Type type);
     void SetModel(Model *rm, Model *cm);

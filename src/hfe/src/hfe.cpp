@@ -539,6 +539,7 @@ void HFE_AEM::SetMemory(Type type)
 }
 void HFE_AEM::UnsetMemory(Type type)
 {
+    AEM::UnsetMemory(type);
     workspace.free();
 }
 

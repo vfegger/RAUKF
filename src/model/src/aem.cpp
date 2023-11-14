@@ -10,6 +10,15 @@ void AEM::SetMemory(int Lcs, int Lcm, int Lrs, int Lrm, Type type)
     samplesState.alloc(Ns * (2 * Lrs + Lcs));
     samplesMeasure.alloc(Ns * (2 * Lrm + Lcm));
 }
+void AEM::UnsetMemory(Type type)
+{
+    samplesMeasure.free();
+    samplesState.free();
+    covarMeasure.free();
+    covarState.free();
+    errorMeasure.free();
+    errorState.free();
+}
 
 int AEM::GetSampleLength(int Lrs)
 {

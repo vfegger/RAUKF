@@ -1,17 +1,17 @@
 #include "../include/hc.hpp"
 
-__host__ __device__ inline double C(double T_i)
+__host__ __device__ inline double HC::C(double T_i)
 {
     return 1324.75 * T_i + 3557900.0;
 }
-__host__ __device__ inline double K(double T_i)
+__host__ __device__ inline double HC::K(double T_i)
 {
     return (14e-3 + 2.517e-6 * T_i) * T_i + 12.45;
 }
 __host__ __device__ inline double DiffK(double TN_i, double T_i, double TP_i, double delta_i)
 {
-    double auxN = 2.0 * (K(TN_i) * K(T_i)) / (K(TN_i) + K(T_i)) * (TN_i - T_i) / delta_i;
-    double auxP = 2.0 * (K(TP_i) * K(T_i)) / (K(TP_i) + K(T_i)) * (TP_i - T_i) / delta_i;
+    double auxN = 2.0 * (HC::K(TN_i) * HC::K(T_i)) / (HC::K(TN_i) + HC::K(T_i)) * (TN_i - T_i) / delta_i;
+    double auxP = 2.0 * (HC::K(TP_i) * HC::K(T_i)) / (HC::K(TP_i) + HC::K(T_i)) * (TP_i - T_i) / delta_i;
     return (auxN + auxP) / delta_i;
 }
 void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
@@ -270,9 +270,10 @@ void HC::RM::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double
     double dy = parms.dy;
     double dz = parms.dz;
     double amp = parms.amp;
+    double T_ref = parms.T_ref;
 
-    double CT = C(600.0);
-    double KT = K(600.0);
+    double CT = C(T_ref);
+    double KT = K(T_ref);
 
     // Difusion Contribution
     for (int j = 0; j < Ly; ++j)
@@ -324,7 +325,7 @@ void HC::RM::CPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parm
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
 
-    double KT = K(600.0);
+    double KT = K(parms.T_ref);
 
     // Surface Temperature
     for (int j = 0; j < Ly; j++)
@@ -423,7 +424,7 @@ __global__ void ThermalCapacity(double *dT, double *T, unsigned Lx, unsigned Ly,
     bool inside = xIndex < Lx && yIndex < Ly && zIndex < Lz;
     if (inside)
     {
-        dT[index] /= C(T[index]);
+        dT[index] /= HC::C(T[index]);
     }
 }
 void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)

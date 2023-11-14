@@ -14,9 +14,12 @@ namespace HC
         int Lx, Ly, Lz, Lt;
         double Sx, Sy, Sz, St;
         double dx, dy, dz, dt;
-        double amp;
+        double amp, T_ref;
     };
 
+    __host__ __device__ inline double C(double T_i);
+    __host__ __device__ inline double K(double T_i);
+    
     namespace RM
     {
         namespace CPU

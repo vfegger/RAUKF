@@ -1,6 +1,6 @@
 #include "..\include\interpolation.hpp"
 
-void Rescale(Pointer<double> p_i, int Lx_i,
+void Interpolation::Rescale(Pointer<double> p_i, int Lx_i,
              Pointer<double> p_o, int Lx_o,
              double Sx, Type type)
 {
@@ -13,7 +13,7 @@ void Rescale(Pointer<double> p_i, int Lx_i,
         InterpolationGPU::Rescale(p_i.dev(), Lx_i, p_o.dev(), Lx_o, Sx);
     }
 }
-void Rescale(Pointer<double> p_i, int Lx_i, int Ly_i,
+void Interpolation::Rescale(Pointer<double> p_i, int Lx_i, int Ly_i,
              Pointer<double> p_o, int Lx_o, int Ly_o,
              double Sx, double Sy, Type type)
 {
@@ -26,7 +26,7 @@ void Rescale(Pointer<double> p_i, int Lx_i, int Ly_i,
         InterpolationGPU::Rescale(p_i.dev(), Lx_i, Ly_i, p_o.dev(), Lx_o, Ly_o, Sx, Sy);
     }
 }
-void Rescale(Pointer<double> p_i, int Lx_i, int Ly_i, int Lz_i,
+void Interpolation::Rescale(Pointer<double> p_i, int Lx_i, int Ly_i, int Lz_i,
              Pointer<double> p_o, int Lx_o, int Ly_o, int Lz_o,
              double Sx, double Sy, double Sz, Type type)
 {

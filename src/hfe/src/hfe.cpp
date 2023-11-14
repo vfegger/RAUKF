@@ -184,7 +184,7 @@ Pointer<double> HFE_RM::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -199,6 +199,7 @@ void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, d
     parms.dz = Sz;
     parms.dt = St / Lt;
     parms.amp = amp;
+    parms.T_ref = T_ref;
 }
 void HFE_RM::SetMemory(Type type)
 {
@@ -399,7 +400,7 @@ Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -414,6 +415,7 @@ void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double 
     parms.dz = Sz / Lz;
     parms.dt = St / Lt;
     parms.amp = amp;
+    parms.T_ref = T_ref;
 }
 void HFE::SetMemory(Type type)
 {
@@ -549,6 +551,7 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
     Interpolation::Rescale(rx + rOffsetT, Lrx, Lry, workspace, Lcx, Lcy, Sx, Sy, type);
     Interpolation::Rescale(rx + rOffsetQ, Lrx, Lry, cx + cOffsetQ, Lcx, Lcy, Sx, Sy, type);
 
+    double KT = HC::K(((HFE_RM*)reducedModel)->parms.T_ref);
     for (int k = 0; k < Lcz; k++)
     {
         double z = (k + 0.5) * Sz / Lcz;

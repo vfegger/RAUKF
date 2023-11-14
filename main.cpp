@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
-    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp);
+    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0);
     hfeKF.SetMemory(type);
 
     hfeAEM.SetModel(&hfeKF, &hfe);

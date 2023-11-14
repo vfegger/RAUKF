@@ -163,6 +163,9 @@ int main(int argc, char *argv[])
 
     raukf.UnsetWeight();
     raukf.UnsetModel();
+    kf.UnsetModel();
+    hfeAEM.UnsetMemory(type);
+    hfeKF.UnsetMemory(type);
     hfe.UnsetMemory(type);
     if (type == Type::GPU)
     {

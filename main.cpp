@@ -6,6 +6,10 @@
 #include <fstream>
 #include <random>
 
+#define RAUKF_USAGE 1
+#define KF_USAGE 1
+#define KF_AEM_USAGE 1
+
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
     double *workspace;
@@ -77,19 +81,46 @@ int main(int argc, char *argv[])
     double amp = 5e4;
 
     Timer timer;
+#if RAUKF_USAGE == 1
     HFE hfe;
-    HFE_RM hfeKF;
-    HFE_AEM hfeAEM;
-    RAUKF raukf;
-    KF kf;
+#endif
 
+#if KF_USAGE == 1
+    HFE_RM hfeKF;
+#endif
+
+#if KF_AEM_USAGE == 1
+    HFE hfeC;
+    HFE_RM hfeR;
+    HFE_AEM hfeAEM;
+#endif
+
+#if RAUKF_USAGE == 1
+    RAUKF raukf;
+#endif
+#if KF_USAGE == 1
+    KF kf;
+#endif
+#if KF_AEM_USAGE == 1
+    KF kfAEM;
+#endif
+
+#if RAUKF_USAGE == 1
     hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     hfe.SetMemory(type);
+#endif
+#if KF_USAGE == 1
     hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0);
     hfeKF.SetMemory(type);
-
-    hfeAEM.SetModel(&hfeKF, &hfe);
+#endif
+#if KF_AEM_USAGE == 1
+    hfeC.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfeC.SetMemory(type);
+    hfeR.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0);
+    hfeR.SetMemory(type);
+    hfeAEM.SetModel(&hfeR, &hfeC);
     hfeAEM.SetMemory(type);
+#endif
 
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
@@ -99,6 +130,9 @@ int main(int argc, char *argv[])
     kf.SetModel(&hfeKF);
     kf.SetType(type);
 
+    kfAEM.SetModel(&hfeAEM);
+    kfAEM.SetType(type);
+
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     Simulation(measures, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
@@ -106,10 +140,11 @@ int main(int argc, char *argv[])
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *resultCovarQ = (double *)malloc(sizeof(double) * Lx * Ly);
 
+    std::ofstream outFile;
     for (int i = 0; i < Lt; i++)
     {
+#if RAUKF_USAGE == 1
         raukf.SetMeasure("Temperature", measures + Lx * Ly * i);
-        kf.SetMeasure("Temperature", measures + Lx * Ly * i);
 
         raukf.Iterate(timer);
         raukf.GetState("Temperature", resultT);
@@ -117,7 +152,6 @@ int main(int argc, char *argv[])
         raukf.GetStateCovariance("Temperature", resultCovarT);
         raukf.GetStateCovariance("Heat Flux", resultCovarQ);
 
-        std::ofstream outFile;
         outFile.open("data/raukf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {
@@ -132,6 +166,10 @@ int main(int argc, char *argv[])
 
         outFile.open("data/raukf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
+#endif
+
+#if KF_USAGE == 1
+        kf.SetMeasure("Temperature", measures + Lx * Ly * i);
 
         kf.Iterate(timer);
         kf.GetMeasure("Temperature", resultT);
@@ -153,6 +191,32 @@ int main(int argc, char *argv[])
 
         outFile.open("data/kf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
+#endif
+
+#if KF_AEM_USAGE == 1
+        kf.SetMeasure("Temperature", measures + Lx * Ly * i);
+
+        kf.Iterate(timer);
+        kf.GetMeasure("Temperature", resultT);
+        kf.GetState("Heat Flux", resultQ);
+        kf.GetStateCovariance("Temperature", resultCovarT);
+        kf.GetStateCovariance("Heat Flux", resultCovarQ);
+
+        outFile.open("data/kf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
+        if (outFile.is_open())
+        {
+            double resultTime = (i + 1) * St / Lt;
+            outFile.write((char *)(&resultTime), sizeof(double));
+            outFile.write((char *)resultT, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+        }
+        outFile.close();
+
+        outFile.open("data/kf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
+        outFile.close();
+#endif
     }
 
     free(resultCovarQ);

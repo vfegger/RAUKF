@@ -4,30 +4,23 @@ using Plots
 using Images
 using FileIO
 
-const raukfDataPath = "../data/raukf"
-const kfDataPath = "../data/kf"
+const dataPath = "../data/"
+const typePaths = ["raukf","kf","kfaem"]
 
 const ioT = PipeBuffer()
 const ioQ = PipeBuffer()
 
-Lx = 24
-Ly = 24
-Lz = 6
-Lt = 100
+# [Lx, Ly, Lz, Lt, Lxy, Lxyz, Lfile]
+dataParms = Array{Int,2}(undef,7,size(typePaths))
 
-LLx = 24
-LLy = 24
-LLz = 1 # Z is collapsed in Reduced Linear Form
-LLt = 100
-
-Lxy = Lx*Ly
-Lxyz = Lxy*Lz
-
-LLxy = LLx*LLy
-LLxyz = LLxy*LLz
-
-Lfile = 2*Lx*Ly*(Lz+1)+1
-LLfile = 2*LLx*LLy*(LLz+1)+1
+for i = 1:size(typePaths)
+    data = Array{Int}(undef,4)
+    read!(joinpath(dataPath,typePaths[i],string("Parms.bin")), data)
+    dataParms[1:4,i] = data[1:4]
+    dataParms[5,i] = data[1] * data[2]
+    dataParms[6,i] = data[1] * data[2] * data[3]
+    dataParms[7,i] = 2 * data[1] * data[2] * (data[3] + 1) + 1
+end
 
 t_ref = Array{Array{Float64,1},1}()
 T_ref = Array{Array{Float64,1},1}()
@@ -40,7 +33,7 @@ files_ref = Array{Array{String,1},1}()
 dataT = Array{Array{Float64,2},1}()
 dataQ = Array{Array{Float64,2},1}()
 
-for i = 1:2
+for i = 1:size(typePaths)
     push!(t_ref,Array{Float64,1}())
     push!(T_ref,Array{Float64,1}())
     push!(cT_ref,Array{Float64,1}())
@@ -163,15 +156,12 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
         recreateGraphs = false
-        if checkNewFiles(files_ref[1],raukfDataPath,t_ref[1],T_ref[1],cT_ref[1],Q_ref[1],cQ_ref[1],Lxy,Lxyz,Lfile)
-            dataGraph(dataT,1,t_ref[1],T_ref[1],cT_ref[1],Lxyz,Int(Lxy/2+Lx/2))
-            dataGraph(dataQ,1,t_ref[1],Q_ref[1],cQ_ref[1],Lxy,Int(Lxy/2+Lx/2))
-            recreateGraphs = true
-        end
-        if checkNewFiles(files_ref[2],kfDataPath,t_ref[2],T_ref[2],cT_ref[2],Q_ref[2],cQ_ref[2],LLxy,LLxyz,LLfile)
-            dataGraph(dataT,2,t_ref[2],T_ref[2],cT_ref[2],LLxyz,Int(LLxy/2+LLx/2))
-            dataGraph(dataQ,2,t_ref[2],Q_ref[2],cQ_ref[2],LLxy,Int(LLxy/2+LLx/2))
-            recreateGraphs = true
+        for i in size(typePaths)
+            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],data[5,i],data[6,i],data[7,i])
+                dataGraph(dataT,i,t_ref[i],T_ref[i],cT_ref[i],Lxyz,Int(data[5,i]/2+data[1,i]/2))
+                dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],Lxy,Int(data[5,i]/2+data[1,i]/2))
+                recreateGraphs = true
+            end
         end
         if recreateGraphs
             combineGraphs(graph,1,dataT)

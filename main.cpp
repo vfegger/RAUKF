@@ -122,16 +122,21 @@ int main(int argc, char *argv[])
     hfeAEM.SetMemory(type);
 #endif
 
+#if RAUKF_USAGE == 1
     raukf.SetParameters(1e-3, 2.0, 0.0);
     raukf.SetModel(&hfe);
     raukf.SetType(type);
     raukf.SetWeight();
-
+#endif
+#if KF_USAGE == 1
     kf.SetModel(&hfeKF);
     kf.SetType(type);
+#endif
 
+#if KF_AEM_USAGE == 1
     kfAEM.SetModel(&hfeAEM);
     kfAEM.SetType(type);
+#endif
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     Simulation(measures, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
@@ -194,15 +199,15 @@ int main(int argc, char *argv[])
 #endif
 
 #if KF_AEM_USAGE == 1
-        kf.SetMeasure("Temperature", measures + Lx * Ly * i);
+        kfAEM.SetMeasure("Temperature", measures + Lx * Ly * i);
 
-        kf.Iterate(timer);
-        kf.GetMeasure("Temperature", resultT);
-        kf.GetState("Heat Flux", resultQ);
-        kf.GetStateCovariance("Temperature", resultCovarT);
-        kf.GetStateCovariance("Heat Flux", resultCovarQ);
+        kfAEM.Iterate(timer);
+        kfAEM.GetMeasure("Temperature", resultT);
+        kfAEM.GetState("Heat Flux", resultQ);
+        kfAEM.GetStateCovariance("Temperature", resultCovarT);
+        kfAEM.GetStateCovariance("Heat Flux", resultCovarQ);
 
-        outFile.open("data/kf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
+        outFile.open("data/kfaem/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
         {
             double resultTime = (i + 1) * St / Lt;
@@ -214,7 +219,7 @@ int main(int argc, char *argv[])
         }
         outFile.close();
 
-        outFile.open("data/kf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
+        outFile.open("data/kfaem/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
 #endif
     }
@@ -228,6 +233,7 @@ int main(int argc, char *argv[])
     raukf.UnsetWeight();
     raukf.UnsetModel();
     kf.UnsetModel();
+    kfAEM.UnsetModel();
     hfeAEM.UnsetMemory(type);
     hfeKF.UnsetMemory(type);
     hfe.UnsetMemory(type);

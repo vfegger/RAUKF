@@ -20,7 +20,7 @@ void MathCPU::Identity(double *m_o, int lengthI, int lengthJ)
     Zero(m_o, lengthI * lengthJ);
     for (int i = 0; i < l; ++i)
     {
-        m_o[(i + 1) * l] = 1;
+        m_o[i * (l + 1)] = 1.0;
     }
 }
 void MathCPU::AddIdentity(double *m_o, int lengthI, int lengthJ)
@@ -29,7 +29,7 @@ void MathCPU::AddIdentity(double *m_o, int lengthI, int lengthJ)
     Zero(m_o, lengthI * lengthJ);
     for (int i = 0; i < l; ++i)
     {
-        m_o[(i + 1) * l] += 1;
+        m_o[i * (l + 1)] += 1.0;
     }
 }
 

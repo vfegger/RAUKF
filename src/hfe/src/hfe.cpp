@@ -637,3 +637,23 @@ void HFE_AEM::C2R(Measure *pcMeasure, Measure *prMeasure)
 
     Interpolation::Rescale(cy, Lcx, Lcy, ry, Lrx, Lry, Sx, Sy, type);
 }
+
+int HFE_AEM::GetSampleLength(int Lrs)
+{
+    return 10;
+}
+void HFE_AEM::SampleStates(Type type)
+{
+    unsigned Lrs = prState->GetStateLength();
+    unsigned Lrm = prMeasure->GetMeasureLength();
+    unsigned Lcs = pcState->GetStateLength();
+    unsigned Lcm = pcMeasure->GetMeasureLength();
+    unsigned Lrs2 = Lrs * Lrs;
+    unsigned Ls = (2 * Lrs + Lcs);
+    unsigned Lm = (2 * Lrm + Lcm);
+    unsigned N = GetSampleLength(0);
+    Math::Zero(samplesState, Ls * N, type);
+    Math::Zero(samplesMeasure, Lm * N, type);
+
+    Math::Iterate(Math::Copy, samplesState, prState->GetStatePointer(), Lrs, N, Lrs, 0, 0, 0, type);
+}

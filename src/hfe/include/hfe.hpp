@@ -82,5 +82,8 @@ public:
     void R2C(Measure *prMeasure, Measure *pcMeasure) override;
     void C2R(Data *pcState, Data *prState) override;
     void C2R(Measure *pcMeasure, Measure *prMeasure) override;
+
+    int GetSampleLength(int Lrs) override;
+    void SampleStates(Type type) override;
 };
 #endif

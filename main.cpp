@@ -6,8 +6,8 @@
 #include <fstream>
 #include <random>
 
-#define RAUKF_USAGE 1
-#define KF_USAGE 1
+#define RAUKF_USAGE 0
+#define KF_USAGE 0
 #define KF_AEM_USAGE 1
 
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
@@ -79,6 +79,35 @@ int main(int argc, char *argv[])
     double Sz = 0.003;
     double St = 2.0;
     double amp = 5e4;
+
+    std::ofstream outParms;
+    int temp;
+#if RAUKF_USAGE == 1
+    outParms.open("data/raukf/Parms.bin", std::ios::out | std::ios::binary);
+    outParms.write((char *)(&Lx), sizeof(int));
+    outParms.write((char *)(&Ly), sizeof(int));
+    outParms.write((char *)(&Lz), sizeof(int));
+    outParms.write((char *)(&Lt), sizeof(int));
+    outParms.close();
+#endif
+#if KF_USAGE == 1
+    outParms.open("data/kf/Parms.bin", std::ios::out | std::ios::binary);
+    temp = 1;
+    outParms.write((char *)(&Lx), sizeof(int));
+    outParms.write((char *)(&Ly), sizeof(int));
+    outParms.write((char *)(&temp), sizeof(int));
+    outParms.write((char *)(&Lt), sizeof(int));
+    outParms.close();
+#endif
+#if KF_AEM_USAGE == 1
+    outParms.open("data/kfaem/Parms.bin", std::ios::out | std::ios::binary);
+    temp = 1;
+    outParms.write((char *)(&Lx), sizeof(int));
+    outParms.write((char *)(&Ly), sizeof(int));
+    outParms.write((char *)(&temp), sizeof(int));
+    outParms.write((char *)(&Lt), sizeof(int));
+    outParms.close();
+#endif
 
     Timer timer;
 #if RAUKF_USAGE == 1

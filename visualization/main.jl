@@ -11,16 +11,18 @@ const ioT = PipeBuffer()
 const ioQ = PipeBuffer()
 
 # [Lx, Ly, Lz, Lt, Lxy, Lxyz, Lfile]
-dataParms = Array{Int,2}(undef,7,size(typePaths))
+dataParms = Array{Int,2}(undef,7,size(typePaths,1))
 
-for i = 1:size(typePaths)
-    data = Array{Int}(undef,4)
+for i = 1:size(typePaths,1)
+    data = Array{Int32}(undef,4)
     read!(joinpath(dataPath,typePaths[i],string("Parms.bin")), data)
     dataParms[1:4,i] = data[1:4]
     dataParms[5,i] = data[1] * data[2]
     dataParms[6,i] = data[1] * data[2] * data[3]
     dataParms[7,i] = 2 * data[1] * data[2] * (data[3] + 1) + 1
 end
+
+println(dataParms)
 
 t_ref = Array{Array{Float64,1},1}()
 T_ref = Array{Array{Float64,1},1}()
@@ -33,7 +35,7 @@ files_ref = Array{Array{String,1},1}()
 dataT = Array{Array{Float64,2},1}()
 dataQ = Array{Array{Float64,2},1}()
 
-for i = 1:size(typePaths)
+for i = 1:size(typePaths,1)
     push!(t_ref,Array{Float64,1}())
     push!(T_ref,Array{Float64,1}())
     push!(cT_ref,Array{Float64,1}())
@@ -76,6 +78,7 @@ function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
     end
     if length(newFiles) > 0
         iStr = sortperm(parse.(Int32,newFiles))
+        println(dataPath," ",Lfile)
         for index in iStr
             name = newFiles[index]
             data = Array{Float64}(undef,Lfile)
@@ -95,7 +98,7 @@ function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
             # Heat Flux Error
             offset = offset + Lxy
             append!(cQ,data[offset+1:offset+Lxy])
-            
+
             push!(oldNames,name)
         end
         return true
@@ -156,10 +159,10 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
         recreateGraphs = false
-        for i in size(typePaths)
-            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],data[5,i],data[6,i],data[7,i])
-                dataGraph(dataT,i,t_ref[i],T_ref[i],cT_ref[i],Lxyz,Int(data[5,i]/2+data[1,i]/2))
-                dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],Lxy,Int(data[5,i]/2+data[1,i]/2))
+        for i = 1:size(typePaths,1)
+            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],dataParms[5,i],dataParms[6,i],dataParms[7,i])
+                dataGraph(dataT,i,t_ref[i],T_ref[i],cT_ref[i],dataParms[6,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
+                dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
                 recreateGraphs = true
             end
         end

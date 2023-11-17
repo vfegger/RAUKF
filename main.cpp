@@ -230,13 +230,25 @@ int main(int argc, char *argv[])
     free(resultT);
     free(measures);
 
+#if KF_AEM_USAGE == 1
+    kfAEM.UnsetModel();
+#endif
+#if KF_USAGE == 1
+    kf.UnsetModel();
+#endif
+#if RAUKF_USAGE == 1
     raukf.UnsetWeight();
     raukf.UnsetModel();
-    kf.UnsetModel();
-    kfAEM.UnsetModel();
+#endif
+#if KF_AEM_USAGE == 1
     hfeAEM.UnsetMemory(type);
+#endif
+#if KF_USAGE == 1
     hfeKF.UnsetMemory(type);
+#endif
+#if RAUKF_USAGE == 1
     hfe.UnsetMemory(type);
+#endif
     if (type == Type::GPU)
     {
         MathGPU::DestroyHandles();

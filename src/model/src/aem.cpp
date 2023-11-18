@@ -145,8 +145,8 @@ Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType exe
 
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesMeasure, samplesMeasure, Lrm, N, Lrm, Lrm, Lrm * N, 0, type);
-    Math::Mean(errorState, samplesMeasure + Lrm * N, Lrm, N, type);
-    Math::MatMulNT(0.0, covarState, 1.0, samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
+    Math::Mean(errorMeasure, samplesMeasure + Lrm * N, Lrm, N, type);
+    Math::MatMulNT(0.0, covarMeasure, 1.0, samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
 
     return reducedModel->Evaluate(pmeasure, pstate, execType, type);
 }

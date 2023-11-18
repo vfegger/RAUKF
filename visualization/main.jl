@@ -4,7 +4,7 @@ using Plots
 using Images
 using FileIO
 
-const dataPath = "../data/"
+const dataPath = joinpath("..","data")
 const typePaths = ["raukf","kf","kfaem"]
 
 const ioT = PipeBuffer()
@@ -44,8 +44,10 @@ for i = 1:size(typePaths,1)
 
     push!(files_ref,Array{String,1}())
     
-    push!(dataT,Array{Float64,2}(undef,1,1))
-    push!(dataQ,Array{Float64,2}(undef,1,1))
+    push!(dataT,Array{Float64,2}(undef,1,3))
+    push!(dataQ,Array{Float64,2}(undef,1,3))
+    dataT[i][1,1:3] .= 0.0
+    dataQ[i][1,1:3] .= 0.0
 end
 
 windowAlive = [true]
@@ -57,6 +59,9 @@ function combineGraphs(graph,index,data)
     pal = palette([:blue, :red], size(data,1))
     for i in 1:size(data,1)
         numser = size(data[i][begin:end,2:end],2)
+        if numser == 0
+            println(typePaths[index],"",index,":",size(data,1)," ",i," ",data[i])
+        end
         labels = Array{String,2}(undef,1,numser)
         labels[1,1] = string(i) 
         labels[1,2:end] .= "" 

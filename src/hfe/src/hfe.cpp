@@ -536,6 +536,7 @@ void HFE_AEM::SetMemory(Type type)
 
     workspace.alloc(Lcx * Lcy);
     AEM::SetMemory(Lcs, Lcm, Lrs, Lrm, type);
+    this->type = type;
 }
 void HFE_AEM::UnsetMemory(Type type)
 {
@@ -553,9 +554,9 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
     int cOffsetT = pcState->GetOffset("Temperature");
     int cOffsetQ = pcState->GetOffset("Heat Flux");
 
-    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
+    double Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    double Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    double Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
     int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
     int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
@@ -581,9 +582,9 @@ void HFE_AEM::R2C(Measure *prMeasure, Measure *pcMeasure)
     Pointer<double> ry = prMeasure->GetMeasurePointer();
     Pointer<double> cy = pcMeasure->GetMeasurePointer();
 
-    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
+    double Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    double Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    double Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
     int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
     int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
@@ -604,9 +605,9 @@ void HFE_AEM::C2R(Data *pcState, Data *prState)
     int cOffsetT = pcState->GetOffset("Temperature");
     int cOffsetQ = pcState->GetOffset("Heat Flux");
 
-    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
+    double Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    double Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    double Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
     int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
     int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
@@ -624,9 +625,9 @@ void HFE_AEM::C2R(Measure *pcMeasure, Measure *prMeasure)
     Pointer<double> ry = prMeasure->GetMeasurePointer();
     Pointer<double> cy = pcMeasure->GetMeasurePointer();
 
-    int Sx = ((HFE_RM *)reducedModel)->parms.Sx;
-    int Sy = ((HFE_RM *)reducedModel)->parms.Sy;
-    int Sz = ((HFE_RM *)reducedModel)->parms.Sz;
+    double Sx = ((HFE_RM *)reducedModel)->parms.Sx;
+    double Sy = ((HFE_RM *)reducedModel)->parms.Sy;
+    double Sz = ((HFE_RM *)reducedModel)->parms.Sz;
 
     int Lrx = ((HFE_RM *)reducedModel)->parms.Lx;
     int Lry = ((HFE_RM *)reducedModel)->parms.Ly;
@@ -652,8 +653,15 @@ void HFE_AEM::SampleStates(Type type)
     unsigned Ls = (2 * Lrs + Lcs);
     unsigned Lm = (2 * Lrm + Lcm);
     unsigned N = GetSampleLength(0);
+    Pointer<double> workspace;
+    workspace.alloc(Lrs2 + Lrs * N);
+    Math::Zero(workspace, Lrs2, type);
     Math::Zero(samplesState, Ls * N, type);
     Math::Zero(samplesMeasure, Lm * N, type);
 
+    Math::CholeskyDecomposition(workspace, prState->GetStateCovariancePointer(), Lrs, type);
     Math::Iterate(Math::Copy, samplesState, prState->GetStatePointer(), Lrs, N, Lrs, 0, 0, 0, type);
+    Random::SampleNormal(workspace + Lrs2, Lrs * N, 0.0, 1.0, type);
+    Math::MatMulNN(1.0, samplesState, 1.0, workspace, workspace + Lrs2, Lrs, Lrs, N, type);
+    workspace.free();
 }

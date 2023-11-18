@@ -6,6 +6,7 @@
 #include "../../model/include/lmodel.hpp"
 #include "../include/hc.hpp"
 #include "../../math/include/interpolation.hpp"
+#include "../../math/include/random.hpp"
 
 #define FORWARD_METHOD 1
 

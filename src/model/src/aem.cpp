@@ -103,7 +103,7 @@ Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesState, samplesState, Lr, N, Lr, Lr, Lr * N, 0, type);
     Math::Mean(errorState, samplesState + Lr * N, Lr, N, type);
-    Math::MatMulNT(0.0, covarState, 1.0, samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
+    Math::MatMulNT(0.0, covarState, 1.0 / (N - 1), samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
 
     return reducedModel->Evolve(pstate, execType, type);
 }
@@ -146,7 +146,7 @@ Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType exe
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesMeasure, samplesMeasure, Lrm, N, Lrm, Lrm, Lrm * N, 0, type);
     Math::Mean(errorMeasure, samplesMeasure + Lrm * N, Lrm, N, type);
-    Math::MatMulNT(0.0, covarMeasure, 1.0, samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
+    Math::MatMulNT(0.0, covarMeasure, 1.0 / (N - 1), samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
 
     return reducedModel->Evaluate(pmeasure, pstate, execType, type);
 }

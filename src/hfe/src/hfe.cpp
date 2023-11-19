@@ -572,7 +572,7 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
     for (int k = 0; k < Lcz; k++)
     {
         double z = (k + 0.5) * Sz / Lcz;
-        double temp = InterpolationCPU::Lerp(z, 0, Sz, -Sz / (6 * KT), Sz / (3 * KT));
+        double temp = InterpolationCPU::Lerp(z, 0.0, Sz, -Sz / (6.0 * KT), Sz / (3.0 * KT));
         Math::Copy(cx + cOffsetT + k * Lcx * Lcy, workspace, Lcx * Lcy, type);
         Math::LRPO(cx + cOffsetT + k * Lcx * Lcy, cx + cOffsetQ, temp, Lcx * Lcy, type);
     }
@@ -638,7 +638,6 @@ void HFE_AEM::C2R(Measure *pcMeasure, Measure *prMeasure)
 
     Interpolation::Rescale(cy, Lcx, Lcy, ry, Lrx, Lry, Sx, Sy, type);
 }
-
 int HFE_AEM::GetSampleLength(int Lrs)
 {
     return 10;

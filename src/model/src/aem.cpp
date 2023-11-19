@@ -1,5 +1,9 @@
 #include "../include/aem.hpp"
 
+#include <fstream>
+
+int it = 0;
+
 void AEM::SetMemory(int Lcs, int Lcm, int Lrs, int Lrm, Type type)
 {
     errorState.alloc(Lrs);
@@ -60,7 +64,7 @@ void AEM::CorrectEstimation(Data *pstate, Type type)
 {
     int L = pstate->GetStateLength();
     Math::Add(pstate->GetStatePointer(), errorState, L, type);
-    Math::Add(pstate->GetStateCovariancePointer(), covarState, L * L, type);
+    //Math::Add(pstate->GetStateCovariancePointer(), covarState, L * L, type);
 }
 
 void AEM::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
@@ -68,6 +72,32 @@ void AEM::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
     int L = pmeasure->GetMeasureLength();
     Math::Add(pmeasure->GetMeasurePointer(), errorMeasure, L, type);
     Math::Add(pmeasure->GetMeasureCovariancePointer(), covarMeasure, L * L, type);
+}
+
+void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type)
+{
+    if (type == Type::GPU)
+    {
+        cudaDeviceSynchronize();
+        mat.copyDev2Host(lengthI * lengthJ);
+    }
+    double *p = mat.host();
+
+    std::ofstream fp;
+    fp.open(name + std::to_string(it) + ".csv");
+    for (int i = 0; i < lengthI; ++i)
+    {
+        for (int j = 0; j < lengthJ; ++j)
+        {
+            fp << p[j * lengthI + i];
+            if (j < lengthJ)
+            {
+                fp << ",";
+            }
+        }
+        fp << "\n";
+    }
+    fp.close();
 }
 
 Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
@@ -103,7 +133,10 @@ Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesState, samplesState, Lr, N, Lr, Lr, Lr * N, 0, type);
     Math::Mean(errorState, samplesState + Lr * N, Lr, N, type);
-    Math::MatMulNT(0.0, covarState, 1.0 / (N - 1), samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
+    Math::MatMulNT(0.0, covarState, 1.0 / (N - 1.0), samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
+
+    //PrintMatrix("EvolveError", errorState, Lr, 1, type);
+    //PrintMatrix("EvolveCovar", covarState, Lr, Lr, type);
 
     return reducedModel->Evolve(pstate, execType, type);
 }
@@ -146,7 +179,11 @@ Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType exe
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesMeasure, samplesMeasure, Lrm, N, Lrm, Lrm, Lrm * N, 0, type);
     Math::Mean(errorMeasure, samplesMeasure + Lrm * N, Lrm, N, type);
-    Math::MatMulNT(0.0, covarMeasure, 1.0 / (N - 1), samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
+    Math::MatMulNT(0.0, covarMeasure, 1.0 / (N - 1.0), samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
+
+    //PrintMatrix("EvaluateError", errorMeasure, Lrm, 1, type);
+    //PrintMatrix("EvaluateCovar", covarMeasure, Lrm, Lrm, type);
+    it++;
 
     return reducedModel->Evaluate(pmeasure, pstate, execType, type);
 }

@@ -100,7 +100,7 @@ void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int len
     {
         for (int j = 0; j < lengthJ; ++j)
         {
-            std::cout << p[j * lengthI + i];
+            std::cout << std::setw(6) << p[j * lengthI + i];
             if (j < lengthJ)
             {
                 std::cout << ",";
@@ -186,6 +186,9 @@ void KF::Iterate(Timer &timer)
     Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
     Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     timer.Record(type);
+
+    //PrintMatrix("v_0",v_0,24,24,type);
+    //PrintMatrix("v_1",v_1,24,24,type);
 
     workspaceLxLy.free();
     workspaceLx2_1.free();

@@ -64,7 +64,7 @@ void AEM::CorrectEstimation(Data *pstate, Type type)
 {
     int L = pstate->GetStateLength();
     Math::Add(pstate->GetStatePointer(), errorState, L, type);
-    //Math::Add(pstate->GetStateCovariancePointer(), covarState, L * L, type);
+    Math::Add(pstate->GetStateCovariancePointer(), covarState, L * L, type);
 }
 
 void AEM::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
@@ -133,6 +133,7 @@ Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesState, samplesState, Lr, N, Lr, Lr, Lr * N, 0, type);
     Math::Mean(errorState, samplesState + Lr * N, Lr, N, type);
+    Math::Iterate(Math::Sub, samplesState, errorState, Lr, N, Lr, 0, Lr * N, 0, type);
     Math::MatMulNT(0.0, covarState, 1.0 / (N - 1.0), samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
 
     //PrintMatrix("EvolveError", errorState, Lr, 1, type);
@@ -179,6 +180,7 @@ Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType exe
     // Get Results from AEM
     Math::Iterate(Math::Sub, samplesMeasure, samplesMeasure, Lrm, N, Lrm, Lrm, Lrm * N, 0, type);
     Math::Mean(errorMeasure, samplesMeasure + Lrm * N, Lrm, N, type);
+    Math::Iterate(Math::Sub, samplesMeasure, errorMeasure, Lrm, N, Lrm, 0, Lrm * N, 0, type);
     Math::MatMulNT(0.0, covarMeasure, 1.0 / (N - 1.0), samplesMeasure + Lrm * N, samplesMeasure + Lrm * N, Lrm, N, Lrm, type);
 
     //PrintMatrix("EvaluateError", errorMeasure, Lrm, 1, type);

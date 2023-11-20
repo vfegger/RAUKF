@@ -6,8 +6,8 @@
 #include <fstream>
 #include <random>
 
-#define RAUKF_USAGE 0
-#define KF_USAGE 0
+#define RAUKF_USAGE 1
+#define KF_USAGE 1
 #define KF_AEM_USAGE 1
 
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)

@@ -19,16 +19,19 @@ for i = 1:size(typePaths,1)
     dataParms[1:4,i] = data[1:4]
     dataParms[5,i] = data[1] * data[2]
     dataParms[6,i] = data[1] * data[2] * data[3]
-    dataParms[7,i] = 2 * data[1] * data[2] * (data[3] + 1) + 1
+    dataParms[7,i] = 2 * data[1] * data[2] * (data[3] + 2) + 1
 end
 
 println(dataParms)
 
+#[t T cT Q cQ Tm cTm]
 t_ref = Array{Array{Float64,1},1}()
 T_ref = Array{Array{Float64,1},1}()
 cT_ref = Array{Array{Float64,1},1}()
 Q_ref = Array{Array{Float64,1},1}()
 cQ_ref = Array{Array{Float64,1},1}()
+Tm_ref = Array{Array{Float64,1},1}()
+cTm_ref = Array{Array{Float64,1},1}()
 
 files_ref = Array{Array{String,1},1}()
 
@@ -41,6 +44,8 @@ for i = 1:size(typePaths,1)
     push!(cT_ref,Array{Float64,1}())
     push!(Q_ref,Array{Float64,1}())
     push!(cQ_ref,Array{Float64,1}())
+    push!(Tm_ref,Array{Float64,1}())
+    push!(cTm_ref,Array{Float64,1}())
 
     push!(files_ref,Array{String,1}())
     
@@ -73,7 +78,7 @@ function dataGraph(data,index,t,var,cvar,stride,offset)
     data[index] = [t var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))]
 end
 
-function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
+function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Tm,cTm,Lxy,Lxyz,Lfile)
     names = readdir(joinpath(dataPath,"ready"), join=false)
     newFiles = []
     for name in names
@@ -103,6 +108,12 @@ function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
             # Heat Flux Error
             offset = offset + Lxy
             append!(cQ,data[offset+1:offset+Lxy])
+            # Temperature Measured
+            offset = offset + Lxy
+            append!(Tm,data[offset+1:offset+Lxyz])
+            # Temperature Measured Error
+            offset = offset + Lxyz
+            append!(cTm,data[offset+1:offset+Lxyz])
 
             push!(oldNames,name)
         end
@@ -111,13 +122,15 @@ function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Lxy,Lxyz,Lfile)
     return false
 end
 
-function cleanLists(t,T,cT,Q,cQ,files)
+function cleanLists(t,T,cT,Q,cQ,Tm,cTm,files)
     for i = 1:size(t,1)
         empty!(t[i])
         empty!(T[i])
         empty!(cT[i])
         empty!(Q[i])
         empty!(cQ[i])
+        empty!(Tm[i])
+        empty!(cTm[i])
         empty!(files[i])
     end
 end
@@ -165,8 +178,8 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     id = signal_connect(buttonRefresh,"clicked") do widget
         recreateGraphs = false
         for i = 1:size(typePaths,1)
-            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],dataParms[5,i],dataParms[6,i],dataParms[7,i])
-                dataGraph(dataT,i,t_ref[i],T_ref[i],cT_ref[i],dataParms[6,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
+            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],Tm_ref[i],cTm_ref[i],dataParms[5,i],dataParms[6,i],dataParms[7,i])
+                dataGraph(dataT,i,t_ref[i],Tm_ref[i],cTm_ref[i],dataParms[6,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
                 dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
                 recreateGraphs = true
             end
@@ -179,7 +192,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         draw(canQ)
     end
     id = signal_connect(buttonClean,"clicked") do widget
-        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,files_ref)
+        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,Tm_ref,cTm_ref,files_ref)
     end
     showall(win)
     show(canT)
@@ -199,6 +212,6 @@ function startMonitor()
         end
         @async Gtk.gtk_main()
         wait(c)
-        cleanLists(t,T,cT,Q,cQ,files)
+        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,Tm_ref,cTm_ref,files_ref)
     end
 end

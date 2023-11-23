@@ -70,7 +70,11 @@ function combineGraphs(graph,index,data)
         labels = Array{String,2}(undef,1,numser)
         labels[1,1] = typePaths[i]
         labels[1,2:end] .= "" 
-        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=labels,color=pal[i])
+        labels = Array{Symbol,2}(undef,1,numser)
+        linestyles[1,1] = :solid
+        linestyles[1,2:end] .= :dash
+
+        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=labels,color=pal[i],linestyle=linestyles)
     end
 end
 

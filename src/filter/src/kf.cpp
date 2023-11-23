@@ -56,6 +56,11 @@ void KF::GetMeasure(std::string name, double *data)
     this->pmeasure->GetMeasureData(name, data);
 }
 
+void KF::GetMeasureCovariance(std::string name, double *data)
+{
+    this->pmeasure->GetMeasureCovarianceData(name, data);
+}
+
 void KF::GetState(std::string name, double *data)
 {
     this->pstate->GetStateData(name, data);

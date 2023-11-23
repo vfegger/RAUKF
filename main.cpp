@@ -173,6 +173,8 @@ int main(int argc, char *argv[])
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *resultCovarQ = (double *)malloc(sizeof(double) * Lx * Ly);
+    double *resultTm = (double *)malloc(sizeof(double) * Lx * Ly);
+    double *resultCovarTm = (double *)malloc(sizeof(double) * Lx * Ly);
 
     std::ofstream outFile;
     for (int i = 0; i < Lt; i++)
@@ -185,6 +187,8 @@ int main(int argc, char *argv[])
         raukf.GetState("Heat Flux", resultQ);
         raukf.GetStateCovariance("Temperature", resultCovarT);
         raukf.GetStateCovariance("Heat Flux", resultCovarQ);
+        raukf.GetMeasure("Temperature", resultTm);
+        raukf.GetMeasureCovariance("Temperature", resultCovarTm);
 
         outFile.open("data/raukf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
@@ -195,6 +199,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly * Lz);
             outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -206,10 +212,12 @@ int main(int argc, char *argv[])
         kf.SetMeasure("Temperature", measures + Lx * Ly * i);
 
         kf.Iterate(timer);
-        kf.GetMeasure("Temperature", resultT);
+        kf.GetState("Temperature", resultT);
         kf.GetState("Heat Flux", resultQ);
         kf.GetStateCovariance("Temperature", resultCovarT);
         kf.GetStateCovariance("Heat Flux", resultCovarQ);
+        kf.GetMeasure("Temperature", resultTm);
+        kf.GetMeasureCovariance("Temperature", resultTm);
 
         outFile.open("data/kf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
@@ -220,6 +228,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -231,10 +241,12 @@ int main(int argc, char *argv[])
         kfAEM.SetMeasure("Temperature", measures + Lx * Ly * i);
 
         kfAEM.Iterate(timer);
-        kfAEM.GetMeasure("Temperature", resultT);
+        kfAEM.GetState("Temperature", resultT);
         kfAEM.GetState("Heat Flux", resultQ);
         kfAEM.GetStateCovariance("Temperature", resultCovarT);
         kfAEM.GetStateCovariance("Heat Flux", resultCovarQ);
+        kfAEM.GetMeasure("Temperature", resultTm);
+        kfAEM.GetMeasureCovariance("Temperature", resultCovarTm);
 
         outFile.open("data/kfaem/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
         if (outFile.is_open())
@@ -245,6 +257,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -253,6 +267,8 @@ int main(int argc, char *argv[])
 #endif
     }
 
+    free(resultCovarTm);
+    free(resultTm);
     free(resultCovarQ);
     free(resultCovarT);
     free(resultQ);

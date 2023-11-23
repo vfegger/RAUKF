@@ -44,6 +44,7 @@ public:
     void UnsetWeight();
     void SetMeasure(std::string name, double *data);
     void GetMeasure(std::string name, double *data);
+    void GetMeasureCovariance(std::string name, double *data);
     void GetState(std::string name, double *data);
     void GetStateCovariance(std::string name, double *data);
 

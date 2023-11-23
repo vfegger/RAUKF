@@ -93,6 +93,11 @@ void RAUKF::GetMeasure(std::string name, double *data)
     this->pmeasure->GetMeasureData(name, data);
 }
 
+void RAUKF::GetMeasureCovariance(std::string name, double *data)
+{
+    this->pmeasure->GetMeasureCovarianceData(name, data);
+}
+
 void RAUKF::GetState(std::string name, double *data)
 {
     this->pstate->GetStateData(name, data);

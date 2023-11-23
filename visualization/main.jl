@@ -68,7 +68,7 @@ function combineGraphs(graph,index,data)
             println(typePaths[index],"",index,":",size(data,1)," ",i," ",data[i])
         end
         labels = Array{String,2}(undef,1,numser)
-        labels[1,1] = string(i) 
+        labels[1,1] = typePaths[i]
         labels[1,2:end] .= "" 
         plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=labels,color=pal[i])
     end

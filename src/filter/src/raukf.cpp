@@ -317,6 +317,10 @@ void RAUKF::Iterate(Timer &timer)
     {
         x.copyDev2Host(Lx);
         Pxx.copyDev2Host(Lx * Lx);
+        y.copyDev2Host(Ly);
+        Pyy.copyDev2Host(Ly * Ly);
+        v_0.copyDev2Host(Ly);
+        v_1.copyDev2Host(Ly);
         cudaDeviceSynchronize();
     }
 }

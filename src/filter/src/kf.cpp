@@ -192,9 +192,6 @@ void KF::Iterate(Timer &timer)
     Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     timer.Record(type);
 
-    //PrintMatrix("v_0",v_0,24,24,type);
-    //PrintMatrix("v_1",v_1,24,24,type);
-
     workspaceLxLy.free();
     workspaceLx2_1.free();
     workspaceLx2.free();

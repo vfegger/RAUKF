@@ -70,7 +70,7 @@ function combineGraphs(graph,index,data)
         labels = Array{String,2}(undef,1,numser)
         labels[1,1] = typePaths[i]
         labels[1,2:end] .= "" 
-        labels = Array{Symbol,2}(undef,1,numser)
+        linestyles = Array{Symbol,2}(undef,1,numser)
         linestyles[1,1] = :solid
         linestyles[1,2:end] .= :dash
 
@@ -114,10 +114,10 @@ function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Tm,cTm,Lxy,Lxyz,Lfile)
             append!(cQ,data[offset+1:offset+Lxy])
             # Temperature Measured
             offset = offset + Lxy
-            append!(Tm,data[offset+1:offset+Lxyz])
+            append!(Tm,data[offset+1:offset+Lxy])
             # Temperature Measured Error
-            offset = offset + Lxyz
-            append!(cTm,data[offset+1:offset+Lxyz])
+            offset = offset + Lxy
+            append!(cTm,data[offset+1:offset+Lxy])
 
             push!(oldNames,name)
         end
@@ -183,7 +183,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         recreateGraphs = false
         for i = 1:size(typePaths,1)
             if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],Tm_ref[i],cTm_ref[i],dataParms[5,i],dataParms[6,i],dataParms[7,i])
-                dataGraph(dataT,i,t_ref[i],Tm_ref[i],cTm_ref[i],dataParms[6,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
+                dataGraph(dataT,i,t_ref[i],Tm_ref[i],cTm_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
                 dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
                 recreateGraphs = true
             end

@@ -156,7 +156,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     set_gtk_property!(buttonClean, :label, "Clean")
     @guarded draw(canT) do widget
         ctx = getgc(canT)
-        size!(graph[1],[width(canT) height(canT)])
+        plot!(graph[1],size=[width(canT) height(canT)])
         show(ioT, MIME("image/png"), graph[1])
         imgT = read_from_png(ioT)
         Cairo.save(ctx)
@@ -166,7 +166,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     @guarded draw(canQ) do widget
         ctx = getgc(canQ)
-        size!(graph[2],[width(canQ) height(canQ)])
+        plot!(graph[2],size=[width(canQ) height(canQ)])
         show(ioQ, MIME("image/png"), graph[2])
         imgQ = read_from_png(ioQ)
         Cairo.save(ctx)

@@ -315,7 +315,8 @@ Pointer<double> HFE::EvaluateInstanceCPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int i = 0; i < Lsigma; i++)
     {
-        MathCPU::Copy(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, parms.Lx * parms.Ly);
+        MathCPU::Mul(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, 3.0 / 2.0, parms.Lx * parms.Ly);
+        MathCPU::LRPO(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i + parms.Lx * parms.Ly, -1.0 / 2.0, parms.Lx * parms.Ly);
     }
     return pmeasure->GetInstances();
 }
@@ -332,7 +333,8 @@ Pointer<double> HFE::EvaluateInstanceGPU(Measure *pmeasure, Data *pstate)
     int offsetTm = pmeasure->GetOffset("Temperature");
     for (int i = 0; i < Lsigma; i++)
     {
-        MathGPU::Copy(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, parms.Lx * parms.Ly);
+        MathGPU::Mul(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i, 3.0 / 2.0, parms.Lx * parms.Ly);
+        MathGPU::LRPO(pminstance + offsetTm + Lm * i, psinstance + offsetT + Ls * i + parms.Lx * parms.Ly, -1.0 / 2.0, parms.Lx * parms.Ly);
     }
     return pmeasure->GetInstances();
 }
@@ -382,7 +384,9 @@ Pointer<double> HFE::EvaluateStateCPU(Measure *pmeasure, Data *pstate)
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
-    MathCPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
+    MathCPU::Mul(pminstance + offsetTm, psinstance + offsetT, 3.0 / 2.0, parms.Lx * parms.Ly);
+    MathCPU::LRPO(pminstance + offsetTm, psinstance + offsetT + parms.Lx * parms.Ly, -1.0 / 2.0, parms.Lx * parms.Ly);
+
     return pmeasure->GetMeasurePointer();
 }
 Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
@@ -396,7 +400,8 @@ Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
     int offsetTm = pmeasure->GetOffset("Temperature");
-    MathGPU::Copy(pminstance + offsetTm, psinstance + offsetT, parms.Lx * parms.Ly);
+    MathGPU::Mul(pminstance + offsetTm, psinstance + offsetT, 3.0 / 2.0, parms.Lx * parms.Ly);
+    MathGPU::LRPO(pminstance + offsetTm, psinstance + offsetT + parms.Lx * parms.Ly, -1.0 / 2.0, parms.Lx * parms.Ly);
     return pmeasure->GetMeasurePointer();
 }
 

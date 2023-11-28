@@ -191,6 +191,8 @@ void KF::Iterate(Timer &timer)
     Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
     Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     timer.Record(type);
+    
+    pmodel->CorrectEvaluation(pmeasure, pstate, type);
 
     workspaceLxLy.free();
     workspaceLx2_1.free();

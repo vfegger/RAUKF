@@ -165,7 +165,7 @@ void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
 
     for (int i = 0; i < Lxyz; ++i)
     {
-        T[i] = T[i] + (dt / 6) * (K1[i] + 2.0 * (K2[i] + K3[i]) + K4[i]);
+        T[i] = T[i] + (dt / 6.0) * (K1[i] + 2.0 * (K2[i] + K3[i]) + K4[i]);
     }
     K1 = K1 + Lxyz;
     K2 = K2 + Lxyz;
@@ -173,7 +173,7 @@ void HC::CPU::RK4(double *T, double *Q, double *workspace, HCParms &parms)
     K4 = K4 + Lxyz;
     for (int i = 0; i < Lxy; ++i)
     {
-        Q[i] = Q[i] + (dt / 6) * (K1[i] + 2.0 * (K2[i] + K3[i]) + K4[i]);
+        Q[i] = Q[i] + (dt / 6.0) * (K1[i] + 2.0 * (K2[i] + K3[i]) + K4[i]);
     }
 }
 void HC::CPU::AllocWorkspaceRKF45(double *&workspace, HCParms &parms)

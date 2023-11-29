@@ -88,6 +88,16 @@ void Math::Mul(Pointer<double> v_io, Pointer<double> v_i, int length, Type type)
         MathGPU::Mul(v_io.dev(), v_i.dev(), length);
     }
 }
+void Div(Pointer<double> v_io, Pointer<double> v_i, int length, Type type){
+    if (type == Type::CPU)
+    {
+        MathCPU::Div(v_io.host(), v_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::Div(v_io.dev(), v_i.dev(), length);
+    }
+}
 void Math::Add(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
 {
     if (type == Type::CPU)
@@ -130,6 +140,17 @@ void Math::Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, 
     else if (type == Type::GPU)
     {
         MathGPU::Mul(v_o.dev(), vL_i.dev(), vR_i.dev(), length);
+    }
+}
+void Math::Div(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type)
+{
+    if (type == Type::CPU)
+    {
+        MathCPU::Div(v_o.host(), vL_i.host(), vR_i.host(), length);
+    }
+    else if (type == Type::GPU)
+    {
+        MathGPU::Div(v_o.dev(), vL_i.dev(), vR_i.dev(), length);
     }
 }
 void Math::LRPO(Pointer<double> v_io, Pointer<double> vL_i, double vR_i, int length, Type type)

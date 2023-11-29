@@ -32,6 +32,14 @@ __global__ void CUDA_Mul(double *pv_io, double *pv_i, unsigned int length)
         pv_io[index] *= pv_i[index];
     }
 }
+__global__ void CUDA_Div(double *pv_io, double *pv_i, unsigned int length)
+{
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < length)
+    {
+        pv_io[index] /= pv_i[index];
+    }
+}
 
 __global__ void CUDA_Add(double *pv_o, double *pvL_i, double *pvR_i, unsigned int length)
 {
@@ -63,6 +71,14 @@ __global__ void CUDA_Mul(double *pv_o, double *pvL_i, double *pvR_i, unsigned in
     if (index < length)
     {
         pv_o[index] = pvL_i[index] * pvR_i[index];
+    }
+}
+__global__ void CUDA_Div(double *pv_o, double *pvL_i, double *pvR_i, unsigned int length)
+{
+    unsigned index = blockDim.x * blockIdx.x + threadIdx.x;
+    if (index < length)
+    {
+        pv_o[index] = pvL_i[index] / pvR_i[index];
     }
 }
 __global__ void CUDA_LRPO(double *pv_io, double *pvL_i, double vR_i, unsigned int length)
@@ -204,6 +220,12 @@ void MathGPU::Mul(double *pv_io, double *pv_i, int length)
     dim3 B(CEIL(length, T.x));
     CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_io, pv_i, length);
 }
+void MathGPU::Div(double *pv_io, double *pv_i, int length)
+{
+    dim3 T(THREAD_COUNT);
+    dim3 B(CEIL(length, T.x));
+    CUDA_Div<<<B, T, 0, cudaStreamDefault>>>(pv_io, pv_i, length);
+}
 void MathGPU::Add(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
     dim3 T(THREAD_COUNT);
@@ -227,6 +249,12 @@ void MathGPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
     dim3 T(THREAD_COUNT);
     dim3 B(CEIL(length, T.x));
     CUDA_Mul<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
+}
+void MathGPU::Div(double *pv_o, double *pvL_i, double *pvR_i, int length)
+{
+    dim3 T(THREAD_COUNT);
+    dim3 B(CEIL(length, T.x));
+    CUDA_Div<<<B, T, 0, cudaStreamDefault>>>(pv_o, pvL_i, pvR_i, length);
 }
 void MathGPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length)
 {

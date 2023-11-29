@@ -60,6 +60,13 @@ void MathCPU::Mul(double *pv_io, double *pv_i, int length)
         pv_io[i] *= pv_i[i];
     }
 }
+void MathCPU::Div(double *pv_io, double *pv_i, int length)
+{
+    for (int i = 0; i < length; ++i)
+    {
+        pv_io[i] /= pv_i[i];
+    }
+}
 void MathCPU::Add(double *pv_o, double *pvL_i, double *pvR_i, int length)
 {
     for (int i = 0; i < length; ++i)
@@ -86,6 +93,13 @@ void MathCPU::Mul(double *pv_o, double *pvL_i, double *pvR_i, int length)
     for (int i = 0; i < length; ++i)
     {
         pv_o[i] = pvL_i[i] * pvR_i[i];
+    }
+}
+void MathCPU::Div(double *pv_o, double *pvL_i, double *pvR_i, int length)
+{
+    for (int i = 0; i < length; ++i)
+    {
+        pv_o[i] = pvL_i[i] / pvR_i[i];
     }
 }
 void MathCPU::LRPO(double *pv_io, double *pvL_i, double vR_i, int length)

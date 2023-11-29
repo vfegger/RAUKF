@@ -35,6 +35,8 @@ namespace MathGPU
     void Mul(double *pv_io, double v_i, int length);
     // Vector Element-wise Multiplication In-place
     void Mul(double *pv_io, double *pv_i, int length);
+    // Vector Element-wise Division In-place
+    void Div(double *pv_io, double *pv_i, int length);
 
     // Vector Element-wise Addition Out-place
     void Add(double *pv_o, double *pvL_i, double *pvR_i, int length);
@@ -44,6 +46,8 @@ namespace MathGPU
     void Mul(double *pv_o, double *pvL_i, double vR_i, int length);
     // Vector Element-wise Multiplication Out-place
     void Mul(double *pv_o, double *pvL_i, double *pvR_i, int length);
+    // Vector Element-wise Division Out-place
+    void Div(double *pv_o, double *pvL_i, double *pvR_i, int length);
     // Vector Constant Multiplication Addition Out-place
     void LRPO(double *pv_io, double *pvL_i, double vR_i, int length);
     // Vector Element-wise Multiplication Addition Out-place

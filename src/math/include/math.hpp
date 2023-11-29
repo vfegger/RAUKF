@@ -24,6 +24,8 @@ namespace Math
     void Mul(Pointer<double> v_io, double v_i, int length, Type type);
     // Vector Element-wise Multiplication In-place
     void Mul(Pointer<double> v_io, Pointer<double> v_i, int length, Type type);
+    // Vector Element-wise Division In-place
+    void Div(Pointer<double> v_io, Pointer<double> v_i, int length, Type type);
 
     // Vector Element-wise Addition Out-place
     void Add(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
@@ -33,6 +35,8 @@ namespace Math
     void Mul(Pointer<double> v_o, Pointer<double> vL_i, double vR_i, int length, Type type);
     // Vector Element-wise Multiplication Out-place
     void Mul(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
+    // Vector Element-wise Division Out-place
+    void Div(Pointer<double> v_o, Pointer<double> vL_i, Pointer<double> vR_i, int length, Type type);
     // Vector Constant Multiplication Addition Out-place
     void LRPO(Pointer<double> v_io, Pointer<double> vL_i, double vR_i, int length, Type type);
     // Vector Element-wise Multiplication Addition Out-place

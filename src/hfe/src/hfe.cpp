@@ -539,7 +539,7 @@ void HFE_AEM::SetMemory(Type type)
     int Lrs = Lrx * Lry * (Lrz + 1);
     int Lrm = Lrx * Lry;
 
-    workspace.alloc(Lcx * Lcy);
+    workspace.alloc(2 * Lcx * Lcy);
     AEM::SetMemory(Lcs, Lcm, Lrs, Lrm, type);
     this->type = type;
 }
@@ -575,12 +575,37 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
 
     double KT = HC::K(((HFE_RM *)reducedModel)->parms.T_ref);
     double amp = ((HFE_RM *)reducedModel)->parms.amp;
+    Pointer<double> pwork = workspace + Lcx * Lcy;
+    if (type == Type::GPU)
+    {
+        workspace.copyDev2Host(Lcx * Lcy);
+        (cx + cOffsetQ).copyDev2Host(Lcy * Lcy);
+        cudaDeviceSynchronize();
+    }
+    double *pw0_h = workspace.host();
+    double *pw1_h = (cx + cOffsetQ).host();
+    double *pw2_h = pwork.host();
+    for (int i = 0; i < Lcx * Lcy; i++)
+    {
+        double val = pw0_h[i] + amp * Sz * pw1_h[i] / (3 * KT);
+        pw2_h[i] = HC::K(val);
+    }
+    std::cout << pw2_h[12 * 13] << "\n";
+    if(std::isnan(pw2_h[12 * 13])){
+        exit(1);
+    }
+    if (type == Type::GPU)
+    {
+        pwork.copyHost2Dev(Lcx * Lcy);
+    }
+    Math::Div(pwork, cx + cOffsetQ, pwork, Lcx * Lcy, type);
+
     for (int k = 0; k < Lcz; k++)
     {
         double z = (k + 0.5) * Sz / Lcz;
-        double temp = (-Sz / (6 * KT) + z * z / (2 * Sz * KT));
+        double temp = (-Sz / 6.0 + z * z / (2.0 * Sz));
         Math::Copy(cx + cOffsetT + k * Lcx * Lcy, workspace, Lcx * Lcy, type);
-        Math::LRPO(cx + cOffsetT + k * Lcx * Lcy, cx + cOffsetQ, amp * temp, Lcx * Lcy, type);
+        Math::LRPO(cx + cOffsetT + k * Lcx * Lcy, pwork, amp * temp, Lcx * Lcy, type);
     }
 }
 void HFE_AEM::R2C(Measure *prMeasure, Measure *pcMeasure)

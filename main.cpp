@@ -7,8 +7,8 @@
 #include <random>
 
 #define RAUKF_USAGE 1
-#define KF_USAGE 1
-#define KF_AEM_USAGE 1
+#define KF_USAGE 0
+#define KF_AEM_USAGE 0
 
 void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
@@ -39,7 +39,8 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         for (int i = 0; i < Lx; ++i)
         {
             bool xCond = (i + 0.5) * Sx / Lx > 0.3 * Sx && (i + 0.5) * Sx / Lx < 0.7 * Sx;
-            Q[j * Lx + i] = (xCond) ? 100.0 : 0.0;
+            bool yCond = (j + 0.5) * Sy / Ly > 0.3 * Sy && (j + 0.5) * Sy / Ly < 0.7 * Sy;
+            Q[j * Lx + i] = (xCond && yCond) ? 100.0 : 0.0;
         }
     }
     HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
@@ -50,7 +51,7 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         HCR::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
-            measures[i * Lx * Ly + j] = T[j] + distribution(generator);
+            measures[i * Lx * Ly + j] = T[j];// + distribution(generator);
         }
     }
     HCR::CPU::FreeWorkspaceRKF45(workspace);
@@ -73,11 +74,11 @@ int main(int argc, char *argv[])
     int Lx = 24;
     int Ly = 24;
     int Lz = 6;
-    int Lt = 100;
+    int Lt = 500;
     double Sx = 0.12;
     double Sy = 0.12;
     double Sz = 0.003;
-    double St = 2.0;
+    double St = 10.0;
     double amp = 5e4;
 
     std::ofstream outParms;

@@ -590,10 +590,6 @@ void HFE_AEM::R2C(Data *prState, Data *pcState)
         double val = pw0_h[i] + amp * Sz * pw1_h[i] / (3 * KT);
         pw2_h[i] = HC::K(val);
     }
-    std::cout << pw2_h[12 * 13] << "\n";
-    if(std::isnan(pw2_h[12 * 13])){
-        exit(1);
-    }
     if (type == Type::GPU)
     {
         pwork.copyHost2Dev(Lcx * Lcy);

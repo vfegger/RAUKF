@@ -7,10 +7,10 @@
 #include <random>
 
 #define RAUKF_USAGE 1
-#define KF_USAGE 0
-#define KF_AEM_USAGE 0
+#define KF_USAGE 1
+#define KF_AEM_USAGE 1
 
-void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {
     double *workspace;
     HCR::HCRParms parms;
@@ -51,7 +51,8 @@ void Simulation(double *measures, int Lx, int Ly, int Lz, int Lt, double Sx, dou
         HCR::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
-            measures[i * Lx * Ly + j] = T[j];// + distribution(generator);
+            measures[i * Lx * Ly + j] = T[j]; // + distribution(generator);
+            Q_ref[i * Lx * Ly + j] = Q[j];
         }
     }
     HCR::CPU::FreeWorkspaceRKF45(workspace);
@@ -169,7 +170,8 @@ int main(int argc, char *argv[])
 #endif
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-    Simulation(measures, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
+    Simulation(measures, q_ref, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
@@ -202,6 +204,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
+            outFile.write((char *)(q_ref), sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -231,6 +235,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
+            outFile.write((char *)(q_ref), sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -260,6 +266,8 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
+            outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
+            outFile.write((char *)(q_ref), sizeof(double) * Lx * Ly);
         }
         outFile.close();
 
@@ -275,6 +283,7 @@ int main(int argc, char *argv[])
     free(resultQ);
     free(resultT);
     free(measures);
+    free(q_ref);
 
 #if KF_AEM_USAGE == 1
     kfAEM.UnsetModel();

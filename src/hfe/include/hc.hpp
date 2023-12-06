@@ -6,6 +6,7 @@
 #include <curand.h>
 
 #define ILSA 1
+#define SIGMA 5.67e-8
 
 namespace HC
 {
@@ -14,7 +15,7 @@ namespace HC
         int Lx, Ly, Lz, Lt;
         double Sx, Sy, Sz, St;
         double dx, dy, dz, dt;
-        double amp, T_ref;
+        double amp, T_ref, eps;
     };
 
     __host__ __device__ inline double C(double T_i);

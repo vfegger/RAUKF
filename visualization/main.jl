@@ -68,6 +68,7 @@ function combineGraphs(graph, data, graphTypes, types)
     for gt in graphTypes
         col = palette([:blue, :red],size(types,1))
         dgt = data[gt]
+        graph[gt] = Plots.plot()
         ggt = graph[gt]
         for (i,id) in enumerate(types)
             dgtid = dgt[id]
@@ -218,14 +219,36 @@ function printGraphs()
         if checkNewFiles(id,files_ref,dataParms,dataValues,dataSizes,dataOffset,typeValues,dataPath,typePaths)
             Lx = dataParms[id][1]
             Ly = dataParms[id][2]
-            x = range(0,0.12,Lx)
-            y = range(0,0.12,Ly)
+            Sx = 0.12
+            Sy = 0.12
+            dx2 = Sx/Lx/2
+            dy2 = Sy/Ly/2
+            x = range(0+dx2,Sx-dx2,Lx)
+            y = range(0+dy2,Sy-dy2,Ly)
             zT = reshape(dataValues[id][:T][end-Lx*Ly+1:end],Lx,Ly)
             zQ = reshape(dataValues[id][:Q][end-Lx*Ly+1:end],Lx,Ly)
+            zcT = 1.96.*sqrt.(reshape(dataValues[id][:cT][end-Lx*Ly+1:end],Lx,Ly))
+            zcQ = 1.96.*sqrt.(reshape(dataValues[id][:cQ][end-Lx*Ly+1:end],Lx,Ly))
+            zTs = reshape(dataValues[id][:Ts][end-Lx*Ly+1:end],Lx,Ly)
+            zQs = reshape(dataValues[id][:Qs][end-Lx*Ly+1:end],Lx,Ly)
             
-            temp = surface(x,y,zT)
-            temp = surface(x,y,zQ)
-            gui(temp)
+            colgrad = cgrad(:thermal, rev = false)
+            graphTProfile = heatmap(x,y,zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphTProfile,"TemperatureProfile.png")
+            graphcTProfile = heatmap(x,y,zcT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphcTProfile,"TemperatureCovarianceProfile.png")
+            graphQProfile = heatmap(x,y,zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphQProfile,"HeatFluxProfile.png")
+            graphcQProfile = heatmap(x,y,zcQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphcQProfile,"HeatFluxCovarianceProfile.png")
+            graphTsProfile = heatmap(x,y,zTs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphTsProfile,"TemperatureSyntheticProfile.png")
+            graphQsProfile = heatmap(x,y,zQs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphQsProfile,"HeatFluxSyntheticProfile.png")
+            graphTResidueProfile = heatmap(x,y,zTs-zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphTResidueProfile,"TemperatureResidueProfile.png")
+            graphQResidueProfile = heatmap(x,y,zQs-zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=0:Sx/6:Sx,yticks=0:Sy/6:Sy)
+            savefig(graphQResidueProfile,"HeatFluxResidueProfile.png")
         end
     end
 end

@@ -1,5 +1,5 @@
 #include "./src/hfe/include/hfe.hpp"
-#include "./src/hfe/include/hcr.hpp"
+#include "./src/hfe/include/hc.hpp"
 #include "./src/filter/include/raukf.hpp"
 #include "./src/filter/include/kf.hpp"
 
@@ -7,13 +7,14 @@
 #include <random>
 
 #define RAUKF_USAGE 1
-#define KF_USAGE 0
-#define KF_AEM_USAGE 0
+#define KF_USAGE 1
+#define KF_AEM_USAGE 1
+#define USE_RADIATION 1
 
-void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref, double eps)
 {
     double *workspace;
-    HCR::HCRParms parms;
+    HC::HCParms parms;
     parms.Lx = Lx;
     parms.Ly = Ly;
     parms.Lz = Lz;
@@ -27,6 +28,9 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt,
     parms.dz = Sz / Lz;
     parms.dt = St / Lt;
     parms.amp = amp;
+    parms.T_ref = T_ref;
+    parms.eps = eps;
+
     double *T = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *Q = (double *)malloc(sizeof(double) * Lx * Ly);
     for (int i = 0; i < Lx * Ly * Lz; ++i)
@@ -43,19 +47,19 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt,
             Q[j * Lx + i] = (xCond && yCond) ? 100.0 : 0.0;
         }
     }
-    HCR::CPU::AllocWorkspaceRKF45(workspace, parms);
+    HC::CPU::AllocWorkspaceRKF45(workspace, parms);
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 5.0);
     for (int i = 0; i < Lt; ++i)
     {
-        HCR::CPU::RKF45(T, Q, workspace, parms);
+        HC::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {
-            measures[i * Lx * Ly + j] = T[j]; // + distribution(generator);
+            measures[i * Lx * Ly + j] = T[j] + distribution(generator);
             Q_ref[i * Lx * Ly + j] = Q[j];
         }
     }
-    HCR::CPU::FreeWorkspaceRKF45(workspace);
+    HC::CPU::FreeWorkspaceRKF45(workspace);
     free(Q);
     free(T);
 }
@@ -81,6 +85,12 @@ int main(int argc, char *argv[])
     double Sz = 0.003;
     double St = 10.0;
     double amp = 5e4;
+#if USE_RADIATION == 1
+    double epsC = 1.0;
+#else
+    double epsC = 0.0;
+#endif
+    double epsR = 0.0;
 
     std::ofstream outParms;
     int temp;
@@ -137,17 +147,17 @@ int main(int argc, char *argv[])
 #endif
 
 #if RAUKF_USAGE == 1
-    hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC);
     hfe.SetMemory(type);
 #endif
 #if KF_USAGE == 1
-    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0);
+    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0, epsR);
     hfeKF.SetMemory(type);
 #endif
 #if KF_AEM_USAGE == 1
-    hfeC.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    hfeC.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC);
     hfeC.SetMemory(type);
-    hfeR.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0);
+    hfeR.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0, epsR);
     hfeR.SetMemory(type);
     hfeAEM.SetModel(&hfeR, &hfeC);
     hfeAEM.SetMemory(type);
@@ -171,7 +181,7 @@ int main(int argc, char *argv[])
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-    Simulation(measures, q_ref, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp);
+    Simulation(measures, q_ref, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC);
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);

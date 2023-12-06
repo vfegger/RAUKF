@@ -7,8 +7,8 @@
 #include <random>
 
 #define RAUKF_USAGE 1
-#define KF_USAGE 1
-#define KF_AEM_USAGE 1
+#define KF_USAGE 0
+#define KF_AEM_USAGE 0
 
 void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp)
 {

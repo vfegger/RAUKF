@@ -67,8 +67,7 @@ void HCR::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCRParms &parm
         {
             index = j * Lx + i;
             double temp = T[offset + index] * T[offset + index];
-            double dA = dx * dy;
-            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp * dA;
+            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp;
         }
     }
     offset = (Lz - 1) * Lxy;
@@ -78,8 +77,7 @@ void HCR::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCRParms &parm
         {
             index = j * Lx + i;
             double temp = T[offset + index] * T[offset + index];
-            double dA = dx * dy;
-            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp * dA;
+            dT[offset + index] -= (1.0 / dz) * SIGMA * temp * temp;
         }
     }
     // Retrieves the temporal derivative of the temperature

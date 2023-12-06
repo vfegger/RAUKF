@@ -4,152 +4,133 @@ using Plots
 using Images
 using FileIO
 
-const dataPath = joinpath("..","data")
-const typePaths = ["raukf","kf","kfaem"]
-
 const ioT = PipeBuffer()
 const ioQ = PipeBuffer()
 
-# [Lx, Ly, Lz, Lt, Lxy, Lxyz, Lfile]
-dataParms = Array{Int,2}(undef,7,size(typePaths,1))
+const dataPath = joinpath("..","data")
 
-for i in eachindex(typePaths)
-    data = Array{Int32}(undef,4)
-    read!(joinpath(dataPath,typePaths[i],string("Parms.bin")), data)
-    dataParms[1:4,i] = data[1:4]
-    dataParms[5,i] = data[1] * data[2]
-    dataParms[6,i] = data[1] * data[2] * data[3]
-    dataParms[7,i] = 2 * data[1] * data[2] * (data[3] + 3) + 1
-end
+const types = [:kf, :kfaem, :raukf]
+const typePaths = Dict(id => String(id) for id in types)
+const typeParms = [:Lx, :Ly, :Lz, :Lt, :Lxy, :Lxyz, :Lfile]
+const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :Ts, :Qs]
 
-println(dataParms)
-
-#[t T cT Q cQ Tm cTm]
-t_ref = Array{Array{Float64,1},1}()
-T_ref = Array{Array{Float64,1},1}()
-cT_ref = Array{Array{Float64,1},1}()
-Q_ref = Array{Array{Float64,1},1}()
-cQ_ref = Array{Array{Float64,1},1}()
-Tm_ref = Array{Array{Float64,1},1}()
-cTm_ref = Array{Array{Float64,1},1}()
-Ts_ref = Array{Array{Float64,1},1}()
-Qs_ref = Array{Array{Float64,1},1}()
-
-files_ref = Array{Array{String,1},1}()
-
-dataT = Array{Array{Float64,2},1}()
-dataQ = Array{Array{Float64,2},1}()
-
-for i = 1:size(typePaths,1)
-    push!(t_ref,Array{Float64,1}())
-    push!(T_ref,Array{Float64,1}())
-    push!(cT_ref,Array{Float64,1}())
-    push!(Q_ref,Array{Float64,1}())
-    push!(cQ_ref,Array{Float64,1}())
-    push!(Tm_ref,Array{Float64,1}())
-    push!(cTm_ref,Array{Float64,1}())
-    push!(Ts_ref,Array{Float64,1}())
-    push!(Qs_ref,Array{Float64,1}())
-
-    push!(files_ref,Array{String,1}())
-    
-    push!(dataT,Array{Float64,2}(undef,1,3))
-    push!(dataQ,Array{Float64,2}(undef,1,3))
-    dataT[i][1,1:3] .= 0.0
-    dataQ[i][1,1:3] .= 0.0
-end
+const graphTypes = [:T, :Q]
 
 windowAlive = [true]
 
-graph = [Plots.plot(),Plots.plot()]
+# [Lx, Ly, Lz, Lt, Lxy, Lxyz, Lfile]
+dataParms = Dict(id => Array{Int,1}(undef,size(typeParms,1)) for id in types)
+dataSizes = Dict(id => Dict(idd => Int(0) for idd in typeValues) for id in types)
+dataOffset = Dict(id => Dict(idd => Int(0) for idd in typeValues) for id in types)
 
-function combineGraphs(graph,index,data)
-    graph[index] = Plots.plot()
-    pal = palette([:blue, :red], size(data,1))
-    for i in eachindex(data)
-        numser = size(data[i][begin:end,2:end],2)
-        if numser == 0
-            println(typePaths[index],"",index,":",size(data,1)," ",i," ",data[i])
+#[t T cT Q cQ Tm cTm Ts Qs]
+dataValues = Dict(id => Dict(idd => Array{Float64,1}() for idd in typeValues) for id in types)
+
+for id in types
+    aux = Array{Int32}(undef,4)
+    read!(joinpath(dataPath,typePaths[id],string("Parms.bin")),aux)
+    dataParms[id][1:4] = aux[1:4]
+    dataParms[id][5] = aux[1] * aux[2] # Lxy
+    dataParms[id][6] = aux[1] * aux[2] * aux[3] # Lxyz
+    dataParms[id][7] =  2 * aux[1] * aux[2] * aux[3] + 6 * aux[1] * aux[2] + 1 # Lfile
+    offset = 0
+    for (i,s) in enumerate(typeValues) 
+        temp = 0
+        if s == :t
+            temp = 1
+        elseif s == :T || s == :cT
+            temp = dataParms[id][6]
+        elseif s == :Q || s == :cQ
+            temp = dataParms[id][5]
+        elseif s == :Tm || s == :cTm
+            temp = dataParms[id][5]
+        elseif s == :Ts || s == :Qs
+            temp = dataParms[id][5]
+        else 
+            println("Symbol ",s," Not defined")
         end
-        labels = Array{String,2}(undef,1,numser)
-        labels[1,1] = typePaths[i]
-        labels[1,2] = typePaths[i]
-        labels[1,3:end] .= "" 
-        linestyles = Array{Symbol,2}(undef,1,numser)
-        linestyles[1,1] = :dot
-        linestyles[1,2] = :solid
-        linestyles[1,3:end] .= :dash
-
-        plot!(graph[index],data[i][begin:end,1],data[i][begin:end,2:end],label=labels,color=pal[i],linestyle=linestyles)
+        dataOffset[id][s] = offset
+        dataSizes[id][s] = temp
+        offset = offset + temp
     end
 end
 
-function dataGraph(data,index,t,var,cvar,rvar,stride,offset)
-    data[index] = [t rvar[begin+offset:stride:end] var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))]
+
+println(dataParms)
+
+files_ref = Dict(id => Array{String,1}() for id in types)
+
+data = Dict(id => Dict(idd => zeros(1,5) for idd in types) for id in graphTypes)
+
+graph = Dict(id => Plots.plot() for id in graphTypes)
+
+function combineGraphs(graph, data, graphTypes, types)
+    for gt in graphTypes
+        col = palette([:blue, :red],size(types,1))
+        dgt = data[gt]
+        ggt = graph[gt]
+        for (i,id) in enumerate(types)
+            dgtid = dgt[id]
+            numser = size(dgtid,2) - 1
+            if numser <= 0
+                println("Id: ",id,"; Values: ", dgtid)
+                return
+            end
+            
+            lb = Array{String,2}(undef,1,numser)
+            lb[1,1] = "Reference: " * typePaths[id]
+            lb[1,2] = typePaths[id]
+            lb[1,3:end] .= ""
+
+            ls =  Array{Symbol,2}(undef,1,numser)
+            ls[1,1] = :dot
+            ls[1,2] = :solid
+            ls[1,3:end] .= :dash
+
+            plot!(ggt,dgtid[begin:end,1],dgtid[begin:end,2:end],label=lb, color=col[i],linestyle=ls)
+        end
+    end
 end
 
-function checkNewFiles(oldNames,dataPath,t,T,cT,Q,cQ,Tm,cTm,Ts,Qs,Lxy,Lxyz,Lfile)
-    names = readdir(joinpath(dataPath,"ready"), join=false)
+function dataGraph(t,rvar,var,cvar,stride,offset)
+    return [t rvar[begin+offset:stride:end] var[begin+offset:stride:end] (var[begin+offset:stride:end].+1.96.*sqrt.(cvar[begin+offset:stride:end])) (var[begin+offset:stride:end].-1.96.*sqrt.(cvar[begin+offset:stride:end]))]
+end
+
+function checkNewFiles(id,oldNames,parms,values,valuesSizes,valuesOffsets,typeValues,mainPath,typePaths)
+    hasNewFiles = false
+    path = joinpath(mainPath, typePaths[id])
+    names = readdir(joinpath(path,"ready"), join=false)
     newFiles = []
     for name in names
-        if name ∉ oldNames
+        if name ∉ oldNames[id]
             push!(newFiles,name)
         end
     end
     if length(newFiles) > 0
         iStr = sortperm(parse.(Int32,newFiles))
-        println(dataPath," ",Lfile)
+        println(path," ",parms[id][7])
         for index in iStr
             name = newFiles[index]
-            data = Array{Float64}(undef,Lfile)
-            read!(joinpath(dataPath,string("Values", name, ".bin")), data)
-            # Time
-            offset = 0
-            push!(t,data[offset+1])
-            # Temperature
-            offset = offset + 1
-            append!(T,data[offset+1:offset+Lxyz])
-            # Temperature Error
-            offset = offset + Lxyz
-            append!(cT,data[offset+1:offset+Lxyz])
-            # Heat Flux
-            offset = offset + Lxyz
-            append!(Q,data[offset+1:offset+Lxy])
-            # Heat Flux Error
-            offset = offset + Lxy
-            append!(cQ,data[offset+1:offset+Lxy])
-            # Temperature Measured
-            offset = offset + Lxy
-            append!(Tm,data[offset+1:offset+Lxy])
-            # Temperature Measured Error
-            offset = offset + Lxy
-            append!(cTm,data[offset+1:offset+Lxy])
-            # Temperature Simulated
-            offset = offset + Lxy
-            append!(Ts,data[offset+1:offset+Lxy])
-            # Heat Flux Simulated
-            offset = offset + Lxy
-            append!(Qs,data[offset+1:offset+Lxy])
-
-            push!(oldNames,name)
+            data = Array{Float64}(undef,parms[id][7])
+            read!(joinpath(path,string("Values", name, ".bin")), data)
+            for (i,s) in enumerate(typeValues)
+                offset = valuesOffsets[id][s]
+                len = valuesSizes[id][s]
+                append!(values[id][s],data[offset+1:offset+len])
+            end
         end
-        return true
+        append!(oldNames[id],newFiles)
+        hasNewFiles = true
     end
-    return false
+    return hasNewFiles
 end
 
-function cleanLists(t,T,cT,Q,cQ,Tm,cTm,Ts,Qs,files)
-    for i in eachindex(t)
-        empty!(t[i])
-        empty!(T[i])
-        empty!(cT[i])
-        empty!(Q[i])
-        empty!(cQ[i])
-        empty!(Tm[i])
-        empty!(cTm[i])
-        empty!(Ts[i])
-        empty!(Qs[i])
-        empty!(files[i])
+function cleanLists(types,typeValues,dataValues,files)
+    for id in types
+        for s in typeValues
+            empty!(dataValues[id][s])
+        end
+        empty!(files[id])
     end
 end
 
@@ -170,8 +151,8 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     set_gtk_property!(buttonClean, :label, "Clean")
     @guarded draw(canT) do widget
         ctx = getgc(canT)
-        plot!(graph[1],size=[width(canT) height(canT)])
-        show(ioT, MIME("image/png"), graph[1])
+        plot!(graph[:T],size=[width(canT) height(canT)])
+        show(ioT, MIME("image/png"), graph[:T])
         imgT = read_from_png(ioT)
         Cairo.save(ctx)
         set_source_surface(ctx, imgT, 0, 0)
@@ -180,8 +161,8 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     @guarded draw(canQ) do widget
         ctx = getgc(canQ)
-        plot!(graph[2],size=[width(canQ) height(canQ)])
-        show(ioQ, MIME("image/png"), graph[2])
+        plot!(graph[:Q],size=[width(canQ) height(canQ)])
+        show(ioQ, MIME("image/png"), graph[:Q])
         imgQ = read_from_png(ioQ)
         Cairo.save(ctx)
         set_source_surface(ctx, imgQ, 0, 0)
@@ -193,22 +174,21 @@ function plotCanvas(h = 1000, w = 600, type = :v)
     end
     id = signal_connect(buttonRefresh,"clicked") do widget
         recreateGraphs = false
-        for i in eachindex(typePaths)
-            if checkNewFiles(files_ref[i],joinpath(dataPath,typePaths[i]),t_ref[i],T_ref[i],cT_ref[i],Q_ref[i],cQ_ref[i],Tm_ref[i],cTm_ref[i],Ts_ref[i],Qs_ref[i],dataParms[5,i],dataParms[6,i],dataParms[7,i])
-                dataGraph(dataT,i,t_ref[i],Tm_ref[i],cTm_ref[i],Ts_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
-                dataGraph(dataQ,i,t_ref[i],Q_ref[i],cQ_ref[i],Qs_ref[i],dataParms[5,i],Int(dataParms[5,i]/2+dataParms[1,i]/2))
+        for id in types
+            if checkNewFiles(id,files_ref,dataParms,dataValues,dataSizes,dataOffset,typeValues,dataPath,typePaths)
+                data[:T][id] = dataGraph(dataValues[id][:t],dataValues[id][:Ts],dataValues[id][:Tm],dataValues[id][:cTm],dataParms[id][5],Int((dataParms[id][5] + dataParms[id][1]) / 2.0))
+                data[:Q][id] = dataGraph(dataValues[id][:t],dataValues[id][:Qs],dataValues[id][:Q],dataValues[id][:cQ],dataParms[id][5],Int((dataParms[id][5] + dataParms[id][1]) / 2.0))
                 recreateGraphs = true
             end
         end
         if recreateGraphs
-            combineGraphs(graph,1,dataT)
-            combineGraphs(graph,2,dataQ)
+            combineGraphs(graph,data,graphTypes,types)
         end
         draw(canT)
         draw(canQ)
     end
     id = signal_connect(buttonClean,"clicked") do widget
-        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,Tm_ref,cTm_ref,Ts_ref,Qs_ref,files_ref)
+        cleanLists(types,typeValues,dataValues,files_ref)
     end
     showall(win)
     show(canT)
@@ -228,6 +208,24 @@ function startMonitor()
         end
         @async Gtk.gtk_main()
         wait(c)
-        cleanLists(t_ref,T_ref,cT_ref,Q_ref,cQ_ref,Tm_ref,cTm_ref,Ts_ref,Qs_ref,files_ref)
+        cleanLists(types,typeValues,dataValues,files_ref)
+    end
+end
+
+function printGraphs()
+    cleanLists(types,typeValues,dataValues,files_ref)
+    for id in types
+        if checkNewFiles(id,files_ref,dataParms,dataValues,dataSizes,dataOffset,typeValues,dataPath,typePaths)
+            Lx = dataParms[id][1]
+            Ly = dataParms[id][2]
+            x = range(0,0.12,Lx)
+            y = range(0,0.12,Ly)
+            zT = reshape(dataValues[id][:T][end-Lx*Ly+1:end],Lx,Ly)
+            zQ = reshape(dataValues[id][:Q][end-Lx*Ly+1:end],Lx,Ly)
+            
+            temp = surface(x,y,zT)
+            temp = surface(x,y,zQ)
+            gui(temp)
+        end
     end
 end

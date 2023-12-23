@@ -38,20 +38,22 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt,
         T[i] = 300.0;
     }
     MathCPU::Zero(Q, Lx * Ly);
-    for (int j = 0; j < Ly; ++j)
-    {
-        for (int i = 0; i < Lx; ++i)
-        {
-            bool xCond = (i + 0.5) * Sx / Lx > 0.3 * Sx && (i + 0.5) * Sx / Lx < 0.7 * Sx;
-            bool yCond = (j + 0.5) * Sy / Ly > 0.3 * Sy && (j + 0.5) * Sy / Ly < 0.7 * Sy;
-            Q[j * Lx + i] = (xCond && yCond) ? 100.0 : 0.0;
-        }
-    }
     HC::CPU::AllocWorkspaceRKF45(workspace, parms);
     std::default_random_engine generator;
     std::normal_distribution<double> distribution(0.0, 5.0);
     for (int i = 0; i < Lt; ++i)
     {
+        // Heat Flux Definition
+        for (int j = 0; j < Ly; ++j)
+        {
+            for (int i = 0; i < Lx; ++i)
+            {
+                bool xCond = (i + 0.5) * Sx / Lx > 0.3 * Sx && (i + 0.5) * Sx / Lx < 0.7 * Sx;
+                bool yCond = (j + 0.5) * Sy / Ly > 0.3 * Sy && (j + 0.5) * Sy / Ly < 0.7 * Sy;
+                bool tCond = i * St / Lt > St;
+                Q[j * Lx + i] = (xCond && yCond && tCond) ? 100.0 : 0.0;
+            }
+        }
         HC::CPU::RKF45(T, Q, workspace, parms);
         for (int j = 0; j < Lx * Ly; ++j)
         {

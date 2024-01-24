@@ -7,7 +7,7 @@ const dataPath = joinpath("..","..","data")
 const types = [:kf, :kfaem, :raukf]
 const typePaths = Dict(id => String(id) for id in types)
 const typeParms = [:Lx, :Ly, :Lz, :Lt, :Lxy, :Lxyz, :Lfile]
-const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :Ts, :Qs]
+const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :TsN, :Ts, :Qs]
 
 # [Lx, Ly, Lz, Lt, Lxy, Lxyz, Lfile]
 dataParms = Dict(id => Array{Int,1}(undef,size(typeParms,1)) for id in types)
@@ -23,7 +23,7 @@ for id in types
     dataParms[id][1:4] = aux[1:4]
     dataParms[id][5] = aux[1] * aux[2] # Lxy
     dataParms[id][6] = aux[1] * aux[2] * aux[3] # Lxyz
-    dataParms[id][7] =  2 * aux[1] * aux[2] * aux[3] + 6 * aux[1] * aux[2] + 1 # Lfile
+    dataParms[id][7] =  2 * aux[1] * aux[2] * aux[3] + 7 * aux[1] * aux[2] + 1 # Lfile
     offset = 0
     for (i,s) in enumerate(typeValues) 
         temp = 0
@@ -35,7 +35,7 @@ for id in types
             temp = dataParms[id][5]
         elseif s == :Tm || s == :cTm
             temp = dataParms[id][5]
-        elseif s == :Ts || s == :Qs
+        elseif s == :TsN || s == :Ts || s == :Qs
             temp = dataParms[id][5]
         else 
             println("Symbol ",s," Not defined")
@@ -103,43 +103,49 @@ function printGraphs()
     cleanLists(types,typeValues,dataValues)
     for id in types
         if getData(id,dataParms,dataValues,dataSizes,dataOffset,typeValues,dataPath,typePaths)
-            # Profile Graphs
-            Lx = dataParms[id][1]
-            Ly = dataParms[id][2]
-            Sx = 0.12
-            Sy = 0.12
-            dx2 = Sx/Lx/2
-            dy2 = Sy/Ly/2
-            amp = 5*10^4
-            x = range(0+dx2,Sx-dx2,Lx)
-            y = range(0+dy2,Sy-dy2,Ly)
-            zT = reshape(dataValues[id][:Tm][end-Lx*Ly+1:end],Lx,Ly)
-            zQ = reshape(dataValues[id][:Q][end-Lx*Ly+1:end],Lx,Ly) * amp
-            zcT = sqrt.(reshape(dataValues[id][:cTm][end-Lx*Ly+1:end],Lx,Ly))
-            zcQ = sqrt.(reshape(dataValues[id][:cQ][end-Lx*Ly+1:end],Lx,Ly)) * amp
-            zTs = reshape(dataValues[id][:Ts][end-Lx*Ly+1:end],Lx,Ly)
-            zQs = reshape(dataValues[id][:Qs][end-Lx*Ly+1:end],Lx,Ly) * amp
+            for t in [49 299 499]
+                # Profile Graphs
+                Lx = dataParms[id][1]
+                Ly = dataParms[id][2]
+                offsetXY = t * Lx * Ly + 1
+                Sx = 0.12
+                Sy = 0.12
+                dx2 = Sx/Lx/2
+                dy2 = Sy/Ly/2
+                amp = 5*10^4
+                x = range(0+dx2,Sx-dx2,Lx)
+                y = range(0+dy2,Sy-dy2,Ly)
+                zT = reshape(dataValues[id][:Tm][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly)
+                zQ = reshape(dataValues[id][:Q][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly) * amp
+                zcT = sqrt.(reshape(dataValues[id][:cTm][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly))
+                zcQ = sqrt.(reshape(dataValues[id][:cQ][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly)) * amp
+                zTsN = reshape(dataValues[id][:TsN][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly)
+                zTs = reshape(dataValues[id][:Ts][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly)
+                zQs = reshape(dataValues[id][:Qs][offsetXY:offsetXY+Lx*Ly-1],Lx,Ly) * amp
 
-            colgrad = cgrad(:thermal, rev = false)
+                colgrad = cgrad(:thermal, rev = false)
 
-            plot_font = "Computer Modern"
-            default(fontfamily=plot_font)
-            graphTProfile = heatmap(x,y,zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zT),minimum(zT),8,:scientific),title="Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title ="Temperature [K]")
-            savefig(graphTProfile,"TemperatureProfile.png")
-            graphcTProfile = heatmap(x,y,zcT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcT),minimum(zcT),8,:scientific),title="Temperature's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-            savefig(graphcTProfile,"TemperatureCovarianceProfile.png")
-            graphQProfile = heatmap(x,y,zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQ),minimum(zQ),8,:scientific),title="Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-            savefig(graphQProfile,"HeatFluxProfile.png")
-            graphcQProfile = heatmap(x,y,zcQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcQ),minimum(zcQ),8,:scientific),title="Heat Flux's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-            savefig(graphcQProfile,"HeatFluxCovarianceProfile.png")
-            graphTsProfile = heatmap(x,y,zTs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs),minimum(zTs),8,:scientific),title="Synthetic Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-            savefig(graphTsProfile,"TemperatureSyntheticProfile.png")
-            graphQsProfile = heatmap(x,y,zQs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs),minimum(zQs),8,:scientific),title="Synthetic Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-            savefig(graphQsProfile,"HeatFluxSyntheticProfile.png")
-            graphTResidueProfile = heatmap(x,y,zTs-zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs-zT),minimum(zTs-zT),8,:scientific),title="Temperature's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-            savefig(graphTResidueProfile,"TemperatureResidueProfile.png")
-            graphQResidueProfile = heatmap(x,y,zQs-zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs-zQ),minimum(zQs-zQ),8,:scientific),title="Heat Flux's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-            savefig(graphQResidueProfile,"HeatFluxResidueProfile.png")
+                plot_font = "Computer Modern"
+                default(fontfamily=plot_font)
+                graphTProfile = heatmap(x,y,zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zT),minimum(zT),8,:scientific),title="Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title ="Temperature [K]")
+                savefig(graphTProfile,"TemperatureProfile"*typePaths[id]*string(t)*".png")
+                graphcTProfile = heatmap(x,y,zcT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcT),minimum(zcT),8,:scientific),title="Temperature's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
+                savefig(graphcTProfile,"TemperatureCovarianceProfile"*typePaths[id]*string(t)*".png")
+                graphQProfile = heatmap(x,y,zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQ),minimum(zQ),8,:scientific),title="Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
+                savefig(graphQProfile,"HeatFluxProfile"*typePaths[id]*string(t)*".png")
+                graphcQProfile = heatmap(x,y,zcQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcQ),minimum(zcQ),8,:scientific),title="Heat Flux's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
+                savefig(graphcQProfile,"HeatFluxCovarianceProfile"*typePaths[id]*string(t)*".png")
+                graphTsNProfile = heatmap(x,y,zTsN,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTsN),minimum(zTsN),8,:scientific),title="Synthetic Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
+                savefig(graphTsNProfile,"TemperatureSyntheticNoiseProfile"*typePaths[id]*string(t)*".png")
+                graphTsProfile = heatmap(x,y,zTs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs),minimum(zTs),8,:scientific),title="Synthetic Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
+                savefig(graphTsProfile,"TemperatureSyntheticProfile"*typePaths[id]*string(t)*".png")
+                graphQsProfile = heatmap(x,y,zQs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs),minimum(zQs),8,:scientific),title="Synthetic Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
+                savefig(graphQsProfile,"HeatFluxSyntheticProfile"*typePaths[id]*string(t)*".png")
+                graphTResidueProfile = heatmap(x,y,zTs-zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs-zT),minimum(zTs-zT),8,:scientific),title="Temperature's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
+                savefig(graphTResidueProfile,"TemperatureResidueProfile"*typePaths[id]*string(t)*".png")
+                graphQResidueProfile = heatmap(x,y,zQs-zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs-zQ),minimum(zQs-zQ),8,:scientific),title="Heat Flux's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
+                savefig(graphQResidueProfile,"HeatFluxResidueProfile"*typePaths[id]*string(t)*".png")
+            end
         end
     end
     cleanLists(types,typeValues,dataValues)
@@ -157,7 +163,7 @@ function printGraphs()
             # Temporal Graphs
             Lx = dataParms[id][1]
             Ly = dataParms[id][2]
-            St = 2.0
+            St = 10.0
             amp = 5*10^4
             ix = Int(Lx/2)
             iy = Int(Ly/2)

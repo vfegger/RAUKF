@@ -12,7 +12,7 @@ const dataPath = joinpath("..","..","data")
 const types = [:kf, :kfaem, :raukf]
 const typePaths = Dict(id => String(id) for id in types)
 const typeParms = [:Lx, :Ly, :Lz, :Lt, :Lxy, :Lxyz, :Lfile]
-const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :Ts, :Qs]
+const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :TsN, :Ts, :Qs]
 
 const graphTypes = [:T, :Q]
 
@@ -23,7 +23,7 @@ dataParms = Dict(id => Array{Int,1}(undef,size(typeParms,1)) for id in types)
 dataSizes = Dict(id => Dict(idd => Int(0) for idd in typeValues) for id in types)
 dataOffset = Dict(id => Dict(idd => Int(0) for idd in typeValues) for id in types)
 
-#[t T cT Q cQ Tm cTm Ts Qs]
+#[t T cT Q cQ Tm cTm TsN Ts Qs]
 dataValues = Dict(id => Dict(idd => Array{Float64,1}() for idd in typeValues) for id in types)
 
 for id in types
@@ -32,7 +32,7 @@ for id in types
     dataParms[id][1:4] = aux[1:4]
     dataParms[id][5] = aux[1] * aux[2] # Lxy
     dataParms[id][6] = aux[1] * aux[2] * aux[3] # Lxyz
-    dataParms[id][7] =  2 * aux[1] * aux[2] * aux[3] + 6 * aux[1] * aux[2] + 1 # Lfile
+    dataParms[id][7] =  2 * aux[1] * aux[2] * aux[3] + 7 * aux[1] * aux[2] + 1 # Lfile
     offset = 0
     for (i,s) in enumerate(typeValues) 
         temp = 0
@@ -44,7 +44,7 @@ for id in types
             temp = dataParms[id][5]
         elseif s == :Tm || s == :cTm
             temp = dataParms[id][5]
-        elseif s == :Ts || s == :Qs
+        elseif s == :TsN || s == :Ts || s == :Qs
             temp = dataParms[id][5]
         else 
             println("Symbol ",s," Not defined")
@@ -176,7 +176,7 @@ function plotCanvas(h = 1000, w = 600, type = :v)
         recreateGraphs = false
         for id in types
             if checkNewFiles(id,files_ref,dataParms,dataValues,dataSizes,dataOffset,typeValues,dataPath,typePaths)
-                data[:T][id] = dataGraph(dataValues[id][:t],dataValues[id][:Ts],dataValues[id][:Tm],dataValues[id][:cTm],dataParms[id][5],Int((dataParms[id][5] + dataParms[id][1]) / 2.0))
+                data[:T][id] = dataGraph(dataValues[id][:t],dataValues[id][:TsN],dataValues[id][:Tm],dataValues[id][:cTm],dataParms[id][5],Int((dataParms[id][5] + dataParms[id][1]) / 2.0))
                 data[:Q][id] = dataGraph(dataValues[id][:t],dataValues[id][:Qs],dataValues[id][:Q],dataValues[id][:cQ],dataParms[id][5],Int((dataParms[id][5] + dataParms[id][1]) / 2.0))
                 recreateGraphs = true
             end

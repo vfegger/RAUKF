@@ -180,11 +180,15 @@ function printGraphs()
             Tinf = 250
             Tsup = 1000
             dT = (Tsup - Tinf)/nT
+            rTinf = -15
+            rTsup = 15
             
             nQ = 8
             Qinf = -20*amp
             Qsup = 140*amp
             dQ = (Qsup - Qinf)/nQ
+            rQinf = -Qsup
+            rQsup = Qsup
 
             if plotref
                 plot!(graphTEvolution,t,zTs,xlims=(0,St),yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label="Reference",color=:black)
@@ -197,8 +201,8 @@ function printGraphs()
             default(fontfamily=plot_font)
             plot!(graphTEvolution,t,[zT zT-1.96.*zcT zT+1.96.*zcT],xlims=(0,St),ylims=(Tinf,Tsup),yticks=Tinf:dT:Tsup,yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=[typePaths[id] "" ""],color=[color[k] color[k] color[k]],linestyle=[:solid :dash :dash],linewidth=[0.25 0.25 0.25],marker=[:xcross :none :none],markersize=[2 0 0])
             plot!(graphQEvolution,t,[zQ zQ-1.96.*zcQ zQ+1.96.*zcQ],xlims=(0,St),ylims=(Qinf,Qsup),yticks=Qinf:dQ:Qsup,yflip=false,title="Heat Flux Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=[typePaths[id] "" ""],color=[color[k] color[k] color[k]],linestyle=[:solid :dash :dash],linewidth=[0.25 0.25 0.25],marker=[:xcross :none :none],markersize=[2 0 0])
-            plot!(graphTResidueEvolution,t,zTs-zT,xlims=(0,St),ylims=(Tinf,Tsup),yflip=false,title="Temperature's Residue Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
-            plot!(graphQResidueEvolution,t,zQs-zQ,xlims=(0,St),ylims=(Qinf,Qsup),yflip=false,title="Heat Flux's Residue Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
+            plot!(graphTResidueEvolution,t,zTs-zT,xlims=(0,St),ylims=(rTinf,rTsup),yflip=false,title="Temperature's Residue Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
+            plot!(graphQResidueEvolution,t,zQs-zQ,xlims=(0,St),ylims=(rQinf,rQsup),yflip=false,title="Heat Flux's Residue Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
         end
     end
     savefig(graphTEvolution,"TemperatureEvolution.png")

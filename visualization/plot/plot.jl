@@ -3,6 +3,7 @@ using LaTeXStrings
 using Printf
 
 const dataPath = joinpath("..","..","data")
+const imagePath = joinpath(".","Images")
 
 const types = [:kf, :kfaem, :raukf]
 const typePaths = Dict(id => String(id) for id in types)
@@ -128,28 +129,29 @@ function printGraphs()
                 plot_font = "Computer Modern"
                 default(fontfamily=plot_font)
                 graphTProfile = heatmap(x,y,zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zT),minimum(zT),8,:scientific),title="Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title ="Temperature [K]")
-                savefig(graphTProfile,"TemperatureProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphTProfile,joinpath(imagePath,"TemperatureProfile"*typePaths[id]*string(t)*".png"))
                 graphcTProfile = heatmap(x,y,zcT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcT),minimum(zcT),8,:scientific),title="Temperature's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-                savefig(graphcTProfile,"TemperatureCovarianceProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphcTProfile,joinpath(imagePath,"TemperatureCovarianceProfile"*typePaths[id]*string(t)*".png"))
                 graphQProfile = heatmap(x,y,zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQ),minimum(zQ),8,:scientific),title="Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-                savefig(graphQProfile,"HeatFluxProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphQProfile,joinpath(imagePath,"HeatFluxProfile"*typePaths[id]*string(t)*".png"))
                 graphcQProfile = heatmap(x,y,zcQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zcQ),minimum(zcQ),8,:scientific),title="Heat Flux's Standard Deviation Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-                savefig(graphcQProfile,"HeatFluxCovarianceProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphcQProfile,joinpath(imagePath,"HeatFluxCovarianceProfile"*typePaths[id]*string(t)*".png"))
                 graphTsNProfile = heatmap(x,y,zTsN,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTsN),minimum(zTsN),8,:scientific),title="Synthetic Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-                savefig(graphTsNProfile,"TemperatureSyntheticNoiseProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphTsNProfile,joinpath(imagePath,"TemperatureSyntheticNoiseProfile"*typePaths[id]*string(t)*".png"))
                 graphTsProfile = heatmap(x,y,zTs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs),minimum(zTs),8,:scientific),title="Synthetic Temperature Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-                savefig(graphTsProfile,"TemperatureSyntheticProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphTsProfile,joinpath(imagePath,"TemperatureSyntheticProfile"*typePaths[id]*string(t)*".png"))
                 graphQsProfile = heatmap(x,y,zQs,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs),minimum(zQs),8,:scientific),title="Synthetic Heat Flux Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-                savefig(graphQsProfile,"HeatFluxSyntheticProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphQsProfile,joinpath(imagePath,"HeatFluxSyntheticProfile"*typePaths[id]*string(t)*".png"))
                 graphTResidueProfile = heatmap(x,y,zTs-zT,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zTs-zT),minimum(zTs-zT),8,:scientific),title="Temperature's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Temperature [K]")
-                savefig(graphTResidueProfile,"TemperatureResidueProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphTResidueProfile,joinpath(imagePath,"TemperatureResidueProfile"*typePaths[id]*string(t)*".png"))
                 graphQResidueProfile = heatmap(x,y,zQs-zQ,xlims=(0,Sx),ylims=(0,Sy),yflip=false,c=colgrad,aspect_ratio=:equal,xticks=getTicks(Sy,0,6),yticks=getTicks(Sy,0,6),colorbar_ticks=getTicks(maximum(zQs-zQ),minimum(zQs-zQ),8,:scientific),title="Heat Flux's Residue Profile",xlabel="X [m]",ylabel="Y [m]",colorbar_title="Heat Flux [W]")
-                savefig(graphQResidueProfile,"HeatFluxResidueProfile"*typePaths[id]*string(t)*".png")
+                savefig(graphQResidueProfile,joinpath(imagePath,"HeatFluxResidueProfile"*typePaths[id]*string(t)*".png"))
             end
         end
     end
     cleanLists(types,typeValues,dataValues)
     graphTEvolution = Plots.plot()
+    graphTZoomEvolution = Plots.plot()
     graphQEvolution = Plots.plot()
     graphTsEvolution = Plots.plot()
     graphQsEvolution = Plots.plot()
@@ -174,14 +176,18 @@ function printGraphs()
             zcT = sqrt.(dataValues[id][:cTm][begin+i:Lx*Ly:end])
             zcQ = sqrt.(dataValues[id][:cQ][begin+i:Lx*Ly:end]) * amp
             zTs = dataValues[id][:Ts][begin+i:Lx*Ly:end]
+            zTsN = dataValues[id][:TsN][begin+i:Lx*Ly:end]
             zQs = dataValues[id][:Qs][begin+i:Lx*Ly:end] * amp
             
             nT = 6
             Tinf = 250
-            Tsup = 1000
+            Tsup = 1900
+            TZoominf = 270
+            TZoomsup = 360
             dT = (Tsup - Tinf)/nT
-            rTinf = -15
-            rTsup = 15
+            dTZoom = (TZoomsup - TZoominf)/nT
+            rTinf = -20
+            rTsup = 20
             
             nQ = 8
             Qinf = -20*amp
@@ -192,6 +198,8 @@ function printGraphs()
 
             if plotref
                 plot!(graphTEvolution,t,zTs,xlims=(0,St),yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label="Reference",color=:black)
+                plot!(graphTZoomEvolution,t,zTs,xlims=(0.07*St,0.14*St),yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label="Reference",color=:black)
+                plot!(graphTZoomEvolution,t,zTsN,xlims=(0.07*St,0.14*St),yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label="Noisy Reference",color=:black,linestyle=:dashdot,linewidth=0.5)
                 plot!(graphQEvolution,t,zQs,xlims=(0,St),yflip=false,title="Heat Flux Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label="Reference",color=:black)
                 plot!(graphTsEvolution,t,zTs,xlims=(0,St),ylims=(Tinf,Tsup),yticks=Tinf:dT:Tsup,yflip=false,title="Synthetic Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
                 plot!(graphQsEvolution,t,zQs,xlims=(0,St),ylims=(Qinf,Qsup),yticks=Qinf:dQ:Qsup,yflip=false,title="Synthetic Heat Flux Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
@@ -200,17 +208,19 @@ function printGraphs()
             plot_font = "Computer Modern"
             default(fontfamily=plot_font)
             plot!(graphTEvolution,t,[zT zT-1.96.*zcT zT+1.96.*zcT],xlims=(0,St),ylims=(Tinf,Tsup),yticks=Tinf:dT:Tsup,yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=[typePaths[id] "" ""],color=[color[k] color[k] color[k]],linestyle=[:solid :dash :dash],linewidth=[0.25 0.25 0.25],marker=[:xcross :none :none],markersize=[2 0 0])
+            plot!(graphTZoomEvolution,t,[zT zT-1.96.*zcT zT+1.96.*zcT],xlims=(0.07*St,0.14*St),ylims=(TZoominf,TZoomsup),yticks=TZoominf:dTZoom:TZoomsup,yflip=false,title="Temperature Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=[typePaths[id] "" ""],color=[color[k] color[k] color[k]],linestyle=[:solid :dash :dash],linewidth=[0.25 0.25 0.25],marker=[:xcross :none :none],markersize=[2 0 0])
             plot!(graphQEvolution,t,[zQ zQ-1.96.*zcQ zQ+1.96.*zcQ],xlims=(0,St),ylims=(Qinf,Qsup),yticks=Qinf:dQ:Qsup,yflip=false,title="Heat Flux Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=[typePaths[id] "" ""],color=[color[k] color[k] color[k]],linestyle=[:solid :dash :dash],linewidth=[0.25 0.25 0.25],marker=[:xcross :none :none],markersize=[2 0 0])
             plot!(graphTResidueEvolution,t,zTs-zT,xlims=(0,St),ylims=(rTinf,rTsup),yflip=false,title="Temperature's Residue Profile",xlabel="Time [s]",ylabel="Temperature [K]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
             plot!(graphQResidueEvolution,t,zQs-zQ,xlims=(0,St),ylims=(rQinf,rQsup),yflip=false,title="Heat Flux's Residue Profile",xlabel="Time [s]",ylabel="Heat Flux [W]",label=typePaths[id],color=color[k],linestyle=:solid,marker=:xcross,markersize=2)
         end
     end
-    savefig(graphTEvolution,"TemperatureEvolution.png")
-    savefig(graphQEvolution,"HeatFluxEvolution.png")
-    savefig(graphTsEvolution,"TemperatureSyntheticEvolution.png")
-    savefig(graphQsEvolution,"HeatFluxSyntheticEvolution.png")
-    savefig(graphTResidueEvolution,"TemperatureResidueEvolution.png")
-    savefig(graphQResidueEvolution,"HeatFluxResidueEvolution.png")
+    savefig(graphTEvolution,joinpath(imagePath,"TemperatureEvolution.png"))
+    savefig(graphTZoomEvolution,joinpath(imagePath,"TemperatureZoomEvolution.png"))
+    savefig(graphQEvolution,joinpath(imagePath,"HeatFluxEvolution.png"))
+    savefig(graphTsEvolution,joinpath(imagePath,"TemperatureSyntheticEvolution.png"))
+    savefig(graphQsEvolution,joinpath(imagePath,"HeatFluxSyntheticEvolution.png"))
+    savefig(graphTResidueEvolution,joinpath(imagePath,"TemperatureResidueEvolution.png"))
+    savefig(graphQResidueEvolution,joinpath(imagePath,"HeatFluxResidueEvolution.png"))
     
     return
 end

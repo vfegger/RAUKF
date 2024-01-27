@@ -255,7 +255,7 @@ Measure *HFE_RM::GenerateMeasure()
     double *nT = (double *)malloc(sizeof(double) * Lx * Ly);
     for (int i = 0; i < Lx * Ly; ++i)
     {
-        nT[i] = 1.0;
+        nT[i] = 25.0;
     }
     measureLoader.Link(nameT, nT);
     Measure *pm = measureLoader.Load();
@@ -513,7 +513,7 @@ Measure *HFE::GenerateMeasure()
     double *nT = (double *)malloc(sizeof(double) * Lx * Ly);
     for (int i = 0; i < Lx * Ly; ++i)
     {
-        nT[i] = 1.0;
+        nT[i] = 25.0;
     }
     Model::measureLoader.Link(nameT, nT);
     Measure *pm = Model::measureLoader.Load();

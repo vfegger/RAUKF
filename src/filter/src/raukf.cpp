@@ -300,6 +300,14 @@ void RAUKF::Iterate(Timer &timer)
     Math::MatMulNN(1.0, Pxx, -1.0, workspaceLxLy, KT, Lx, Ly, Lx, type);
     timer.Record(type);
 
+
+    // Calculate new observation and covariance
+    UnscentedTransformation(xs, x, Pxx, Lx, Ls, workspaceLx2, type);
+    pmodel->Evaluate(pmeasure, pstate, ExecutionType::Instance, type);
+    Math::Mean(y, ys, wm, Ly, Ls, type);
+    Math::Iterate(Math::Sub, ys, y, Ly, Ls, Ly, 0, 0, 0, type);
+    Math::MatMulNWT(0.0, Pyy, 1.0, ys, ys, wc, Ly, Ls, Ly, type);
+
 #if ADAPTIVE == 1
     AdaptNoise(x, Pxx, Q, xs, y, Pyy, R, ys, ym, v_0, v_1, PxyT, KT, Lx, Ls, Ly, workspaceLx, workspaceLy, workspaceLx2, workspaceLxLy);
 #endif

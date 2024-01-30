@@ -84,7 +84,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt,
             {
                 bool xCond = (i + 0.5) * Sx / Lsx > 0.3 * Sx && (i + 0.5) * Sx / Lsx < 0.7 * Sx;
                 bool yCond = (j + 0.5) * Sy / Lsy > 0.3 * Sy && (j + 0.5) * Sy / Lsy < 0.7 * Sy;
-                bool tCond = k * St / Lst > 1.0 && k * St / Lst < 6.0;
+                bool tCond = k * St / Lst > 1.0 && k * St / Lst < 5.0;
                 Qh[j * Lsx + i] = (xCond && yCond && tCond) ? 100.0 : 0.0;
             }
         }

@@ -24,7 +24,7 @@ void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> 
     }
 }
 
-void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref, double eps, Type type)
+void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref, double eps, Type type)
 {
     double *workspace;
     HC::HCParms parms;
@@ -46,6 +46,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt,
     parms.dz = Sz / Lsz;
     parms.dt = St / Lst;
     parms.amp = amp;
+    parms.T_amb = T_amb;
     parms.T_ref = T_ref;
     parms.eps = eps;
 
@@ -213,17 +214,17 @@ int main(int argc, char *argv[])
 #endif
 
 #if RAUKF_USAGE == 1
-    hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC);
+    hfe.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 300.0, 600.0, epsC);
     hfe.SetMemory(type);
 #endif
 #if KF_USAGE == 1
-    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0, epsR);
+    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 300.0, 600.0, epsR);
     hfeKF.SetMemory(type);
 #endif
 #if KF_AEM_USAGE == 1
-    hfeC.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC);
+    hfeC.SetParms(Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 300.0, 600.0, epsC);
     hfeC.SetMemory(type);
-    hfeR.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 600.0, epsR);
+    hfeR.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, 300.0, 600.0, epsR);
     hfeR.SetMemory(type);
     hfeAEM.SetModel(&hfeR, &hfeC);
     hfeAEM.SetMemory(type);
@@ -248,7 +249,7 @@ int main(int argc, char *argv[])
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-    Simulation(measures, q_ref, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 600.0, epsC, type);
+    Simulation(measures, q_ref, Lx, Ly, Lz, Lt, Sx, Sy, Sz, St, amp, 300.0, 600.0, epsC, type);
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly * Lz);

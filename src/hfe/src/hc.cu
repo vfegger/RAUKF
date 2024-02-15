@@ -26,6 +26,7 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     double dy = parms.dy;
     double dz = parms.dz;
     double amp = parms.amp;
+    double T_amb = parms.T_amb;
     double eps = parms.eps;
     // Difusion Contribution
     for (int k = 0; k < Lz; ++k)
@@ -65,7 +66,8 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
         {
             index = j * Lx + i;
             double temp = T[offset + index] * T[offset + index];
-            dT[offset + index] -= (eps / dz) * SIGMA * temp * temp;
+            double T2_amb = T_amb * T_amb;
+            dT[offset + index] -= (eps / dz) * SIGMA * (temp * temp - T2_amb * T2_amb);
         }
     }
     offset = (Lz - 1) * Lxy;
@@ -75,7 +77,8 @@ void HC::CPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
         {
             index = j * Lx + i;
             double temp = T[offset + index] * T[offset + index];
-            dT[offset + index] -= (eps / dz) * SIGMA * temp * temp;
+            double T2_amb = T_amb * T_amb;
+            dT[offset + index] -= (eps / dz) * SIGMA * (temp * temp - T2_amb * T2_amb);
         }
     }
     // Retrieves the temporal derivative of the temperature
@@ -437,7 +440,7 @@ __global__ void HeatFluxContribution(double *dT, double *Q, double amp, double d
         dT[offset + index] += (amp / dz) * Q[index];
     }
 }
-__global__ void Radiation(double *dT, double *T, double eps, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
+__global__ void Radiation(double *dT, double *T, double T_amb, double eps, double dz, unsigned Lx, unsigned Ly, unsigned Lz)
 {
     unsigned xIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned yIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -448,8 +451,9 @@ __global__ void Radiation(double *dT, double *T, double eps, double dz, unsigned
     {
         double T0 = T[index] * T[index];
         double T1 = T[offset + index] * T[offset + index];
-        dT[index] -= (eps / dz) * SIGMA * T0 * T0;
-        dT[offset + index] -= (eps / dz) * SIGMA * T1 * T1;
+        double T2_amb = T_amb * T_amb;
+        dT[index] -= (eps / dz) * SIGMA * (T0 * T0 - T2_amb);
+        dT[offset + index] -= (eps / dz) * SIGMA * (T1 * T1 - T2_amb * T2_amb);
     }
 }
 __global__ void ThermalCapacity(double *dT, double *T, unsigned Lx, unsigned Ly, unsigned Lz)
@@ -473,7 +477,7 @@ void HC::GPU::Diff(double *dT, double *dQ, double *T, double *Q, HCParms &parms)
     MathGPU::Zero(dT, parms.Lx * parms.Ly * parms.Lz);
     Diffusion<<<B3, T3, sizeof(double) * (T3.x + 2) * (T3.y + 2) * (T3.z + 2), cudaStreamDefault>>>(dT, T, parms.dx, parms.dy, parms.dz, parms.Lx, parms.Ly, parms.Lz);
     HeatFluxContribution<<<B2, T2, 0, cudaStreamDefault>>>(dT, Q, parms.amp, parms.dz, parms.Lx, parms.Ly, parms.Lz);
-    Radiation<<<B2, T2, 0, cudaStreamDefault>>>(dT, T, parms.eps, parms.dz, parms.Lx, parms.Ly, parms.Lz);
+    Radiation<<<B2, T2, 0, cudaStreamDefault>>>(dT, T, parms.T_amb, parms.eps, parms.dz, parms.Lx, parms.Ly, parms.Lz);
     ThermalCapacity<<<B3, T3, 0, cudaStreamDefault>>>(dT, T, parms.Lx, parms.Ly, parms.Lz);
     MathGPU::Zero(dQ, parms.Lx * parms.Ly);
 }

@@ -15,7 +15,7 @@ namespace HC
         int Lx, Ly, Lz, Lt;
         double Sx, Sy, Sz, St;
         double dx, dy, dz, dt;
-        double amp, T_ref, eps;
+        double amp, T_amb, T_ref, eps;
     };
 
     __host__ __device__ inline double C(double T_i);

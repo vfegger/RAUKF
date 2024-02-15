@@ -31,7 +31,7 @@ protected:
     Pointer<double> EvaluateStateGPU(Measure *pmeasure, Data *pstate) override;
 
 public:
-    void SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref, double eps = 0.0);
+    void SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref, double eps = 0.0);
     void SetMemory(Type type);
     void UnsetMemory(Type type);
     Data *GenerateData() override;
@@ -59,7 +59,7 @@ protected:
     Pointer<double> EvaluateStateGPU(Measure *pmeasure, Data *pstate) override;
 
 public:
-    void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref = 0.0, double eps = 0.0);
+    void SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref = 0.0, double eps = 0.0);
     void SetMemory(Type type);
     void UnsetMemory(Type type);
     Data *GenerateData() override;

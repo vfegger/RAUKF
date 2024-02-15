@@ -184,7 +184,7 @@ Pointer<double> HFE_RM::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref, double eps)
+void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref, double eps)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -199,6 +199,7 @@ void HFE_RM::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, d
     parms.dz = Sz;
     parms.dt = St / Lt;
     parms.amp = amp;
+    parms.T_amb = T_amb;
     parms.T_ref = T_ref;
     parms.eps = eps;
 }
@@ -406,7 +407,7 @@ Pointer<double> HFE::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_ref, double eps)
+void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref, double eps)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -421,6 +422,7 @@ void HFE::SetParms(int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double 
     parms.dz = Sz / Lz;
     parms.dt = St / Lt;
     parms.amp = amp;
+    parms.T_amb = T_amb;
     parms.T_ref = T_ref;
     parms.eps = eps;
 }

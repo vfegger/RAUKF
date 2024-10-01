@@ -1,7 +1,7 @@
 #ifndef STATISTICS_HEADER
 #define STATISTICS_HEADER
 
-#include <julia.h>
+#include <boost/math/distributions/chi_squared.hpp>
 
 class Statistics
 {

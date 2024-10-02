@@ -40,7 +40,7 @@ public:
     void CorrectEstimation(Data *pstate, Type type) override;
     void CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type) override;
 
-    Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) override;
+    Pointer<double> Evolve(Data *pstate, Control *pcontrol, ExecutionType execType, Type type) override;
     Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
 
     Data *GenerateData() override;

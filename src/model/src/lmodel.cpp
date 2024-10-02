@@ -1,26 +1,26 @@
 #include "../include/lmodel.hpp"
 
-Pointer<double> LModel::Evolve(Data *pstate, ExecutionType execType, Type type)
+Pointer<double> LModel::Evolve(Data *pstate, Control *pcontrol, ExecutionType execType, Type type)
 {
     switch (execType)
     {
     case ExecutionType::Matrix:
         if (type == Type::CPU)
         {
-            return this->EvolveMatrixCPU(pstate);
+            return this->EvolveMatrixCPU(pstate, pcontrol);
         }
         else if (type == Type::GPU)
         {
-            return this->EvolveMatrixGPU(pstate);
+            return this->EvolveMatrixGPU(pstate, pcontrol);
         }
     case ExecutionType::State:
         if (type == Type::CPU)
         {
-            return this->EvolveStateCPU(pstate);
+            return this->EvolveStateCPU(pstate, pcontrol);
         }
         else if (type == Type::GPU)
         {
-            return this->EvolveStateGPU(pstate);
+            return this->EvolveStateGPU(pstate, pcontrol);
         }
         break;
     default:

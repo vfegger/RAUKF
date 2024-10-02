@@ -4,6 +4,7 @@
 #include "../../structure/include/pointer.hpp"
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
+#include "../../structure/include/control.hpp"
 #include "../../math/include/math.hpp"
 #include "../../model/include/model.hpp"
 #include "../../timer/include/timer.hpp"
@@ -18,6 +19,7 @@ private:
     Model *pmodel;
     Data *pstate;
     Measure *pmeasure;
+    Control *pcontrol;
 
     double alpha, beta, kappa;
     double lambda;
@@ -42,6 +44,8 @@ public:
     void SetType(Type type);
     void SetWeight();
     void UnsetWeight();
+    void SetControl(std::string name, double *data);
+    void GetControl(std::string name, double *data);
     void SetMeasure(std::string name, double *data);
     void GetMeasure(std::string name, double *data);
     void GetMeasureCovariance(std::string name, double *data);

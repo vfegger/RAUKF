@@ -1,6 +1,6 @@
 #include "../include/hfe.hpp"
 
-Pointer<double> HFE_RM::EvolveMatrixCPU(Data *pstate)
+Pointer<double> HFE_RM::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 {
     int L = pstate->GetStateLength();
     int L2 = L * L;
@@ -22,7 +22,7 @@ Pointer<double> HFE_RM::EvolveMatrixCPU(Data *pstate)
 
     return workspace;
 }
-Pointer<double> HFE_RM::EvolveMatrixGPU(Data *pstate)
+Pointer<double> HFE_RM::EvolveMatrixGPU(Data *pstate, Control *pcontrol)
 {
     int L = pstate->GetStateLength();
     int L2 = L * L;
@@ -82,7 +82,7 @@ Pointer<double> HFE_RM::EvaluateMatrixGPU(Measure *pmeasure, Data *pstate)
     return workspace + L2;
 }
 
-Pointer<double> HFE_RM::EvolveStateCPU(Data *pstate)
+Pointer<double> HFE_RM::EvolveStateCPU(Data *pstate, Control *pcontrol)
 {
     int L = pstate->GetStateLength();
     int L2 = L * L;
@@ -110,7 +110,7 @@ Pointer<double> HFE_RM::EvolveStateCPU(Data *pstate)
     free(paux);
     return pstate->GetStatePointer();
 }
-Pointer<double> HFE_RM::EvolveStateGPU(Data *pstate)
+Pointer<double> HFE_RM::EvolveStateGPU(Data *pstate, Control *pcontrol)
 {
     int L = pstate->GetStateLength();
     int L2 = L * L;
@@ -264,7 +264,7 @@ Measure *HFE_RM::GenerateMeasure()
     return pm;
 }
 
-Pointer<double> HFE::EvolveInstanceCPU(Data *pstate)
+Pointer<double> HFE::EvolveInstanceCPU(Data *pstate, Control *pcontrol)
 {
     double *pinstances = pstate->GetInstances().host();
 
@@ -284,7 +284,7 @@ Pointer<double> HFE::EvolveInstanceCPU(Data *pstate)
     }
     return pstate->GetInstances();
 }
-Pointer<double> HFE::EvolveInstanceGPU(Data *pstate)
+Pointer<double> HFE::EvolveInstanceGPU(Data *pstate, Control *pcontrol)
 {
     double *pinstances = pstate->GetInstances().dev();
 
@@ -341,7 +341,7 @@ Pointer<double> HFE::EvaluateInstanceGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetInstances();
 }
 
-Pointer<double> HFE::EvolveStateCPU(Data *pstate)
+Pointer<double> HFE::EvolveStateCPU(Data *pstate, Control *pcontrol)
 {
     double *ps = pstate->GetStatePointer().host();
 
@@ -358,7 +358,7 @@ Pointer<double> HFE::EvolveStateCPU(Data *pstate)
 #endif
     return pstate->GetStatePointer();
 }
-Pointer<double> HFE::EvolveStateGPU(Data *pstate)
+Pointer<double> HFE::EvolveStateGPU(Data *pstate, Control *pcontrol)
 {
     double *ps = pstate->GetStatePointer().dev();
 

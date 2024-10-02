@@ -20,13 +20,13 @@ private:
     bool isValidMeasure;
 
 protected:
-    Pointer<double> EvolveMatrixCPU(Data *pstate) override;
-    Pointer<double> EvolveMatrixGPU(Data *pstate) override;
+    Pointer<double> EvolveMatrixCPU(Data *pstate, Control *pcontrol) override;
+    Pointer<double> EvolveMatrixGPU(Data *pstate, Control *pcontrol) override;
     Pointer<double> EvaluateMatrixCPU(Measure *pmeasure, Data *pstate) override;
     Pointer<double> EvaluateMatrixGPU(Measure *pmeasure, Data *pstate) override;
 
-    Pointer<double> EvolveStateCPU(Data *pstate) override;
-    Pointer<double> EvolveStateGPU(Data *pstate) override;
+    Pointer<double> EvolveStateCPU(Data *pstate, Control *pcontrol) override;
+    Pointer<double> EvolveStateGPU(Data *pstate, Control *pcontrol) override;
     Pointer<double> EvaluateStateCPU(Measure *pmeasure, Data *pstate) override;
     Pointer<double> EvaluateStateGPU(Measure *pmeasure, Data *pstate) override;
 
@@ -48,13 +48,13 @@ private:
     double *workspace;
 
 protected:
-    Pointer<double> EvolveInstanceCPU(Data *pstate) override;
-    Pointer<double> EvolveInstanceGPU(Data *pstate) override;
+    Pointer<double> EvolveInstanceCPU(Data *pstate, Control *pcontrol) override;
+    Pointer<double> EvolveInstanceGPU(Data *pstate, Control *pcontrol) override;
     Pointer<double> EvaluateInstanceCPU(Measure *pmeasure, Data *pstate) override;
     Pointer<double> EvaluateInstanceGPU(Measure *pmeasure, Data *pstate) override;
 
-    Pointer<double> EvolveStateCPU(Data *pstate) override;
-    Pointer<double> EvolveStateGPU(Data *pstate) override;
+    Pointer<double> EvolveStateCPU(Data *pstate, Control *pcontrol) override;
+    Pointer<double> EvolveStateGPU(Data *pstate, Control *pcontrol) override;
     Pointer<double> EvaluateStateCPU(Measure *pmeasure, Data *pstate) override;
     Pointer<double> EvaluateStateGPU(Measure *pmeasure, Data *pstate) override;
 

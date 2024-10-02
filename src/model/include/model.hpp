@@ -4,6 +4,7 @@
 #include "../../structure/include/pointer.hpp"
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
+#include "../../structure/include/control.hpp"
 
 enum ExecutionType
 {
@@ -20,7 +21,7 @@ protected:
     MeasureLoader measureLoader;
 
 public:
-    virtual Pointer<double> Evolve(Data *pstate, ExecutionType execType, Type type) = 0;
+    virtual Pointer<double> Evolve(Data *pstate, Control* pcontrol, ExecutionType execType, Type type) = 0;
     virtual Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) = 0;
 
     virtual void CorrectEstimation(Data *pstate, Type type);

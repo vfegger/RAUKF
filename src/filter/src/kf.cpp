@@ -132,6 +132,7 @@ void KF::Iterate(Timer &timer)
 
     Pointer<double> KT;
     Pointer<double> F;
+    Pointer<double> B;
     Pointer<double> H;
 
     Pointer<double> v_0;
@@ -154,7 +155,8 @@ void KF::Iterate(Timer &timer)
     std::cout << "Iteration:\n\tState length: " << Lx << "; Observation length: " << Ly << "\n";
     timer.Record(type);
 
-    F = pmodel->Evolve(pstate, ExecutionType::Matrix, type);
+    F = pmodel->Evolve(pstate, pcontrol, ExecutionType::Matrix, type);
+    B = F + Lx * Lx;
     timer.Record(type);
 
     H = pmodel->Evaluate(pmeasure, pstate, ExecutionType::Matrix, type);
@@ -191,7 +193,7 @@ void KF::Iterate(Timer &timer)
     Math::MatMulNN(0.0, workspaceLxLy, 1.0, H, Pxx, Ly, Lx, Lx, type);
     Math::MatMulNT(0.0, Pyy, 1.0, workspaceLxLy, H, Ly, Lx, Ly, type);
     timer.Record(type);
-    
+
     pmodel->CorrectEvaluation(pmeasure, pstate, type);
 
     workspaceLxLy.free();

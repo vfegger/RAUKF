@@ -72,7 +72,7 @@ void AEM::CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type)
     Math::Add(pmeasure->GetMeasureCovariancePointer(), covarMeasure, L * L, type);
 }
 
-Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
+Pointer<double> AEM::Evolve(Data *pstate, Control *pcontrol, ExecutionType execType, Type type)
 {
     unsigned Lr = prState->GetStateLength();
     unsigned Lc = pcState->GetStateLength();
@@ -92,8 +92,8 @@ Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
         R2C(prState, pcState);
 
         // AEM Sampled States Evolution
-        reducedModel->Evolve(prState, ExecutionType::State, type);
-        completeModel->Evolve(pcState, ExecutionType::State, type);
+        reducedModel->Evolve(prState, pcontrol, ExecutionType::State, type);
+        completeModel->Evolve(pcState, pcontrol, ExecutionType::State, type);
 
         // Retrive Reduced State from Complete State
         prState->SwapStatePointer(samplesState + Lr * N + Lr * i);
@@ -108,7 +108,7 @@ Pointer<double> AEM::Evolve(Data *pstate, ExecutionType execType, Type type)
     Math::Iterate(Math::Sub, samplesState, errorState, Lr, N, Lr, 0, Lr * N, 0, type);
     Math::MatMulNT(0.0, covarState, 1.0 / (N - 1.0), samplesState + Lr * N, samplesState + Lr * N, Lr, N, Lr, type);
 
-    return reducedModel->Evolve(pstate, execType, type);
+    return reducedModel->Evolve(pstate, pcontrol, execType, type);
 }
 
 Pointer<double> AEM::Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type)

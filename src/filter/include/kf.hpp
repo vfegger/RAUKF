@@ -4,6 +4,7 @@
 #include "../../structure/include/pointer.hpp"
 #include "../../structure/include/data.hpp"
 #include "../../structure/include/measure.hpp"
+#include "../../structure/include/control.hpp"
 #include "../../math/include/math.hpp"
 #include "../../model/include/model.hpp"
 #include "../../timer/include/timer.hpp"
@@ -16,6 +17,7 @@ private:
     Model *pmodel;
     Data *pstate;
     Measure *pmeasure;
+    Control *pcontrol;
 
     Type type;
 

@@ -26,6 +26,7 @@ void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> 
 
 void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lz, int Lt, double Sx, double Sy, double Sz, double St, double amp, double T_amb, double T_ref, double eps, Type type)
 {
+    std::cout << "Generating synthetic measurements.\n";
     double *workspace;
     HC::HCParms parms;
     int Lsx = 4 * Lx;

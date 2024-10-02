@@ -1,27 +1,27 @@
 #include "../include/nlmodel.hpp"
 
-Pointer<double> NLModel::Evolve(Data *pstate, ExecutionType execType, Type type)
+Pointer<double> NLModel::Evolve(Data *pstate, Control *pcontrol, ExecutionType execType, Type type)
 {
     switch (execType)
     {
     case ExecutionType::State:
         if (type == Type::CPU)
         {
-            return this->EvolveStateCPU(pstate);
+            return this->EvolveStateCPU(pstate, pcontrol);
         }
         else if (type == Type::GPU)
         {
-            return this->EvolveStateGPU(pstate);
+            return this->EvolveStateGPU(pstate, pcontrol);
         }
         break;
     case ExecutionType::Instance:
         if (type == Type::CPU)
         {
-            return this->EvolveInstanceCPU(pstate);
+            return this->EvolveInstanceCPU(pstate, pcontrol);
         }
         else if (type == Type::GPU)
         {
-            return this->EvolveInstanceGPU(pstate);
+            return this->EvolveInstanceGPU(pstate, pcontrol);
         }
         break;
     default:

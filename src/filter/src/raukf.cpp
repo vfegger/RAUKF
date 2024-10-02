@@ -83,6 +83,16 @@ void RAUKF::UnsetWeight()
     wc.free();
 }
 
+void RAUKF::SetControl(std::string name, double *data)
+{
+    this->pcontrol->SetControlData(name, data);
+}
+
+void RAUKF::GetControl(std::string name, double *data)
+{
+    this->pcontrol->GetControlData(name, data);
+}
+
 void RAUKF::SetMeasure(std::string name, double *data)
 {
     this->pmeasure->SetMeasureData(name, data);
@@ -233,6 +243,8 @@ void RAUKF::Iterate(Timer &timer)
     Pointer<double> ym = this->pmeasure->GetMeasureData();
     Pointer<double> R = this->pmeasure->GetMeasureNoisePointer();
 
+    Pointer<double> u = this->pcontrol->GetControlPointer();
+
     Pointer<double> PxyT;
     Pointer<double> KT;
     Pointer<double> workspaceLx;
@@ -246,6 +258,7 @@ void RAUKF::Iterate(Timer &timer)
     int Lx = this->pstate->GetStateLength();
     int Ls = this->pstate->GetSigmaLength();
     int Ly = this->pmeasure->GetMeasureLength();
+    int Lu = this->pcontrol->GetControlLength();
 
     PxyT.alloc(Lx * Ly);
     KT.alloc(Lx * Ly);
@@ -264,7 +277,7 @@ void RAUKF::Iterate(Timer &timer)
     timer.Record(type);
 
     // Evolve and Measure each state given by each sigma point
-    pmodel->Evolve(pstate, ExecutionType::Instance, type);
+    pmodel->Evolve(pstate, pcontrol, ExecutionType::Instance, type);
     timer.Record(type);
 
     pmodel->Evaluate(pmeasure, pstate, ExecutionType::Instance, type);

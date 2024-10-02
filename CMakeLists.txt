@@ -3,11 +3,12 @@ cmake_minimum_required(VERSION 3.24.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_ARCHITECTURES 61 86)
 
 project(HFE_RAUKF VERSION 0.1)
+
+enable_language(CUDA)
 
 # Add Libraries
 add_subdirectory(src/structure)

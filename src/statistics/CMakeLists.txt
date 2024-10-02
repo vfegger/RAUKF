@@ -12,7 +12,7 @@ add_library(${target} ${source})
 target_include_directories(${target} PUBLIC ${include_path})
 
 # Find Boost
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG)
 
 # Link Boost libraries to the target
 target_link_libraries(${target} PUBLIC Boost::boost)

@@ -18,6 +18,7 @@ class Model
 private:
 protected:
     DataLoader dataLoader;
+    ControlLoader controlLoader;
     MeasureLoader measureLoader;
 
 public:
@@ -28,6 +29,7 @@ public:
     virtual void CorrectEvaluation(Measure *pmeasure, Data *pstate, Type type);
 
     virtual Data *GenerateData() = 0;
+    virtual Control *GenerateControl() = 0;
     virtual Measure *GenerateMeasure() = 0;
 };
 

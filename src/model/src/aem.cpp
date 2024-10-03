@@ -92,8 +92,8 @@ Pointer<double> AEM::Evolve(Data *pstate, Control *pcontrol, ExecutionType execT
         R2C(prState, pcState);
 
         // AEM Sampled States Evolution
-        reducedModel->Evolve(prState, pcontrol, ExecutionType::State, type);
-        completeModel->Evolve(pcState, pcontrol, ExecutionType::State, type);
+        reducedModel->Evolve(prState, prControl, ExecutionType::State, type);
+        completeModel->Evolve(pcState, pcControl, ExecutionType::State, type);
 
         // Retrive Reduced State from Complete State
         prState->SwapStatePointer(samplesState + Lr * N + Lr * i);
@@ -162,6 +162,15 @@ Data *AEM::GenerateData()
 
     return prState;
 }
+
+Control *AEM::GenerateControl()
+{
+    prControl = reducedModel->GenerateControl();
+    pcControl = completeModel->GenerateControl();
+
+    return prControl;
+}
+
 
 Measure *AEM::GenerateMeasure()
 {

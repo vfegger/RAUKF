@@ -26,6 +26,7 @@ void RAUKF::SetModel(Model *pmodel)
     {
         this->pmodel = pmodel;
         this->pstate = pmodel->GenerateData();
+        this->pcontrol = pmodel->GenerateControl();
         this->pmeasure = pmodel->GenerateMeasure();
         pstate->SetInstances();
         pmeasure->SetInstances(this->pstate->GetStateLength());

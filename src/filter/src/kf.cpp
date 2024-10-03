@@ -19,6 +19,7 @@ void KF::SetModel(Model *pmodel)
     {
         this->pmodel = pmodel;
         this->pstate = pmodel->GenerateData();
+        this->pcontrol = pmodel->GenerateControl();
         this->pmeasure = pmodel->GenerateMeasure();
     }
     else

@@ -18,6 +18,8 @@ protected:
 
     Data *prState;
     Data *pcState;
+    Control *prControl;
+    Control *pcControl;
     Measure *prMeasure;
     Measure *pcMeasure;
 
@@ -44,6 +46,7 @@ public:
     Pointer<double> Evaluate(Measure *pmeasure, Data *pstate, ExecutionType execType, Type type) override;
 
     Data *GenerateData() override;
+    Control *GenerateControl() override;
     Measure *GenerateMeasure() override;
 };
 

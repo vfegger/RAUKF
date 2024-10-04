@@ -35,6 +35,7 @@ public:
     void SetMemory(Type type);
     void UnsetMemory(Type type);
     Data *GenerateData() override;
+    Control *GenerateControl() override;
     Measure *GenerateMeasure() override;
 
     friend class HFE_AEM;
@@ -63,19 +64,21 @@ public:
     void SetMemory(Type type);
     void UnsetMemory(Type type);
     Data *GenerateData() override;
+    Control *GenerateControl() override;
     Measure *GenerateMeasure() override;
-    
+
     friend class HFE_AEM;
 };
 
 class HFE_AEM : public AEM
 {
-private:    
+private:
     Pointer<double> workspace;
     Type type;
+
 protected:
 public:
-    void SetModel(HFE_RM* rm, HFE* cm);
+    void SetModel(HFE_RM *rm, HFE *cm);
     void SetMemory(Type type);
     void UnsetMemory(Type type);
 

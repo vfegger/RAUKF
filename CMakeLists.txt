@@ -13,6 +13,7 @@ enable_language(CUDA)
 # Add Libraries
 add_subdirectory(src/structure)
 add_subdirectory(src/hfe)
+add_subdirectory(src/hfe2D)
 add_subdirectory(src/math)
 add_subdirectory(src/model)
 add_subdirectory(src/timer)
@@ -21,5 +22,7 @@ add_subdirectory(src/statistics)
 
 # Add executables
 add_executable(${PROJECT_NAME} main.cpp)
-
 target_link_libraries(${PROJECT_NAME} PUBLIC Structure HFE Math Model Timer Filter Statistics)
+
+add_executable(${PROJECT_NAME}_test main_test.cpp)
+target_link_libraries(${PROJECT_NAME}_test PUBLIC Structure HFE2D Math Model Timer Filter Statistics)

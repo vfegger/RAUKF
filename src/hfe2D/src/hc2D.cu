@@ -18,6 +18,7 @@ void HC2D::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
+    double c = parms.Sz;
     double amp = parms.amp;
     double h = parms.h;
 
@@ -50,7 +51,7 @@ void HC2D::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *
                 aux += KT / (CT * dy * dy);
                 pmTT_o[(index + Lx) * L + index] = KT / (CT * dy * dy);
             }
-            pmTT_o[index * L + index] = -aux - h / dz;
+            pmTT_o[index * L + index] = -aux - h / c;
         }
     }
 
@@ -61,7 +62,7 @@ void HC2D::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *
         {
             double CT = C((i + 0.5) * dx, (j + 0.5) * dy);
             index = j * Lx + i;
-            pmQT_o[index * L + index] = amp / (dz * CT);
+            pmQT_o[index * L + index] = amp / (c * CT);
         }
     }
 }
@@ -75,6 +76,7 @@ void HC2D::CPU::EvolutionControlMatrix(double *pmUT_o, double *pmUQ_o, HCParms &
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
+    double c = parms.Sz;
     double h = parms.h;
 
     // Control Input Temperature Contribution
@@ -84,7 +86,7 @@ void HC2D::CPU::EvolutionControlMatrix(double *pmUT_o, double *pmUQ_o, HCParms &
         {
             double CT = C((i + 0.5) * dx, (j + 0.5) * dy);
             index = j * Lx + i;
-            pmUT_o[index] = h / (dz * CT);
+            pmUT_o[index] = h / (c * CT);
         }
     }
     // Control Input Heat Flux Contribution
@@ -106,7 +108,7 @@ void HC2D::CPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parms)
     int Lxy = parms.Lx * parms.Ly;
     double dx = parms.dx;
     double dy = parms.dy;
-    double dz = parms.dz;
+    double c = parms.Sz;
 
     // Surface Temperature
     for (int j = 0; j < Ly; j++)
@@ -117,7 +119,7 @@ void HC2D::CPU::EvaluationMatrix(double *pmTT_o, double *pmQT_o, HCParms &parms)
             index = j * Lx + i;
             pmTT_o[index * Lxy + index] = 1;
 #if ILSA == 1
-            pmQT_o[index * Lxy + index] = -dz * parms.amp / (6 * KT);
+            pmQT_o[index * Lxy + index] = -c * parms.amp / (6 * KT);
 #endif
         }
     }
@@ -158,7 +160,7 @@ void HC2D::GPU::EvolutionControlMatrix(double *pmUT_o, double *pmUQ_o, HCParms &
     int Lxy = parms.Lx * parms.Ly;
     double *pm, *pm_o, *pmTT, *pmQT;
     int stride12 = pmUT_o - pmUQ_o;
-    
+
     pm = (double *)malloc(sizeof(double) * 2 * Lxy);
     for (int i = 0; i < 2 * Lxy; i++)
     {

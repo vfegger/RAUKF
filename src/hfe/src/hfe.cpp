@@ -247,6 +247,10 @@ Data *HFE_RM::GenerateData()
     free(T);
     return pd;
 }
+Control *HFE_RM::GenerateControl()
+{
+    return Model::controlLoader.Load();
+}
 Measure *HFE_RM::GenerateMeasure()
 {
     std::string nameT = "Temperature";
@@ -505,6 +509,10 @@ Data *HFE::GenerateData()
     free(Q);
     free(T);
     return pd;
+}
+Control *HFE::GenerateControl()
+{
+    return Model::controlLoader.Load();
 }
 Measure *HFE::GenerateMeasure()
 {

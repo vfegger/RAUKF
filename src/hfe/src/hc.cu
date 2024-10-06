@@ -646,8 +646,8 @@ void HC::RM::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double
     }
 
     pmTT = pm + std::max(-stride22, 0);
-    pmTQ = pm + std::max(-stride22, 0) + std::max(stride11, 0);
-    pmQT = pm + std::max(stride22, 0) + std::max(-stride11, 0);
+    pmTQ = pm + std::max(-stride22, 0) + stride11;
+    pmQT = pm + std::max(stride22, 0) - stride11;
     pmQQ = pm + std::max(stride22, 0);
 
     HC::RM::CPU::EvolutionJacobianMatrix(pmTT, pmTQ, pmQT, pmQQ, parms);

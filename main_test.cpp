@@ -6,6 +6,8 @@
 
 #include <fstream>
 #include <random>
+#include <string>
+#include <format>
 
 #define RAUKF_USAGE 0
 #define KF_USAGE 1
@@ -25,11 +27,12 @@ void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> 
 
 void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, Type type)
 {
+    std::cout << "Generating synthetic measurements.\n";
     double *workspace;
     HC2D::HCParms parms;
-    int Lsx = 4 * Lx;
-    int Lsy = 4 * Ly;
-    int n = 100;
+    int Lsx = Lx;
+    int Lsy = Ly;
+    int n = 2000;
     int Lst = n * Lt;
     int L = 2 * Lsx * Lsy;
     int Lu = 1;
@@ -85,8 +88,40 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     {
         T.copyHost2Dev(Lsx * Lsy);
         Q.copyHost2Dev(Lsx * Lsy);
+        U.copyHost2Dev(Lu);
         cudaDeviceSynchronize();
     }
+    // Invariant Evolution
+    if (type == Type::GPU)
+    {
+        HC2D::GPU::EvolutionJacobianMatrix(TT.dev(), TQ.dev(), QT.dev(), QQ.dev(), parms);
+        HC2D::GPU::EvolutionControlMatrix(UT.dev(), UQ.dev(), parms);
+        XX.copyDev2Host(L * L);
+        cudaDeviceSynchronize();
+    }
+    else
+    {
+        HC2D::CPU::EvolutionJacobianMatrix(TT.host(), TQ.host(), QT.host(), QQ.host(), parms);
+        HC2D::CPU::EvolutionControlMatrix(UT.host(), UQ.host(), parms);
+    }
+
+    for (int i = 0; i < L; ++i)
+    {
+        double *XX_h = XX.host();
+        std::cout << " " << std::format("{:.10f}", parms.dt * XX_h[i * L + i]);
+    }
+
+    double p = 50;
+    double a = 1.364e-2;
+    double b = 0.922e-2;
+    double c = 0.330e-2;
+    double Sx1 = (Sx - c) / 2.0 - b;
+    double Sx2 = (Sx + c) / 2.0;
+    double Sy1 = (Sy - a) / 2.0;
+    double St1 = 0.0;
+    double St2 = 20.0;
+    double w = p / (2 * a * b);
+
     for (int k = 0; k < Lst; ++k)
     {
         // Heat Flux Definition
@@ -95,26 +130,19 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         {
             for (int i = 0; i < Lsx; ++i)
             {
-                bool xCond = (i + 0.5) * Sx / Lsx > 0.3 * Sx && (i + 0.5) * Sx / Lsx < 0.7 * Sx;
-                bool yCond = (j + 0.5) * Sy / Lsy > 0.3 * Sy && (j + 0.5) * Sy / Lsy < 0.7 * Sy;
-                bool tCond = k * St / Lst > 1.0 && k * St / Lst < 5.0;
-                Qh[j * Lsx + i] = (xCond && yCond && tCond) ? 100.0 : 0.0;
+                double xi = (i + 0.5) * Sx / Lsx;
+                double yj = (j + 0.5) * Sy / Lsy;
+                bool xCond = (xi > Sx1 && xi < Sx1 + b) || (xi > Sx2 && xi < Sx2 + b);
+                bool yCond = (yj > Sy1 && yj < Sy1 + a);
+                bool tCond = k * St / Lst > 0.0 && k * St / Lst < 0.1 * St;
+                Qh[j * Lsx + i] = (xCond && yCond && tCond) ? w : 0.0;
             }
         }
         if (type == Type::GPU)
         {
             Q.copyHost2Dev(Lsx * Lsy);
-            MathGPU::Copy(aux.dev(), X.dev(), L);
-            HC2D::GPU::EvolutionJacobianMatrix(TT.dev(), TQ.dev(), QT.dev(), QQ.dev(), parms);
-            HC2D::GPU::EvolutionControlMatrix(UT.dev(), UQ.dev(), parms);
         }
-        else
-        {
-            MathGPU::Copy(aux.host(), X.host(), L);
-            HC2D::CPU::EvolutionJacobianMatrix(TT.host(), TQ.host(), QT.host(), QQ.host(), parms);
-            HC2D::CPU::EvolutionControlMatrix(UT.host(), UQ.host(), parms);
-        }
-        cudaDeviceSynchronize();
+        Math::Copy(aux, X, L, type);
         Math::MatMulNN(1.0, X, parms.dt, XX, aux, L, L, 1, type);
         Math::MatMulNN(1.0, X, parms.dt, UX, U, L, Lu, 1, type);
         if (k % n == n - 1)
@@ -122,6 +150,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
             Interpolation::Rescale(T, Lsx, Lsy, Tr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);
             Interpolation::Rescale(Q, Lsx, Lsy, Qr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);
         }
+        std::cout << "Iteration: " << k + 1 << "/" << Lst << "\r" << std::flush;
     }
 
     if (type == Type::GPU)
@@ -130,8 +159,12 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         Qr.copyDev2Host(Lt * Lx * Ly);
         cudaDeviceSynchronize();
     }
-
+    std::cout << "\n";
     MathCPU::Copy(measures, Tr.host(), Lx * Ly * Lt);
+    for (int k = 0; k < Lt; ++k)
+    {
+        std::cout << std::format("{:.8f}", measures[k * Lx * Ly + Lx * (Ly + 1) / 2]) << "\n";
+    }
     MathCPU::Copy(Q_ref, Qr.host(), Lx * Ly * Lt);
     Qr.free();
     Tr.free();
@@ -154,15 +187,15 @@ int main(int argc, char *argv[])
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    int Lx = 100;
-    int Ly = 100;
+    int Lx = 32;
+    int Ly = 32;
     int Lt = 500;
     double Sx = 0.0296;
     double Sy = 0.0296;
     double Sz = 0.0015;
-    double St = 10.0;
-    double amp = 5e4;
-    double h = 11.0;
+    double St = 1000.0;
+    double amp = 1;
+    double h = 0.0; // 11.0;
 
     std::ofstream outParms;
     int temp;

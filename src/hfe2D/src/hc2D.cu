@@ -2,11 +2,11 @@
 
 __host__ __device__ inline double HC2D::C(double x, double y)
 {
-    return x + y;
+    return 385 * 8960;
 }
 __host__ __device__ inline double HC2D::K(double x, double y)
 {
-    return x + y;
+    return 400;
 }
 
 void HC2D::CPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *pmQT_o, double *pmQQ_o, HCParms &parms)
@@ -141,8 +141,8 @@ void HC2D::GPU::EvolutionJacobianMatrix(double *pmTT_o, double *pmTQ_o, double *
     }
 
     pmTT = pm + std::max(-stride22, 0);
-    pmTQ = pm + std::max(-stride22, 0) + std::max(stride11, 0);
-    pmQT = pm + std::max(stride22, 0) + std::max(-stride11, 0);
+    pmTQ = pm + std::max(-stride22, 0) + stride11;
+    pmQT = pm + std::max(stride22, 0) - stride11;
     pmQQ = pm + std::max(stride22, 0);
 
     HC2D::CPU::EvolutionJacobianMatrix(pmTT, pmTQ, pmQT, pmQQ, parms);

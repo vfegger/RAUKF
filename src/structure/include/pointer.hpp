@@ -2,6 +2,7 @@
 #define POINTER_HEADER
 
 #include <stdlib.h>
+#include <iostream>
 #include <cuda_runtime.h>
 
 enum Type
@@ -42,8 +43,15 @@ public:
 
     void alloc(unsigned length)
     {
-        cudaMallocHost(&pHost, sizeof(T) * length);
-        cudaMallocAsync(&pDev, sizeof(T) * length, cudaStreamDefault);
+        cudaError_t errh = cudaMallocHost(&pHost, sizeof(T) * length);
+        cudaError_t errd = cudaMallocAsync(&pDev, sizeof(T) * length, cudaStreamDefault);
+        if (pHost == NULL || pDev == NULL)
+        {
+            printf("Error status is %s\n", cudaGetErrorString(errh));
+            printf("Error status is %s\n", cudaGetErrorString(errd));
+            std::cout << "Allocation Failed.\n Host pointer: " << pHost << "Device Pointer:" << pDev << "\n";
+            throw std::bad_alloc();
+        }
     }
 
     void free()

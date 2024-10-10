@@ -17,10 +17,7 @@ Pointer<double> HFE2D::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        HC2D::CPU::EvolutionControlMatrix(puwork + offsetT, puwork + offsetQ, parms);
-        MathCPU::Mul(pwork, parms.dt, L2 + L2u);
-        MathCPU::AddIdentity(pwork, L, L);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -43,10 +40,7 @@ Pointer<double> HFE2D::EvolveMatrixGPU(Data *pstate, Control *pcontrol)
 
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        HC2D::GPU::EvolutionControlMatrix(puwork + offsetT, puwork + offsetQ, parms);
-        MathGPU::Mul(pwork, parms.dt, L2 + L2u);
-        MathGPU::AddIdentity(pwork, L, L);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -111,8 +105,7 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
     MathCPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        HC2D::CPU::EvolutionControlMatrix(puwork + offsetT, puwork + offsetQ, parms);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         MathCPU::Mul(pwork, parms.dt, L2 + L2u);
         MathCPU::AddIdentity(pwork, L, L);
         isValidState = true;
@@ -146,10 +139,7 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
     MathGPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionJacobianMatrix(pwork + offsetT2, pwork + offsetT2 + (offsetQ - offsetT), pwork + offsetQ2 + (offsetT - offsetQ), pwork + offsetQ2, parms);
-        HC2D::GPU::EvolutionControlMatrix(puwork + offsetT, puwork + offsetQ, parms);
-        MathGPU::Mul(pwork, parms.dt, L2 + L2u);
-        MathGPU::AddIdentity(pwork, L, L);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 

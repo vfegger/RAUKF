@@ -5,6 +5,8 @@
 #include <random>
 #include <curand.h>
 
+#define IMPLICIT_SCHEME 1
+
 namespace HC2D
 {
     struct HCParms
@@ -13,23 +15,43 @@ namespace HC2D
         double Sx, Sy, Sz, St;
         double dx, dy, dt;
         double amp, h;
+
+        bool operator==(const HCParms &rhs)
+        {
+            return (this->Lx == rhs.Lx) && (this->Ly == rhs.Ly) && (this->Lt == rhs.Lt) &&
+                   (this->Sx == rhs.Sx) && (this->Sy == rhs.Sy) && (this->Sz == rhs.Sz) && (this->St == rhs.St) &&
+                   (this->dx == rhs.dx) && (this->dy == rhs.dy) && (this->dt == rhs.dt) &&
+                   (this->amp == rhs.amp) && (this->h == rhs.h);
+        }
     };
 
     __host__ __device__ inline double C(double x, double y);
     __host__ __device__ inline double K(double x, double y);
 
+    void validate(HCParms &parms);
+    HCParms refparms;
+    Pointer<double> AI;  // Matrix A Implicit
+    Pointer<double> BE;  // Matrix B Explicit
+    Pointer<double> CE;  // Matrix C Explicit
+    Pointer<double> ATA; // Matrix A^T*A to solve a LP
+    Pointer<double> JX;  // Matrix J over X
+    Pointer<double> JU;  // Matrix J over U
+    bool isValid = false;
+
     namespace CPU
     {
-        void EvolutionJacobianMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
-        void EvolutionControlMatrix(double *mUT, double *mUQ, HCParms &parms);
-        void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
+        void ImplicitScheme(HCParms &parms, int strideTQ);
+        void ExplicitScheme(HCParms &parms, int strideTQ);
+        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
+        void EvaluationMatrix(HCParms &parms, double *mTT, double *mQT);
     };
 
     namespace GPU
     {
-        void EvolutionJacobianMatrix(double *mTT, double *mTQ, double *mQT, double *mQQ, HCParms &parms);
-        void EvolutionControlMatrix(double *mUT, double *mUQ, HCParms &parms);
-        void EvaluationMatrix(double *mTT, double *mQT, HCParms &parms);
+        void ImplicitScheme(HCParms &parms, int strideTQ);
+        void ExplicitScheme(HCParms &parms, int strideTQ);
+        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
+        void EvaluationMatrix(HCParms &parms, double *mTT, double *mQT);
     };
 }
 

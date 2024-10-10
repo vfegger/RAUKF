@@ -45,10 +45,10 @@ public:
     {
         cudaError_t errh = cudaMallocHost(&pHost, sizeof(T) * length);
         cudaError_t errd = cudaMallocAsync(&pDev, sizeof(T) * length, cudaStreamDefault);
-        if (pHost == NULL || pDev == NULL)
+        if (errh != cudaSuccess || errd != cudaSuccess)
         {
-            printf("Error status is %s\n", cudaGetErrorString(errh));
-            printf("Error status is %s\n", cudaGetErrorString(errd));
+            printf("Host error status is %s\n", cudaGetErrorString(errh));
+            printf("Device error status is %s\n", cudaGetErrorString(errd));
             std::cout << "Allocation Failed.\n Host pointer: " << pHost << "Device Pointer:" << pDev << "\n";
             throw std::bad_alloc();
         }
@@ -56,8 +56,17 @@ public:
 
     void free()
     {
-        cudaFreeHost(pHost);
-        cudaFreeAsync(pDev, cudaStreamDefault);
+        cudaError_t errh = cudaFreeHost(pHost);
+        cudaError_t errd = cudaFreeAsync(pDev, cudaStreamDefault);
+        if (errh != cudaSuccess || errd != cudaSuccess)
+        {
+            printf("Host error status is %s\n", cudaGetErrorString(errh));
+            printf("Device error status is %s\n", cudaGetErrorString(errd));
+            std::cout << "Allocation Failed.\n Host pointer: " << pHost << "Device Pointer:" << pDev << "\n";
+            throw std::bad_alloc();
+        }
+        pHost = NULL;
+        pDev = NULL;
     }
 
     void copyHost2Dev(unsigned length)

@@ -59,7 +59,7 @@ Pointer<double> HFE2D::EvaluateMatrixCPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::CPU::EvaluationMatrix(pwork + offsetT * Lm, pwork + offsetQ * Lm, parms);
+        HC2D::CPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
         isValidMeasure = true;
     }
     return workspaceMeasure;
@@ -77,7 +77,7 @@ Pointer<double> HFE2D::EvaluateMatrixGPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::GPU::EvaluationMatrix(pwork + offsetT * Lm, pwork + offsetQ * Lm, parms);
+        HC2D::GPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
         isValidMeasure = true;
     }
 
@@ -105,9 +105,7 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
     MathCPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
-        MathCPU::Mul(pwork, parms.dt, L2 + L2u);
-        MathCPU::AddIdentity(pwork, L, L);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);;
         isValidState = true;
     }
 
@@ -164,7 +162,7 @@ Pointer<double> HFE2D::EvaluateStateCPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::CPU::EvaluationMatrix(pwork + offsetT * Lm, pwork + offsetQ * Lm, parms);
+        HC2D::CPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
         isValidMeasure = true;
     }
     MathCPU::MatMulNN(0.0, pm, 1.0, pwork, ps, Lm, L, 1);
@@ -186,7 +184,7 @@ Pointer<double> HFE2D::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::GPU::EvaluationMatrix(pwork + offsetT * Lm, pwork + offsetQ * Lm, parms);
+        HC2D::GPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
         isValidMeasure = true;
     }
     MathGPU::MatMulNN(0.0, pm, 1.0, pwork, ps, Lm, L, 1);

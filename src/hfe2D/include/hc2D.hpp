@@ -29,14 +29,14 @@ namespace HC2D
     __host__ __device__ inline double K(double x, double y);
 
     void validate(HCParms &parms);
-    HCParms refparms;
-    Pointer<double> AI;  // Matrix A Implicit
-    Pointer<double> BE;  // Matrix B Explicit
-    Pointer<double> CE;  // Matrix C Explicit
-    Pointer<double> ATA; // Matrix A^T*A to solve a LP
-    Pointer<double> JX;  // Matrix J over X
-    Pointer<double> JU;  // Matrix J over U
-    bool isValid = false;
+    static HCParms refparms;
+    static Pointer<double> AI;  // Matrix A Implicit
+    static Pointer<double> BE;  // Matrix B Explicit
+    static Pointer<double> CE;  // Matrix C Explicit
+    static Pointer<double> ATA; // Matrix A^T*A to solve a LP
+    static Pointer<double> JX;  // Matrix J over X
+    static Pointer<double> JU;  // Matrix J over U
+    static bool isValid = false;
 
     namespace CPU
     {

@@ -51,8 +51,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
 
     Pointer<double> X, T, Q, aux;
     Pointer<double> U, T_amb;
-    Pointer<double> XX, TT, TQ, QT, QQ;
-    Pointer<double> UX, UT, UQ;
+    Pointer<double> XX, UX;
     Pointer<double> Tr, Qr;
     X.alloc(L);
     T = X;
@@ -63,14 +62,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     T_amb = U;
 
     XX.alloc(L * L);
-    TT = XX;
-    TQ = XX + Lsx * Lsy;
-    QT = XX + Lsx * Lsy * L;
-    QQ = XX + Lsx * Lsy * L + Lsx * Lsy;
-
     UX.alloc(L * Lu);
-    UT = UX;
-    UQ = UX + Lsx * Lsy;
 
     Tr.alloc(Lt * Lx * Ly);
     Qr.alloc(Lt * Lx * Ly);
@@ -94,15 +86,13 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     // Invariant Evolution
     if (type == Type::GPU)
     {
-        HC2D::GPU::EvolutionJacobianMatrix(TT.dev(), TQ.dev(), QT.dev(), QQ.dev(), parms);
-        HC2D::GPU::EvolutionControlMatrix(UT.dev(), UQ.dev(), parms);
+        HC2D::GPU::EvolutionMatrix(parms, XX.dev(), UX.dev(), Lsx * Lsy);
         XX.copyDev2Host(L * L);
         cudaDeviceSynchronize();
     }
     else
     {
-        HC2D::CPU::EvolutionJacobianMatrix(TT.host(), TQ.host(), QT.host(), QQ.host(), parms);
-        HC2D::CPU::EvolutionControlMatrix(UT.host(), UQ.host(), parms);
+        HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), Lsx * Lsy);
     }
 
     for (int i = 0; i < L; ++i)

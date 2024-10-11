@@ -20,13 +20,14 @@ void HC2D::validate(HCParms &parms)
         }
         int Lxy = parms.Lx * parms.Ly;
         int Lu = 1;
-        int L = Lxy * Lxy;
-        AI.alloc(3 * L * L + 2 * L * Lu);
-        BE = AI + L * L;
-        CE = BE + L * L;
-        ATA = CE + L * Lu;
-        JX = ATA + L * L;
-        JU = JX + L * L;
+        int L = Lxy + Lxy;
+        int L2 = L * L;
+        AI.alloc(L2);
+        BE.alloc(L2);
+        CE.alloc(L * Lu);
+        ATA.alloc(L2);
+        JX.alloc(L2);
+        JU.alloc(L * Lu);
         isValid = false;
     }
 }
@@ -274,8 +275,10 @@ void HC2D::CPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
         isValid = true;
     }
     int Lxy = parms.Lx * parms.Ly;
-    MathCPU::Copy(pmXX_o, JX.host(), 2 * Lxy * Lxy);
-    MathCPU::Copy(pmUX_o, JU.host(), 2 * Lxy);
+    int Lu = 1;
+    int L = Lxy + Lxy;
+    MathCPU::Copy(pmXX_o, JX.host(), L * L);
+    MathCPU::Copy(pmUX_o, JU.host(), L * Lu);
 }
 
 void HC2D::CPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
@@ -431,9 +434,9 @@ void HC2D::GPU::ImplicitScheme(HCParms &parms, int strideTQ)
     double *paux = NULL;
     cudaMalloc(&paux, sizeof(double) * L * L);
     double *pTT, *pTQ, *pQT, *pQQ, *pUT, *pUQ;
-    MathCPU::Zero(pAI, L * L);
-    MathCPU::Identity(pBE, L, L);
-    MathCPU::Zero(pCE, L * Lu);
+    MathGPU::Zero(pAI, L * L);
+    MathGPU::Identity(pBE, L, L);
+    MathGPU::Zero(pCE, L * Lu);
     pTT = pAI + std::min(0, strideTQ) * (L + 1);
     pQQ = pAI + std::min(0, -strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
@@ -483,9 +486,9 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ)
     double *paux = NULL;
     cudaMalloc(&paux, sizeof(double) * L * L);
     double *pTT, *pTQ, *pQT, *pQQ, *pUT, *pUQ;
-    MathCPU::Identity(pAI, L, L);
-    MathCPU::Zero(pBE, L * L);
-    MathCPU::Zero(pCE, L * Lu);
+    MathGPU::Identity(pAI, L, L);
+    MathGPU::Zero(pBE, L * L);
+    MathGPU::Zero(pCE, L * Lu);
     pTT = pAI + std::min(0, strideTQ) * (L + 1);
     pQQ = pAI + std::min(0, -strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
@@ -501,7 +504,7 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ)
     ImplicitScheme_A<<<B, T>>>(pTT, pTQ, pQT, pQQ, Lx, Ly, dx, dy, dt, c, amp, h);
     MathGPU::Identity(pBE, L, L);
     ImplicitScheme_C<<<B, T>>>(pUT, pUQ, Lx, Ly, dx, dy, dt, c, amp, h);
-    
+
     // Solve JX = (A^T * A)^-1 * A^T * B
     MathGPU::Copy(JXh, pBE, L * L);
 
@@ -522,8 +525,10 @@ void HC2D::GPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
         isValid = true;
     }
     int Lxy = parms.Lx * parms.Ly;
-    MathCPU::Copy(pmXX_o, JX.dev(), 2 * Lxy * Lxy);
-    MathCPU::Copy(pmUX_o, JU.dev(), 2 * Lxy);
+    int Lu = 1;
+    int L = Lxy + Lxy;
+    MathGPU::Copy(pmXX_o, JX.dev(), L * L);
+    MathGPU::Copy(pmUX_o, JU.dev(), L * Lu);
 }
 
 void HC2D::GPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)

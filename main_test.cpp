@@ -352,7 +352,9 @@ int main(int argc, char *argv[])
     free(resultCovarT);
     free(resultQ);
     free(resultT);
+#if USE_MEASUREMENTS == 0
     free(q_ref);
+#endif
     free(measuresN);
     free(measures);
 

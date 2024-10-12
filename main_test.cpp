@@ -32,7 +32,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     HC2D::HCParms parms;
     int Lsx = Lx;
     int Lsy = Ly;
-    int n = 2000;
+    int n = 10;
     int Lst = n * Lt;
     int L = 2 * Lsx * Lsy;
     int Lu = 1;
@@ -95,12 +95,6 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), Lsx * Lsy);
     }
 
-    for (int i = 0; i < L; ++i)
-    {
-        double *XX_h = XX.host();
-        std::cout << " " << std::format("{:.10f}", parms.dt * XX_h[i * L + i]);
-    }
-
     double p = 50;
     double a = 1.364e-2;
     double b = 0.922e-2;
@@ -133,8 +127,8 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
             Q.copyHost2Dev(Lsx * Lsy);
         }
         Math::Copy(aux, X, L, type);
-        Math::MatMulNN(1.0, X, parms.dt, XX, aux, L, L, 1, type);
-        Math::MatMulNN(1.0, X, parms.dt, UX, U, L, Lu, 1, type);
+        Math::MatMulNN(0.0, X, 1.0, XX, aux, L, L, 1, type);
+        Math::MatMulNN(1.0, X, 1.0, UX, U, L, Lu, 1, type);
         if (k % n == n - 1)
         {
             Interpolation::Rescale(T, Lsx, Lsy, Tr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);

@@ -56,12 +56,14 @@ void HC2D::CPU::ImplicitScheme(HCParms &parms, int strideTQ)
     MathCPU::Zero(pAI, L * L);
     MathCPU::Identity(pBE, L, L);
     MathCPU::Zero(pCE, L * Lu);
-    pTT = pAI + min(0, strideTQ) * (L + 1);
-    pQQ = pAI + min(0, -strideTQ) * (L + 1);
+    MathCPU::Zero(pATA, L * L);
+    MathCPU::Zero(paux, L * L);
+    pTT = pAI + std::max(0, -strideTQ) * (L + 1);
+    pQQ = pAI + std::max(0, strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
     pQT = pQQ - strideTQ;
-    pUT = pCE + min(0, strideTQ);
-    pUQ = pCE + min(0, -strideTQ);
+    pUT = pCE + std::max(0, -strideTQ);
+    pUQ = pCE + std::max(0, strideTQ);
 
     double *JXh = JX.host();
     double *JUh = JU.host();
@@ -173,12 +175,15 @@ void HC2D::CPU::ExplicitScheme(HCParms &parms, int strideTQ)
     MathCPU::Identity(pAI, L, L);
     MathCPU::Zero(pBE, L * L);
     MathCPU::Zero(pCE, L * Lu);
-    pTT = pAI + min(0, strideTQ) * (L + 1);
-    pQQ = pAI + min(0, -strideTQ) * (L + 1);
+    MathGPU::Zero(pATA, L * L);
+    MathGPU::Zero(paux, L * L);
+    pTT = pAI + std::max(0, -strideTQ) * (L + 1);
+    pQQ = pAI + std::max(0, strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
     pQT = pQQ - strideTQ;
-    pUT = pCE + min(0, strideTQ);
-    pUQ = pCE + min(0, -strideTQ);
+    pUT = pCE + std::max(0, -strideTQ);
+    pUQ = pCE + std::max(0, strideTQ);
+
 
     double *JXh = JX.host();
     double *JUh = JU.host();

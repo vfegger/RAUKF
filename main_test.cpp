@@ -129,6 +129,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         Math::Copy(aux, X, L, type);
         Math::MatMulNN(0.0, X, 1.0, XX, aux, L, L, 1, type);
         Math::MatMulNN(1.0, X, 1.0, UX, U, L, Lu, 1, type);
+        cudaDeviceSynchronize();
         if (k % n == n - 1)
         {
             Interpolation::Rescale(T, Lsx, Lsy, Tr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);

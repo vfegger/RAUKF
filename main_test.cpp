@@ -13,6 +13,12 @@
 #define KF_USAGE 1
 #define NOISE_USAGE 1
 
+#define LX_DEFAULT 32
+#define LY_DEFAULT 32
+#define LT_DEFAULT 500
+
+#define USE_MEASUREMENTS 0
+
 void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> &dist, double *v_o, double *v_i, int length)
 {
     for (int i = 0; i < length; i++)
@@ -160,6 +166,21 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     std::cout << "Synthetic measurements generated.\n";
 }
 
+void ReadMeasurements(double *measures, int Lx, int Ly, int Lt)
+{
+    std::ifstream inFile;
+    int Lxy = Lx * Ly;
+    for (int i = 0; i < Lt; i++)
+    {
+        inFile.open("input/Values" + std::to_string(i) + ".bin", std::ios::in | std::ios::binary);
+        if (inFile.is_open())
+        {
+            inFile.read((char *)(measures + i * Lxy), sizeof(double) * Lxy);
+        }
+        inFile.close();
+    }
+}
+
 int main(int argc, char *argv[])
 {
     Type type = Type::CPU;
@@ -172,9 +193,9 @@ int main(int argc, char *argv[])
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    int Lx = 32;
-    int Ly = 32;
-    int Lt = 500;
+    int Lx = LX_DEFAULT;
+    int Ly = LY_DEFAULT;
+    int Lt = LT_DEFAULT;
     double Sx = 0.0296;
     double Sy = 0.0296;
     double Sz = 0.0015;
@@ -236,8 +257,12 @@ int main(int argc, char *argv[])
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
+#if USE_MEASUREMENTS == 1
+    ReadMeasurements(measures, Lx, Ly, Lt);
+#else
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, type);
+#endif
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly);
@@ -276,7 +301,9 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)(measuresN + Lx * Ly * i), sizeof(double) * Lx * Ly);
             outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
+#if USE_MEASUREMENTS == 0
             outFile.write((char *)(q_ref + Lx * Ly * i), sizeof(double) * Lx * Ly);
+#endif
         }
         outFile.close();
 
@@ -308,7 +335,9 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)(measuresN + Lx * Ly * i), sizeof(double) * Lx * Ly);
             outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
+#if USE_MEASUREMENTS == 0
             outFile.write((char *)(q_ref + Lx * Ly * i), sizeof(double) * Lx * Ly);
+#endif
         }
         outFile.close();
 

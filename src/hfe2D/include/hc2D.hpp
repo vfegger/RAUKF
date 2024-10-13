@@ -6,6 +6,7 @@
 #include <curand.h>
 
 #define IMPLICIT_SCHEME 1
+#define ILSA 1
 
 namespace HC2D
 {
@@ -43,7 +44,7 @@ namespace HC2D
         void ImplicitScheme(HCParms &parms, int strideTQ);
         void ExplicitScheme(HCParms &parms, int strideTQ);
         void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
-        void EvaluationMatrix(HCParms &parms, double *mTT, double *mQT);
+        void EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ);
     };
 
     namespace GPU
@@ -51,7 +52,7 @@ namespace HC2D
         void ImplicitScheme(HCParms &parms, int strideTQ);
         void ExplicitScheme(HCParms &parms, int strideTQ);
         void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
-        void EvaluationMatrix(HCParms &parms, double *mTT, double *mQT);
+        void EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ);
     };
 }
 

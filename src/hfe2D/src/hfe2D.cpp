@@ -59,7 +59,7 @@ Pointer<double> HFE2D::EvaluateMatrixCPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::CPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
+        HC2D::CPU::EvaluationMatrix(parms, pwork, offsetQ - offsetT);
         isValidMeasure = true;
     }
     return workspaceMeasure;
@@ -77,7 +77,7 @@ Pointer<double> HFE2D::EvaluateMatrixGPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::GPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
+        HC2D::GPU::EvaluationMatrix(parms, pwork, offsetQ - offsetT);
         isValidMeasure = true;
     }
 
@@ -105,7 +105,7 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
     MathCPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);;
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -162,7 +162,7 @@ Pointer<double> HFE2D::EvaluateStateCPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::CPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
+        HC2D::CPU::EvaluationMatrix(parms, pwork, offsetQ - offsetT);
         isValidMeasure = true;
     }
     MathCPU::MatMulNN(0.0, pm, 1.0, pwork, ps, Lm, L, 1);
@@ -184,7 +184,7 @@ Pointer<double> HFE2D::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
 
     if (!isValidMeasure)
     {
-        HC2D::GPU::EvaluationMatrix(parms, pwork + offsetT * Lm, pwork + offsetQ * Lm);
+        HC2D::GPU::EvaluationMatrix(parms, pwork, offsetQ - offsetT);
         isValidMeasure = true;
     }
     MathGPU::MatMulNN(0.0, pm, 1.0, pwork, ps, Lm, L, 1);
@@ -275,7 +275,7 @@ Measure *HFE2D::GenerateMeasure()
     double *nT = (double *)malloc(sizeof(double) * Lx * Ly);
     for (int i = 0; i < Lx * Ly; ++i)
     {
-        nT[i] = 25.0;
+        nT[i] = 1.0;
     }
     measureLoader.Link(nameT, nT);
     Measure *pm = measureLoader.Load();

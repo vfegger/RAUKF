@@ -29,7 +29,7 @@ end
 function importfiles(path_input, path_output, name_input, name_output, start, stop, stride)
     for (i,j) in enumerate(start:stride:stop)
         input_csv = path_input * name_input * string(j) * ".csv"
-        output_bin = path_output * name_output * string(i) * ".bin"
+        output_bin = path_output * name_output * string(i-1) * ".bin"
         parse_and_convert_to_binary(input_csv, output_bin)
     end
 end

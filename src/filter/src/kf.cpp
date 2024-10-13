@@ -97,6 +97,7 @@ void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int len
     {
         cudaDeviceSynchronize();
         mat.copyDev2Host(lengthI * lengthJ);
+        cudaDeviceSynchronize();
     }
     std::cout << name << ":\n";
     double *p = mat.host();
@@ -113,6 +114,29 @@ void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int len
             }
         }
         std::cout << "\n";
+    }
+    std::cout << "\n";
+}
+
+void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, Type type)
+{
+    if (type == Type::GPU)
+    {
+        cudaDeviceSynchronize();
+        mat.copyDev2Host(lengthI * lengthI);
+        cudaDeviceSynchronize();
+    }
+    std::cout << name << ":\n";
+    double *p = mat.host();
+    std::cout.precision(2);
+    std::cout << std::fixed;
+    for (int i = 0; i < lengthI; ++i)
+    {
+        std::cout << std::setw(6) << p[i * lengthI + i];
+        if (i < lengthI)
+        {
+            std::cout << ",";
+        }
     }
     std::cout << "\n";
 }
@@ -157,6 +181,7 @@ void KF::Iterate(Timer &timer)
     timer.Record(type);
 
     F = pmodel->Evolve(pstate, pcontrol, ExecutionType::Matrix, type);
+    //PrintMatrix("F", F, Lx, type);
     B = F + Lx * Lx;
     timer.Record(type);
 

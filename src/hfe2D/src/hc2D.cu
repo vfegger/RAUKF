@@ -184,7 +184,6 @@ void HC2D::CPU::ExplicitScheme(HCParms &parms, int strideTQ)
     pUT = pCE + std::max(0, -strideTQ);
     pUQ = pCE + std::max(0, strideTQ);
 
-
     double *JXh = JX.host();
     double *JUh = JU.host();
     // Difusion Contribution
@@ -269,9 +268,9 @@ void HC2D::CPU::ExplicitScheme(HCParms &parms, int strideTQ)
 
 void HC2D::CPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ)
 {
+    validate(parms);
     if (!isValid)
     {
-        validate(parms);
 #if IMPLICIT_SCHEME == 1
         ImplicitScheme(parms, strideTQ);
 #else
@@ -286,7 +285,7 @@ void HC2D::CPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
     MathCPU::Copy(pmUX_o, JU.host(), L * Lu);
 }
 
-void HC2D::CPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
+void HC2D::CPU::EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ)
 {
     int index;
     int Lx = parms.Lx;
@@ -295,7 +294,11 @@ void HC2D::CPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
     double dx = parms.dx;
     double dy = parms.dy;
     double c = parms.Sz;
+    double amp = parms.amp;
 
+    double *pmTT, *pmQT;
+    pmTT = pmH_o + std::max(-strideTQ, 0) * Lxy;
+    pmQT = pmH_o + std::max(strideTQ, 0) * Lxy;
     // Surface Temperature
     for (int j = 0; j < Ly; j++)
     {
@@ -303,9 +306,9 @@ void HC2D::CPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
         {
             double KT = K((i + 0.5) * dx, (j + 0.5) * dy);
             index = j * Lx + i;
-            pmTT_o[index * Lxy + index] = 1;
+            pmTT[index * Lxy + index] = 1.0;
 #if ILSA == 1
-            pmQT_o[index * Lxy + index] = -c * parms.amp / (6 * KT);
+            pmQT[index * Lxy + index] = -c * amp / (6.0 * KT);
 #endif
         }
     }
@@ -359,7 +362,7 @@ __global__ void ImplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, dou
     if (i < Lx && j < Ly)
     {
         double CT = HC2D::C((i + 0.5) * dx, (j + 0.5) * dy);
-        pmUT[index] = h / (c * CT);
+        pmUT[index] = dt * h / (c * CT);
         pmUQ[index] = 0.0;
     }
 }
@@ -412,7 +415,7 @@ __global__ void ExplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, dou
     if (i < Lx && j < Ly)
     {
         double CT = HC2D::C((i + 0.5) * dx, (j + 0.5) * dy);
-        pmUT[index] = h / (c * CT);
+        pmUT[index] = dt * h / (c * CT);
         pmUQ[index] = 0.0;
     }
 }
@@ -523,14 +526,15 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ)
 
 void HC2D::GPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ)
 {
+    validate(parms);
     if (!isValid)
     {
-        validate(parms);
 #if IMPLICIT_SCHEME == 1
         ImplicitScheme(parms, strideTQ);
 #else
         ExplicitScheme(parms, strideTQ);
 #endif
+        std::cout << "Saving matrices for Evolution" << std::endl;
         isValid = true;
     }
     int Lxy = parms.Lx * parms.Ly;
@@ -540,13 +544,11 @@ void HC2D::GPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
     MathGPU::Copy(pmUX_o, JU.dev(), L * Lu);
 }
 
-void HC2D::GPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
+void HC2D::GPU::EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ)
 {
     int Lxy = parms.Lx * parms.Ly;
 
-    double *pm, *pm_o, *pmTT, *pmQT;
-
-    int stride12 = pmQT_o - pmTT_o;
+    double *pm;
 
     pm = (double *)malloc(sizeof(double) * 2 * Lxy * Lxy);
     for (int i = 0; i < 2 * Lxy * Lxy; i++)
@@ -554,13 +556,9 @@ void HC2D::GPU::EvaluationMatrix(HCParms &parms, double *pmTT_o, double *pmQT_o)
         pm[i] = 0.0;
     }
 
-    pmTT = pm + std::max(-stride12, 0);
-    pmQT = pm + std::max(stride12, 0);
+    HC2D::CPU::EvaluationMatrix(parms, pm, strideTQ);
 
-    HC2D::CPU::EvaluationMatrix(parms, pmTT, pmQT);
-
-    pm_o = std::min(pmTT_o, pmQT_o);
-    cudaMemcpy(pm_o, pm, 2 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);
+    cudaMemcpy(pmH_o, pm, 2 * sizeof(double) * Lxy * Lxy, cudaMemcpyKind::cudaMemcpyHostToDevice);
 
     cudaDeviceSynchronize();
 

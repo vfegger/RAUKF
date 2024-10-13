@@ -11,11 +11,11 @@
 
 #define RAUKF_USAGE 0
 #define KF_USAGE 1
-#define NOISE_USAGE 1
+#define NOISE_USAGE 0
 
-#define LX_DEFAULT 32
-#define LY_DEFAULT 32
-#define LT_DEFAULT 500
+#define LX_DEFAULT (32)
+#define LY_DEFAULT (32)
+#define LT_DEFAULT (5000)
 
 #define USE_MEASUREMENTS 0
 
@@ -38,9 +38,11 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     HC2D::HCParms parms;
     int Lsx = Lx;
     int Lsy = Ly;
+    int Lxy = Lx * Ly;
+    int Lsxy = Lsx * Lsy;
     int n = 10;
     int Lst = n * Lt;
-    int L = 2 * Lsx * Lsy;
+    int L = 2 * Lsxy;
     int Lu = 1;
     parms.Lx = Lsx;
     parms.Ly = Lsy;
@@ -57,26 +59,32 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
 
     Pointer<double> X, T, Q, aux;
     Pointer<double> U, T_amb;
-    Pointer<double> XX, UX;
+    Pointer<double> Y, T_m;
+    Pointer<double> XX, UX, XY;
     Pointer<double> Tr, Qr;
     X.alloc(L);
-    T = X;
-    Q = X + Lsx * Lsy;
+    T = X + Lsxy;
+    Q = X;
     aux.alloc(L);
 
     U.alloc(Lu);
     T_amb = U;
 
+    Y.alloc(Lsxy);
+    T_m = Y;
+
     XX.alloc(L * L);
     UX.alloc(L * Lu);
+    XY.alloc(L * Lsxy);
 
-    Tr.alloc(Lt * Lx * Ly);
-    Qr.alloc(Lt * Lx * Ly);
-    Math::Zero(T, Lsx * Lsy, Type::CPU);
-    Math::Zero(Q, Lsx * Lsy, Type::CPU);
+    Tr.alloc(Lt * Lxy);
+    Qr.alloc(Lt * Lxy);
+    Math::Zero(T, Lsxy, Type::CPU);
+    Math::Zero(Q, Lsxy, Type::CPU);
+    Math::Zero(T_m, Lsxy, Type::CPU);
 
     double *Th = T.host();
-    for (int i = 0; i < Lsx * Lsy; ++i)
+    for (int i = 0; i < Lsxy; ++i)
     {
         Th[i] = 300.0;
     }
@@ -84,21 +92,25 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     T_ambh[0] = 300.0;
     if (type == Type::GPU)
     {
-        T.copyHost2Dev(Lsx * Lsy);
-        Q.copyHost2Dev(Lsx * Lsy);
+        T.copyHost2Dev(Lsxy);
+        Q.copyHost2Dev(Lsxy);
         U.copyHost2Dev(Lu);
+        T_m.copyHost2Dev(Lsxy);
         cudaDeviceSynchronize();
     }
     // Invariant Evolution
     if (type == Type::GPU)
     {
-        HC2D::GPU::EvolutionMatrix(parms, XX.dev(), UX.dev(), Lsx * Lsy);
+        HC2D::GPU::EvolutionMatrix(parms, XX.dev(), UX.dev(), (Q.dev() - T.dev()));
         XX.copyDev2Host(L * L);
+        HC2D::GPU::EvaluationMatrix(parms, XY.dev(), (Q.dev() - T.dev()));
+        XY.copyDev2Host(L * Lsxy);
         cudaDeviceSynchronize();
     }
     else
     {
-        HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), Lsx * Lsy);
+        HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), (Q.host() - T.host()));
+        HC2D::GPU::EvaluationMatrix(parms, XY.host(), (Q.host() - T.host()));
     }
 
     double p = 50;
@@ -109,8 +121,8 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     double Sx2 = (Sx + c) / 2.0;
     double Sy1 = (Sy - a) / 2.0;
     double St1 = 0.0;
-    double St2 = 20.0;
-    double w = p / (2 * a * b);
+    double St2 = St * 0.1;
+    double w = (p / (2 * a * b)) / amp;
 
     for (int k = 0; k < Lst; ++k)
     {
@@ -124,7 +136,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
                 double yj = (j + 0.5) * Sy / Lsy;
                 bool xCond = (xi > Sx1 && xi < Sx1 + b) || (xi > Sx2 && xi < Sx2 + b);
                 bool yCond = (yj > Sy1 && yj < Sy1 + a);
-                bool tCond = k * St / Lst > 0.0 && k * St / Lst < 0.1 * St;
+                bool tCond = k * St / Lst > St1 && k * St / Lst < St2;
                 Qh[j * Lsx + i] = (xCond && yCond && tCond) ? w : 0.0;
             }
         }
@@ -136,9 +148,11 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         Math::MatMulNN(0.0, X, 1.0, XX, aux, L, L, 1, type);
         Math::MatMulNN(1.0, X, 1.0, UX, U, L, Lu, 1, type);
         cudaDeviceSynchronize();
+        Math::MatMulNN(0.0, Y, 1.0, XY, X, Lsxy, L, 1, type);
+        cudaDeviceSynchronize();
         if (k % n == n - 1)
         {
-            Interpolation::Rescale(T, Lsx, Lsy, Tr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);
+            Interpolation::Rescale(T_m, Lsx, Lsy, Tr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);
             Interpolation::Rescale(Q, Lsx, Lsy, Qr + (k / n) * Lx * Ly, Lx, Ly, Sx, Sy, type);
         }
         std::cout << "Iteration: " << k + 1 << "/" << Lst << "\r" << std::flush;
@@ -159,8 +173,10 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     MathCPU::Copy(Q_ref, Qr.host(), Lx * Ly * Lt);
     Qr.free();
     Tr.free();
+    XY.free();
     UX.free();
     XX.free();
+    Y.free();
     U.free();
     X.free();
     std::cout << "Synthetic measurements generated.\n";
@@ -200,7 +216,7 @@ int main(int argc, char *argv[])
     double Sy = 0.0296;
     double Sz = 0.0015;
     double St = 1000.0;
-    double amp = 1;
+    double amp = 1.0e3;
     double h = 0.0; // 11.0;
 
     std::ofstream outParms;
@@ -271,7 +287,7 @@ int main(int argc, char *argv[])
     double *resultCovarTm = (double *)malloc(sizeof(double) * Lx * Ly);
 
     std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 2.0);
+    std::normal_distribution<double> distribution(0.0, 1.0);
     AddNoise(generator, distribution, measuresN, measures, Lx * Ly * Lt);
 
     std::ofstream outFile;

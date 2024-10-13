@@ -24,6 +24,7 @@ private:
 protected:
     void PrintMatrix(std::string name, double *mat, int lengthI, int lengthJ);
     void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int lengthJ, Type type);
+    void PrintMatrix(std::string name, Pointer<double> mat, int lengthI, Type type);
 
 public:
     KF();

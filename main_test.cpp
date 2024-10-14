@@ -15,7 +15,7 @@
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
-#define LT_DEFAULT (5000)
+#define LT_DEFAULT (1000)
 
 #define USE_MEASUREMENTS 0
 

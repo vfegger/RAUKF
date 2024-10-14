@@ -32,8 +32,8 @@ case2_corners = tuple((166, 126), (385, 126), (385, 345), (166, 345))
 case3_corners = tuple((173, 119), (401, 126), (396, 354), (166, 347))
 Lx = 32;
 Ly = 32;
-case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* j ./ (Lx - 1) .+ (case2_corners[4] .- case2_corners[1]) .* i ./ (Ly - 1) for i in 0:Lx-1, j in 0:Ly-1])
-case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* j ./ (Lx - 1) .+ (case3_corners[4] .- case3_corners[1]) .* i ./ (Ly - 1) for i in 0:Lx-1, j in 0:Ly-1])
+case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
+case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 
 importfiles(input_path, output_path, "case2/Rec-0002_", "case2/Values", 1999, 4499, 1, case2_points)
 importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)

@@ -6,6 +6,8 @@ function parse_and_convert_to_binary(input_csv::String, output_bin::String, case
     # Read the CSV files
     data = split.(readlines(input_csv), ",")
     numbers = hcat([parse.(Float64, row) for row in data]...)
+    # Celsius to Kelvin
+    numbers .+= 273.15
     itp = LinearInterpolation((1:640, 1:480), numbers)
     values = [itp(p...) for p in case_points]
 

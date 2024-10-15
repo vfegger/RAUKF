@@ -1,3 +1,6 @@
+using Pkg;
+Pkg.activate(".")
+
 using Plots
 using LaTeXStrings
 using Printf
@@ -39,12 +42,10 @@ function getData()
     if length(names) > 0
         sortedNames = sortperm(parse.(Int32, names))
         for name in names[sortedNames]
-            println("Reading data from file: ", name)
             index = parse(Int32, name) + 1
             if index > Lt
                 continue
             end
-            name = names[index]
             data = Array{Float64}(undef, sum(first.(values(typeSizes))))
             read!(joinpath(dataPath, "Values" * name * ".bin"), data)
             offset = 0
@@ -108,7 +109,7 @@ function printProfiles(case, t)
     plt_Qs_Profile = heatmap(x, y, zQs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Qs_Profile, joinpath(imagePath, case, "SimulatedHeatFluxProfile_" * string(t) * ".pdf"))
 
-    display(plt_T_Profile)
+    return
 end
 
 function printEvolutions(case, x, y)
@@ -145,18 +146,21 @@ function printEvolutions(case, x, y)
     zTs = [itp_Ts(p...) for p in points]
     zQs = [itp_Qs(p...) for p in points]
 
-    #[zTs zTsN zT zT.+1.96.*sqrt.(zcT) zT.-1.96.*sqrt.(zcT)]
-    plt = plot(T[1:Lt÷100],zT[1:Lt÷100])
-    savefig(plt, joinpath(imagePath, case, "TemperatureEvolution_" * string(x) * "_" * string(y) * ".pdf"))
-    plt_T_Evolution = plot(T, zT, title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]")
-    
-    #[zQs zQ zQ .+ 1.96 .* sqrt.(zcQ) zQ .- 1.96 .* sqrt.(zcQ)]
-    plt_Q_Evolution = plot(T, zQ, title="Heat Flux", xlabel="Time [s]", ylabel="Heat Flux [W/m^2]", dpi=1000)
+
+    plt_T_Evolution = plot(T, [zTs zTsN zT zT .+ 1.96 .* sqrt.(zcT) zT .- 1.96 .* sqrt.(zcT)], title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]")
+    savefig(plt_T_Evolution, joinpath(imagePath, case, "TemperatureEvolution_" * string(x) * "_" * string(y) * ".pdf"))
+
+    plt_Q_Evolution = plot(T, [zQs zQ zQ .+ 1.96 .* sqrt.(zcQ) zQ .- 1.96 .* sqrt.(zcQ)], title="Heat Flux", xlabel="Time [s]", ylabel="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Q_Evolution, joinpath(imagePath, case, "HeatFluxEvolution_" * string(x) * "_" * string(y) * ".pdf"))
-    
+
     plt_rT_Evolution = plot(T, zTm .- zTsN, title="Temperature", xlabel="Time [s]", ylabel="Residual [K]", dpi=1000)
     savefig(plt_rT_Evolution, joinpath(imagePath, case, "TemperatureResidualEvolution_" * string(x) * "_" * string(y) * ".pdf"))
+
+    return
 end
 
 
 getData()
+
+printProfiles("Simulation1", 150)
+printEvolutions("Simulation1",Sx/2, Sy/2)

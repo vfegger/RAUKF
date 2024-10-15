@@ -11,13 +11,13 @@
 
 #define RAUKF_USAGE 0
 #define KF_USAGE 1
-#define NOISE_USAGE 0
+#define NOISE_USAGE 1
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
-#define LT_DEFAULT (1000)
+#define LT_DEFAULT (500 * 12)
 
-#define USE_MEASUREMENTS 0
+#define SIMULATION_CASE 0
 
 void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> &dist, double *v_o, double *v_i, int length)
 {
@@ -29,6 +29,120 @@ void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> 
         v_o[i] = v_i[i];
 #endif
     }
+}
+
+void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp)
+{
+    double p = 50;
+    double a = 1.364e-2;
+    double b = 0.922e-2;
+    double c = 0.330e-2;
+#if SIMULATION_CASE == 0
+    double Sx1 = 0.4 * Sx;
+    double Sx2 = 0.6 * Sx;
+    double Sy1 = 0.4 * Sy;
+    double Sy2 = 0.6 * Sy;
+    double St1 = 50.0;
+    double St2 = 150.0;
+    double w = (p / ((Sx2 - Sx1) * (Sy2 - Sy1))) / amp;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            double xi = (i + 0.5) * Sx / Lx;
+            double yj = (j + 0.5) * Sy / Ly;
+            bool xCond = (xi > Sx1 && xi < Sx2);
+            bool yCond = (yj > Sy1 && yj < Sy2);
+            bool tCond = t > St1 && t < St2;
+            Qh[j * Lx + i] = (xCond && yCond && tCond) ? w : 0.0;
+        }
+    }
+#elif SIMULATION_CASE == 1
+    double Sx1 = 0.5 * Sx;
+    double Sy1 = 0.5 * Sx;
+    double Sr1 = 0.1 * std::min(Sx, Sy);
+    double St1 = 50.0;
+    double St2 = 150.0;
+    double w = (p / (M_PI * Sr1 * Sr1)) / amp;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            double xi = (i + 0.5) * Sx / Lx;
+            double yj = (j + 0.5) * Sy / Ly;
+            bool rCond = (xi - Sx1) * (xi - Sx1) + (yj - Sy1) * (yj - Sy1) < Sr1 * Sr1;
+            bool tCond = t > St1 && t < St2;
+            Qh[j * Lx + i] = (rCond && tCond) ? w : 0.0;
+        }
+    }
+#elif SIMULATION_CASE == 2
+    double Sx1 = (Sx - c) / 2.0 - b;
+    double Sx2 = (Sx + c) / 2.0;
+    double Sy1 = (Sy - a) / 2.0;
+    double St1 = 50.0;
+    double St2 = 150.0;
+    double w = (p / (2 * a * b)) / amp;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            double xi = (i + 0.5) * Sx / Lx;
+            double yj = (j + 0.5) * Sy / Ly;
+            bool xCond = (xi > Sx1 && xi < Sx1 + b) || (xi > Sx2 && xi < Sx2 + b);
+            bool yCond = (yj > Sy1 && yj < Sy1 + a);
+            bool tCond = t > St1 && t < St2;
+            Qh[j * Lx + i] = (xCond && yCond && tCond) ? w : 0.0;
+        }
+    }
+#elif SIMULATION_CASE == 3
+    double Sx1 = 0.3 * Sx;
+    double Sx2 = 0.4 * Sx;
+    double Sy1 = 0.3 * Sy;
+    double Sy2 = 0.4 * Sy;
+    double St1 = 50.0;
+    double St2 = 150.0;
+    double w = (p / (2 * a * b)) / amp;
+    MathCPU::Zero(Qh, Lx * Ly);
+
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            double xi = (i + 0.5) * Sx / Lx;
+            double yj = (j + 0.5) * Sy / Ly;
+            bool xCond = (xi > Sx1 && xi < Sx2);
+            bool yCond = (yj > Sy1 && yj < Sy2);
+            bool tCond = t > St1 && t < St2;
+            if (xCond && yCond && tCond)
+            {
+                Qh[j * Lx + i] += w;
+            }
+        }
+    }
+
+
+    double Sx1 = 0.5 * Sx;
+    double Sy1 = 0.5 * Sx;
+    double Sr1 = 0.1 * std::min(Sx, Sy);
+    double St1 = St * 0.01;
+    double St2 = St * 0.02;
+    double w = (p / (M_PI * Sr1 * Sr1)) / amp;
+    for (int j = 0; j < Ly; ++j)
+    {
+        for (int i = 0; i < Lx; ++i)
+        {
+            double xi = (i + 0.5) * Sx / Lx;
+            double yj = (j + 0.5) * Sy / Ly;
+            bool rCond = (xi - Sx1) * (xi - Sx1) + (yj - Sy1) * (yj - Sy1) < Sr1 * Sr1;
+            bool tCond = t > St1 && t < St2;
+            if (rCond && tCond)
+            {
+                Qh[j * Lx + i] += w;
+            }
+        }
+    }
+
+#endif
 }
 
 void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, Type type)
@@ -113,33 +227,10 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         HC2D::GPU::EvaluationMatrix(parms, XY.host(), (Q.host() - T.host()));
     }
 
-    double p = 50;
-    double a = 1.364e-2;
-    double b = 0.922e-2;
-    double c = 0.330e-2;
-    double Sx1 = (Sx - c) / 2.0 - b;
-    double Sx2 = (Sx + c) / 2.0;
-    double Sy1 = (Sy - a) / 2.0;
-    double St1 = 0.0;
-    double St2 = St * 0.1;
-    double w = (p / (2 * a * b)) / amp;
-
     for (int k = 0; k < Lst; ++k)
     {
         // Heat Flux Definition
-        double *Qh = Q.host();
-        for (int j = 0; j < Lsy; ++j)
-        {
-            for (int i = 0; i < Lsx; ++i)
-            {
-                double xi = (i + 0.5) * Sx / Lsx;
-                double yj = (j + 0.5) * Sy / Lsy;
-                bool xCond = (xi > Sx1 && xi < Sx1 + b) || (xi > Sx2 && xi < Sx2 + b);
-                bool yCond = (yj > Sy1 && yj < Sy1 + a);
-                bool tCond = k * St / Lst > St1 && k * St / Lst < St2;
-                Qh[j * Lsx + i] = (xCond && yCond && tCond) ? w : 0.0;
-            }
-        }
+        CaseHeatFlux(Q.host(), (k + 1) * St / Lst, Lsx, Lsy, Lst, Sx, Sy, Sz, St, amp);
         if (type == Type::GPU)
         {
             Q.copyHost2Dev(Lsx * Lsy);
@@ -182,7 +273,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     std::cout << "Synthetic measurements generated.\n";
 }
 
-void ReadMeasurements(double *measures, int Lx, int Ly, int Lt)
+void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt)
 {
     std::ifstream inFile;
     int Lxy = Lx * Ly;
@@ -195,6 +286,7 @@ void ReadMeasurements(double *measures, int Lx, int Ly, int Lt)
         }
         inFile.close();
     }
+    MathCPU::Zero(Q_ref, Lx * Ly * Lt);
 }
 
 int main(int argc, char *argv[])
@@ -215,7 +307,7 @@ int main(int argc, char *argv[])
     double Sx = 0.0296;
     double Sy = 0.0296;
     double Sz = 0.0015;
-    double St = 1000.0;
+    double St = 500.0;
     double amp = 1.0e3;
     double h = 0.0; // 11.0;
 
@@ -273,10 +365,10 @@ int main(int argc, char *argv[])
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-#if USE_MEASUREMENTS == 1
-    ReadMeasurements(measures, Lx, Ly, Lt);
-#else
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
+#if USE_MEASUREMENTS == 1
+    ReadMeasurements(measures, q_ref, Lx, Ly, Lt);
+#else
     Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, type);
 #endif
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly);
@@ -351,9 +443,7 @@ int main(int argc, char *argv[])
             outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
             outFile.write((char *)(measuresN + Lx * Ly * i), sizeof(double) * Lx * Ly);
             outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
-#if USE_MEASUREMENTS == 0
             outFile.write((char *)(q_ref + Lx * Ly * i), sizeof(double) * Lx * Ly);
-#endif
         }
         outFile.close();
 

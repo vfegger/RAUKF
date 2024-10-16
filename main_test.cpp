@@ -43,7 +43,7 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
     double Sy1 = 0.4 * Sy;
     double Sy2 = 0.6 * Sy;
     double St1 = 50.0;
-    double St2 = 150.0;
+    double St2 = 60.0;
     double w = (p / ((Sx2 - Sx1) * (Sy2 - Sy1))) / amp;
     for (int j = 0; j < Ly; ++j)
     {
@@ -51,10 +51,12 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
         {
             double xi = (i + 0.5) * Sx / Lx;
             double yj = (j + 0.5) * Sy / Ly;
-            bool xCond = (xi > Sx1 && xi < Sx2);
-            bool yCond = (yj > Sy1 && yj < Sy2);
             bool tCond = t > St1 && t < St2;
-            Qh[j * Lx + i] = (xCond && yCond && tCond) ? w : 0.0;
+            double dx2 = 0.5 * Sx / Lx;
+            double dy2 = 0.5 * Sy / Ly;
+            double A = std::max((std::min(Sx2, xi + dx2) - std::max(Sx1, xi - dx2)), 0.0) * std::max((std::min(Sy2, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double Ac = 4.0 * dx2 * dy2;
+            Qh[j * Lx + i] = (tCond) ? w * A / Ac : 0.0;
         }
     }
 #elif SIMULATION_CASE == 1
@@ -88,10 +90,15 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
         {
             double xi = (i + 0.5) * Sx / Lx;
             double yj = (j + 0.5) * Sy / Ly;
-            bool xCond = (xi > Sx1 && xi < Sx1 + b) || (xi > Sx2 && xi < Sx2 + b);
-            bool yCond = (yj > Sy1 && yj < Sy1 + a);
             bool tCond = t > St1 && t < St2;
-            Qh[j * Lx + i] = (xCond && yCond && tCond) ? w : 0.0;
+
+            double dx2 = 0.5 * Sx / Lx;
+            double dy2 = 0.5 * Sy / Ly;
+            double A1 = std::max((std::min(Sx1 + b, xi + dx2) - std::max(Sx1, xi - dx2)),0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double A2 = std::max((std::min(Sx2 + b, xi + dx2) - std::max(Sx2, xi - dx2)),0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double Ac = 4.0 * dx2 * dy2;
+
+            Qh[j * Lx + i] = (tCond) ? w * (A1 + A2) / Ac : 0.0;
         }
     }
 #elif SIMULATION_CASE == 3
@@ -119,7 +126,6 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
             }
         }
     }
-
 
     double Sx1 = 0.5 * Sx;
     double Sy1 = 0.5 * Sx;
@@ -308,7 +314,7 @@ int main(int argc, char *argv[])
     double Sy = 0.0296;
     double Sz = 0.0015;
     double St = 500.0;
-    double amp = 1.0e3;
+    double amp = 1.0e4;
     double h = 0.0; // 11.0;
 
     std::ofstream outParms;

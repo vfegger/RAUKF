@@ -21,6 +21,9 @@ Sx = Ss[1];
 Sy = Ss[2];
 St = Ss[3];
 
+plot_font = "Computer Modern"
+default(fontfamily=plot_font)
+
 const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :TsN, :Ts, :Qs]
 const typeSizes = Dict(
     :t => (1, (1, 1)),
@@ -64,7 +67,7 @@ function printProfiles(case, t)
     @assert t <= Lt
     dx2 = Sx / Lx / 2
     dy2 = Sy / Ly / 2
-    amp = 1e3
+    amp = 1e4
 
     x = range(0 + dx2, Sx - dx2, Lx)
     y = range(0 + dy2, Sy - dy2, Ly)
@@ -85,28 +88,96 @@ function printProfiles(case, t)
     plt_T_Profile = heatmap(x, y, zT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
     savefig(plt_T_Profile, joinpath(imagePath, case, "TemperatureProfile_" * string(t) * ".pdf"))
 
-    plt_cT_Profile = heatmap(x, y, zcT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
+    plt_cT_Profile = heatmap(x, y, zcT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
     savefig(plt_cT_Profile, joinpath(imagePath, case, "TemperatureCovarianceProfile_" * string(t) * ".pdf"))
 
     plt_Q_Profile = heatmap(x, y, zQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Q_Profile, joinpath(imagePath, case, "HeatFluxProfile_" * string(t) * ".pdf"))
 
-    plt_cQ_Profile = heatmap(x, y, zcQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux Standard Deviation [W/m^2]", dpi=1000)
+    plt_cQ_Profile = heatmap(x, y, zcQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux Standard Deviation [W/m^2]", dpi=1000)
     savefig(plt_cQ_Profile, joinpath(imagePath, case, "HeatFluxCovarianceProfile_" * string(t) * ".pdf"))
 
-    plt_Tm_Profile = heatmap(x, y, zTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    plt_Tm_Profile = heatmap(x, y, zTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Observed Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
     savefig(plt_Tm_Profile, joinpath(imagePath, case, "ObservedTemperatureProfile_" * string(t) * ".pdf"))
 
-    plt_cTm_Profile = heatmap(x, y, zcTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
+    plt_cTm_Profile = heatmap(x, y, zcTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Observed Temperature Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
     savefig(plt_cTm_Profile, joinpath(imagePath, case, "ObservedTemperatureCovarianceProfile_" * string(t) * ".pdf"))
 
-    plt_TsN_Profile = heatmap(x, y, zTsN, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    plt_TsN_Profile = heatmap(x, y, zTsN, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Measured Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
     savefig(plt_TsN_Profile, joinpath(imagePath, case, "NoisyMeasureTemperatureProfile_" * string(t) * ".pdf"))
 
-    plt_Ts_Profile = heatmap(x, y, zTs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    plt_Ts_Profile = heatmap(x, y, zTs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Measured Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
     savefig(plt_Ts_Profile, joinpath(imagePath, case, "MeasureTemperatureProfile_" * string(t) * ".pdf"))
 
-    plt_Qs_Profile = heatmap(x, y, zQs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
+    plt_Qs_Profile = heatmap(x, y, zQs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Reference Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
+    savefig(plt_Qs_Profile, joinpath(imagePath, case, "SimulatedHeatFluxProfile_" * string(t) * ".pdf"))
+
+    return
+end
+
+function printProfiles_IP(case, t)
+    @assert t >= 1
+    @assert t <= Lt
+    amp = 1e4
+    dx2 = Sx / Lx / 2
+    dy2 = Sy / Ly / 2
+    X = range(0 + dx2, Sx - dx2, Lx)
+    Y = range(0 + dx2, Sy - dy2, Ly)
+    t0 = first(dataValues[:t])
+    t1 = last(dataValues[:t])
+    T = range(t0, t1, Lt)
+    Ω = (X, Y, T)
+    itp_T = LinearInterpolation(Ω, dataValues[:T])
+    itp_cT = LinearInterpolation(Ω, dataValues[:cT])
+    itp_Q = LinearInterpolation(Ω, dataValues[:Q])
+    itp_cQ = LinearInterpolation(Ω, dataValues[:cQ])
+    itp_Tm = LinearInterpolation(Ω, dataValues[:Tm])
+    itp_cTm = LinearInterpolation(Ω, dataValues[:cTm])
+    itp_TsN = LinearInterpolation(Ω, dataValues[:TsN])
+    itp_Ts = LinearInterpolation(Ω, dataValues[:Ts])
+    itp_Qs = LinearInterpolation(Ω, dataValues[:Qs])
+
+    points = [(x, y, t) for x in X for y in Y]
+
+    zT = reshape([itp_T(p...) for p in points], (Lx, Ly))
+    zcT = reshape([itp_cT(p...) for p in points], (Lx, Ly))
+    zQ = reshape([itp_Q(p...) for p in points], (Lx, Ly))
+    zcQ = reshape([itp_cQ(p...) for p in points], (Lx, Ly))
+    zTm = reshape([itp_Tm(p...) for p in points], (Lx, Ly))
+    zcTm = reshape([itp_cTm(p...) for p in points], (Lx, Ly))
+    zTsN = reshape([itp_TsN(p...) for p in points], (Lx, Ly))
+    zTs = reshape([itp_Ts(p...) for p in points], (Lx, Ly))
+    zQs = reshape([itp_Qs(p...) for p in points], (Lx, Ly))
+
+    colgrad = cgrad(:thermal, rev=false)
+
+    mkpath(joinpath(imagePath, case))
+
+    plt_T_Profile = heatmap(X, Y, zT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    savefig(plt_T_Profile, joinpath(imagePath, case, "TemperatureProfile_" * string(t) * ".pdf"))
+
+    plt_cT_Profile = heatmap(X, Y, zcT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
+    savefig(plt_cT_Profile, joinpath(imagePath, case, "TemperatureCovarianceProfile_" * string(t) * ".pdf"))
+
+    plt_Q_Profile = heatmap(X, Y, zQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
+    savefig(plt_Q_Profile, joinpath(imagePath, case, "HeatFluxProfile_" * string(t) * ".pdf"))
+
+    plt_cQ_Profile = heatmap(X, Y, zcQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux Standard Deviation [W/m^2]", dpi=1000)
+    savefig(plt_cQ_Profile, joinpath(imagePath, case, "HeatFluxCovarianceProfile_" * string(t) * ".pdf"))
+
+    plt_Tm_Profile = heatmap(X, Y, zTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Observed Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    savefig(plt_Tm_Profile, joinpath(imagePath, case, "ObservedTemperatureProfile_" * string(t) * ".pdf"))
+
+    plt_cTm_Profile = heatmap(X, Y, zcTm, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Observed Temperature Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
+    savefig(plt_cTm_Profile, joinpath(imagePath, case, "ObservedTemperatureCovarianceProfile_" * string(t) * ".pdf"))
+
+    plt_TsN_Profile = heatmap(X, Y, zTsN, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Measured Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    savefig(plt_TsN_Profile, joinpath(imagePath, case, "NoisyMeasureTemperatureProfile_" * string(t) * ".pdf"))
+
+    plt_Ts_Profile = heatmap(X, Y, zTs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Measured Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    savefig(plt_Ts_Profile, joinpath(imagePath, case, "MeasureTemperatureProfile_" * string(t) * ".pdf"))
+
+    plt_Qs_Profile = heatmap(X, Y, zQs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Reference Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Qs_Profile, joinpath(imagePath, case, "SimulatedHeatFluxProfile_" * string(t) * ".pdf"))
 
     return
@@ -162,5 +233,5 @@ end
 
 getData()
 
-printProfiles("Simulation1", 150)
-printEvolutions("Simulation1",Sx/2, Sy/2)
+printProfiles_IP("Simulation1", 59)
+printEvolutions("Simulation1", Sx / 2, Sy / 2)

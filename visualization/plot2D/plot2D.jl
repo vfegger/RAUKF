@@ -217,8 +217,7 @@ function printEvolutions(case, x, y)
     zTs = [itp_Ts(p...) for p in points]
     zQs = [itp_Qs(p...) for p in points]
 
-
-    plt_T_Evolution = plot(T, [zTs zTsN zT zT .+ 1.96 .* sqrt.(zcT) zT .- 1.96 .* sqrt.(zcT)], title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]")
+    plt_T_Evolution = plot(T, [zTs zTsN zT zT .+ 1.96 .* sqrt.(zcT) zT .- 1.96 .* sqrt.(zcT)], title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]",dpi=1000)
     savefig(plt_T_Evolution, joinpath(imagePath, case, "TemperatureEvolution_" * string(x) * "_" * string(y) * ".pdf"))
 
     plt_Q_Evolution = plot(T, [zQs zQ zQ .+ 1.96 .* sqrt.(zcQ) zQ .- 1.96 .* sqrt.(zcQ)], title="Heat Flux", xlabel="Time [s]", ylabel="Heat Flux [W/m^2]", dpi=1000)

@@ -15,7 +15,7 @@
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
-#define LT_DEFAULT (500 * 12)
+#define LT_DEFAULT (100 * 30)
 
 #define SIMULATION_CASE 0
 
@@ -94,8 +94,8 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
 
             double dx2 = 0.5 * Sx / Lx;
             double dy2 = 0.5 * Sy / Ly;
-            double A1 = std::max((std::min(Sx1 + b, xi + dx2) - std::max(Sx1, xi - dx2)),0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
-            double A2 = std::max((std::min(Sx2 + b, xi + dx2) - std::max(Sx2, xi - dx2)),0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double A1 = std::max((std::min(Sx1 + b, xi + dx2) - std::max(Sx1, xi - dx2)), 0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double A2 = std::max((std::min(Sx2 + b, xi + dx2) - std::max(Sx2, xi - dx2)), 0.0) * std::max((std::min(Sy1 + a, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
             double Ac = 4.0 * dx2 * dy2;
 
             Qh[j * Lx + i] = (tCond) ? w * (A1 + A2) / Ac : 0.0;
@@ -298,22 +298,28 @@ void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt)
 int main(int argc, char *argv[])
 {
     Type type = Type::CPU;
+    int Lx = LX_DEFAULT;
+    int Ly = LY_DEFAULT;
+    int Lt = LT_DEFAULT;
     if (argc > 1)
     {
         type = (std::stoi(argv[1]) == 0) ? Type::CPU : Type::GPU;
+        if (argc > 4)
+        {
+            Lx = std::stod(argv[2]);
+            Ly = std::stod(argv[3]);
+            Lt = std::stod(argv[4]);
+        }
     }
     if (type == Type::GPU)
     {
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    int Lx = LX_DEFAULT;
-    int Ly = LY_DEFAULT;
-    int Lt = LT_DEFAULT;
     double Sx = 0.0296;
     double Sy = 0.0296;
     double Sz = 0.0015;
-    double St = 500.0;
+    double St = 100.0; // ((36-20)*60.0+(39.611-52.728)) * N / 28386 
     double amp = 1.0e4;
     double h = 0.0; // 11.0;
 

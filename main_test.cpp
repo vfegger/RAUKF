@@ -64,17 +64,34 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
     double Sy1 = 0.5 * Sx;
     double Sr1 = 0.1 * std::min(Sx, Sy);
     double St1 = 50.0;
-    double St2 = 150.0;
-    double w = (p / (M_PI * Sr1 * Sr1)) / amp;
+    double St2 = 60.0;
+    double w = (p / ((Sx2 - Sx1) * (Sy2 - Sy1))) / amp;
     for (int j = 0; j < Ly; ++j)
     {
         for (int i = 0; i < Lx; ++i)
         {
             double xi = (i + 0.5) * Sx / Lx;
             double yj = (j + 0.5) * Sy / Ly;
-            bool rCond = (xi - Sx1) * (xi - Sx1) + (yj - Sy1) * (yj - Sy1) < Sr1 * Sr1;
             bool tCond = t > St1 && t < St2;
-            Qh[j * Lx + i] = (rCond && tCond) ? w : 0.0;
+            double dx2 = 0.5 * Sx / Lx;
+            double dy2 = 0.5 * Sy / Ly;
+            double wf_c = 1 / (104857600 * M_PI * M_PI);
+            double wf_d = (3969 * Sx * Sy) / 65536;
+            double wf_x = (5040 * dx2 * M_PI + 2100 * Sx * std::sin(2 * M_PI * (-dx2 + xi) / Sx) -
+                           600 * Sx * std::sin(4 * M_PI * (-dx2 + xi) / Sx) + 150 * Sx * std::sin(6 * M_PI * (-dx2 + xi) / Sx) -
+                           25 * Sx * std::sin(8 * M_PI * (-dx2 + xi) / Sx) + 2 * Sx * std::sin(10 * M_PI * (-dx2 + xi) / Sx) -
+                           2100 * Sx * std::sin(2 * M_PI * (dx2 + xi) / Sx) + 600 * Sx * std::sin(4 * M_PI * (dx2 + xi) / Sx) -
+                           150 * Sx * std::sin(6 * M_PI * (dx2 + xi) / Sx) + 25 * Sx * std::sin(8 * M_PI * (dx2 + xi) / Sx) -
+                           2 * Sx * std::sin(10 * M_PI * (dx2 + xi) / Sx));
+            double wf_y = (5040 * dy2 * M_PI + 2100 * Sy * std::sin(2 * M_PI * (-dy2 + yj) / Sy) -
+                           600 * Sy * std::sin(4 * M_PI * (-dy2 + yj) / Sy) + 150 * Sy * std::sin(6 * M_PI * (-dy2 + yj) / Sy) -
+                           25 * Sy * std::sin(8 * M_PI * (-dy2 + yj) / Sy) + 2 * Sy * std::sin(10 * M_PI * (-dy2 + yj) / Sy) -
+                           2100 * Sy * std::sin(2 * M_PI * (dy2 + yj) / Sy) + 600 * Sy * std::sin(4 * M_PI * (dy2 + yj) / Sy) -
+                           150 * Sy * std::sin(6 * M_PI * (dy2 + yj) / Sy) + 25 * Sy * std::sin(8 * M_PI * (dy2 + yj) / Sy) -
+                           2 * Sy * std::sin(10 * M_PI * (dy2 + yj) / Sy));
+
+            double wf = wf_c * wf_x * wf_y / wf_d;
+            Qh[j * Lx + i] = (tCond) ? w * wf : 0.0;
         }
     }
 #elif SIMULATION_CASE == 2
@@ -82,7 +99,7 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
     double Sx2 = (Sx + c) / 2.0;
     double Sy1 = (Sy - a) / 2.0;
     double St1 = 50.0;
-    double St2 = 150.0;
+    double St2 = 60.0;
     double w = (p / (2 * a * b)) / amp;
     for (int j = 0; j < Ly; ++j)
     {
@@ -102,13 +119,13 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
         }
     }
 #elif SIMULATION_CASE == 3
-    double Sx1 = 0.3 * Sx;
-    double Sx2 = 0.4 * Sx;
-    double Sy1 = 0.3 * Sy;
-    double Sy2 = 0.4 * Sy;
+    double Sx1 = 0.2 * Sx;
+    double Sx2 = 0.3 * Sx;
+    double Sy1 = 0.2 * Sy;
+    double Sy2 = 0.5 * Sy;
     double St1 = 50.0;
-    double St2 = 150.0;
-    double w = (p / (2 * a * b)) / amp;
+    double St2 = 60.0;
+    double w = ((p / 2) / ((Sx2 - Sx1) * (Sy2 - Sy1))) / amp;
     MathCPU::Zero(Qh, Lx * Ly);
 
     for (int j = 0; j < Ly; ++j)
@@ -117,37 +134,44 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
         {
             double xi = (i + 0.5) * Sx / Lx;
             double yj = (j + 0.5) * Sy / Ly;
-            bool xCond = (xi > Sx1 && xi < Sx2);
-            bool yCond = (yj > Sy1 && yj < Sy2);
             bool tCond = t > St1 && t < St2;
-            if (xCond && yCond && tCond)
-            {
-                Qh[j * Lx + i] += w;
-            }
+            double dx2 = 0.5 * Sx / Lx;
+            double dy2 = 0.5 * Sy / Ly;
+            double A = std::max((std::min(Sx2, xi + dx2) - std::max(Sx1, xi - dx2)), 0.0) * std::max((std::min(Sy2, yj + dy2) - std::max(Sy1, yj - dy2)), 0.0);
+            double Ac = 4.0 * dx2 * dy2;
+            Qh[j * Lx + i] += (tCond) ? w * A / Ac : 0.0;
         }
     }
 
-    double Sx1 = 0.5 * Sx;
-    double Sy1 = 0.5 * Sx;
-    double Sr1 = 0.1 * std::min(Sx, Sy);
-    double St1 = St * 0.01;
-    double St2 = St * 0.02;
-    double w = (p / (M_PI * Sr1 * Sr1)) / amp;
+    w = (p / (1.6e-3 * Sx * Sy)) / amp;
     for (int j = 0; j < Ly; ++j)
     {
         for (int i = 0; i < Lx; ++i)
         {
             double xi = (i + 0.5) * Sx / Lx;
             double yj = (j + 0.5) * Sy / Ly;
-            bool rCond = (xi - Sx1) * (xi - Sx1) + (yj - Sy1) * (yj - Sy1) < Sr1 * Sr1;
             bool tCond = t > St1 && t < St2;
-            if (rCond && tCond)
-            {
-                Qh[j * Lx + i] += w;
-            }
+            double dx2 = 0.5 * Sx / Lx;
+            double dy2 = 0.5 * Sy / Ly;
+            double wf_c = 1.0 / (104857600.0 * M_PI * M_PI);
+            double wf_d = (3969 * Sx * Sy) / 65536;
+            double wf_x = (5040 * dx2 * M_PI + 2100 * Sx * std::sin(2 * M_PI * (-dx2 + xi) / Sx) -
+                           600 * Sx * std::sin(4 * M_PI * (-dx2 + xi) / Sx) + 150 * Sx * std::sin(6 * M_PI * (-dx2 + xi) / Sx) -
+                           25 * Sx * std::sin(8 * M_PI * (-dx2 + xi) / Sx) + 2 * Sx * std::sin(10 * M_PI * (-dx2 + xi) / Sx) -
+                           2100 * Sx * std::sin(2 * M_PI * (dx2 + xi) / Sx) + 600 * Sx * std::sin(4 * M_PI * (dx2 + xi) / Sx) -
+                           150 * Sx * std::sin(6 * M_PI * (dx2 + xi) / Sx) + 25 * Sx * std::sin(8 * M_PI * (dx2 + xi) / Sx) -
+                           2 * Sx * std::sin(10 * M_PI * (dx2 + xi) / Sx));
+            double wf_y = (5040 * dy2 * M_PI + 2100 * Sy * std::sin(2 * M_PI * (-dy2 + yj) / Sy) -
+                           600 * Sy * std::sin(4 * M_PI * (-dy2 + yj) / Sy) + 150 * Sy * std::sin(6 * M_PI * (-dy2 + yj) / Sy) -
+                           25 * Sy * std::sin(8 * M_PI * (-dy2 + yj) / Sy) + 2 * Sy * std::sin(10 * M_PI * (-dy2 + yj) / Sy) -
+                           2100 * Sy * std::sin(2 * M_PI * (dy2 + yj) / Sy) + 600 * Sy * std::sin(4 * M_PI * (dy2 + yj) / Sy) -
+                           150 * Sy * std::sin(6 * M_PI * (dy2 + yj) / Sy) + 25 * Sy * std::sin(8 * M_PI * (dy2 + yj) / Sy) -
+                           2 * Sy * std::sin(10 * M_PI * (dy2 + yj) / Sy));
+
+            double wf = wf_c * wf_x * wf_y / wf_d;
+            Qh[j * Lx + i] += (tCond) ? w * wf : 0.0;
         }
     }
-
 #endif
 }
 
@@ -319,7 +343,7 @@ int main(int argc, char *argv[])
     double Sx = 0.0296;
     double Sy = 0.0296;
     double Sz = 0.0015;
-    double St = 100.0; // ((36-20)*60.0+(39.611-52.728)) * N / 28386 
+    double St = 100.0; // ((36-20)*60.0+(39.611-52.728)) * N / 28386
     double amp = 1.0e4;
     double h = 0.0; // 11.0;
 
@@ -397,6 +421,7 @@ int main(int argc, char *argv[])
     std::ofstream outFile;
     for (int i = 0; i < Lt; i++)
     {
+        std::cout << "Loop: " << i + 1 << "/" << Lt << " at t = " << (i + 1) * St / Lt << "\n";
 #if RAUKF_USAGE == 1
         raukf.SetMeasure("Temperature", measuresN + Lx * Ly * i);
 

@@ -6,7 +6,7 @@
 #include <curand.h>
 
 #define IMPLICIT_SCHEME 1
-#define ILSA 0
+#define ILSA 1
 
 namespace HC2D
 {

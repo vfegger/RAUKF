@@ -1,3 +1,7 @@
+using Pkg;
+Pkg.activate(".");
+Pkg.instantiate();
+
 using FileIO
 using Interpolations
 
@@ -46,8 +50,8 @@ Rec2_L = 28386
 Rec3_L = missing
 
 Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_L
-Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
+#Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
 println("Case 2: Lt = ", Rec2_i1 - Rec2_i0, "; St = ", Rec2_newTime)
-println("Case 2: Lt = ", Rec3_i1 - Rec3_i0, "; St = ", Rec3_newTime)
+#println("Case 3: Lt = ", Rec3_i1 - Rec3_i0, "; St = ", Rec3_newTime)
 importfiles(input_path, output_path, "case2/Rec-0002_", "case2/Values", 1999, 4499, 1, case2_points)
-importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)
+#importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)

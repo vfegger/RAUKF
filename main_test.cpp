@@ -9,15 +9,13 @@
 #include <string>
 #include <format>
 
-#define RAUKF_USAGE 0
-#define KF_USAGE 1
 #define NOISE_USAGE 1
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
 #define LT_DEFAULT (100 * 30)
 
-#define SIMULATION_CASE 0
+#define SIMULATION_CASE 3
 
 void AddNoise(std::default_random_engine &gen, std::normal_distribution<double> &dist, double *v_o, double *v_i, int length)
 {
@@ -65,7 +63,7 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
     double Sr1 = 0.1 * std::min(Sx, Sy);
     double St1 = 50.0;
     double St2 = 60.0;
-    double w = (p / ((Sx2 - Sx1) * (Sy2 - Sy1))) / amp;
+    double w = (p / (1.6e-3 * Sx * Sy)) / amp;
     for (int j = 0; j < Ly; ++j)
     {
         for (int i = 0; i < Lx; ++i)
@@ -303,16 +301,20 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     std::cout << "Synthetic measurements generated.\n";
 }
 
-void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt)
+void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt, std::string case_input)
 {
     std::ifstream inFile;
     int Lxy = Lx * Ly;
     for (int i = 0; i < Lt; i++)
     {
-        inFile.open("input/Values" + std::to_string(i) + ".bin", std::ios::in | std::ios::binary);
+        inFile.open(case_input + "/Values" + std::to_string(i) + ".bin", std::ios::in | std::ios::binary);
         if (inFile.is_open())
         {
             inFile.read((char *)(measures + i * Lxy), sizeof(double) * Lxy);
+        }
+        else
+        {
+            throw std::runtime_error("Error reading file.");
         }
         inFile.close();
     }
@@ -325,88 +327,59 @@ int main(int argc, char *argv[])
     int Lx = LX_DEFAULT;
     int Ly = LY_DEFAULT;
     int Lt = LT_DEFAULT;
+    double Sx = 0.0296;
+    double Sy = 0.0296;
+    double Sz = 0.0015;
+    double St = 100.0;
+    bool useMeasurements = false;
+    std::string case_input;
     if (argc > 1)
     {
         type = (std::stoi(argv[1]) == 0) ? Type::CPU : Type::GPU;
-        if (argc > 4)
-        {
-            Lx = std::stod(argv[2]);
-            Ly = std::stod(argv[3]);
-            Lt = std::stod(argv[4]);
-        }
+    }
+    if (argc > 5)
+    {
+        useMeasurements = std::stoi(argv[2]) != 0;
+        case_input = argv[3];
+        Lt = std::stoi(argv[4]);
+        St = std::stod(argv[5]);
     }
     if (type == Type::GPU)
     {
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    double Sx = 0.0296;
-    double Sy = 0.0296;
-    double Sz = 0.0015;
-    double St = 100.0; // ((36-20)*60.0+(39.611-52.728)) * N / 28386
     double amp = 1.0e4;
     double h = 0.0; // 11.0;
 
     std::ofstream outParms;
-    int temp;
-#if RAUKF_USAGE == 1
-    outParms.open("data/raukf/Parms.bin", std::ios::out | std::ios::binary);
-    outParms.write((char *)(&Lx), sizeof(int));
-    outParms.write((char *)(&Ly), sizeof(int));
-    outParms.write((char *)(&Lt), sizeof(int));
-    outParms.close();
-#endif
-#if KF_USAGE == 1
     outParms.open("data/kf/Parms.bin", std::ios::out | std::ios::binary);
     outParms.write((char *)(&Lx), sizeof(int));
     outParms.write((char *)(&Ly), sizeof(int));
     outParms.write((char *)(&Lt), sizeof(int));
     outParms.close();
-#endif
 
     Timer timer;
-#if RAUKF_USAGE == 1
-    HFE2D hfe;
-#endif
-#if KF_USAGE == 1
     HFE2D hfeKF;
-#endif
-
-#if RAUKF_USAGE == 1
-    RAUKF raukf;
-#endif
-#if KF_USAGE == 1
     KF kf;
-#endif
 
-#if RAUKF_USAGE == 1
-    hfe.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h);
-    hfe.SetMemory(type);
-#endif
-#if KF_USAGE == 1
     hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h);
     hfeKF.SetMemory(type);
-#endif
 
-#if RAUKF_USAGE == 1
-    raukf.SetParameters(1e-3, 2.0, 0.0);
-    raukf.SetModel(&hfe);
-    raukf.SetType(type);
-    raukf.SetWeight();
-#endif
-#if KF_USAGE == 1
     kf.SetModel(&hfeKF);
     kf.SetType(type);
-#endif
 
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-#if USE_MEASUREMENTS == 1
-    ReadMeasurements(measures, q_ref, Lx, Ly, Lt);
-#else
-    Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, type);
-#endif
+    if (useMeasurements)
+    {
+        ReadMeasurements(measures, q_ref, Lx, Ly, Lt, case_input);
+    }
+    else
+    {
+        Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, type);
+    }
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultCovarT = (double *)malloc(sizeof(double) * Lx * Ly);
@@ -422,41 +395,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < Lt; i++)
     {
         std::cout << "Loop: " << i + 1 << "/" << Lt << " at t = " << (i + 1) * St / Lt << "\n";
-#if RAUKF_USAGE == 1
-        raukf.SetMeasure("Temperature", measuresN + Lx * Ly * i);
 
-        raukf.Iterate(timer);
-        raukf.GetState("Temperature", resultT);
-        raukf.GetState("Heat Flux", resultQ);
-        raukf.GetStateCovariance("Temperature", resultCovarT);
-        raukf.GetStateCovariance("Heat Flux", resultCovarQ);
-        raukf.GetMeasure("Temperature", resultTm);
-        raukf.GetMeasureCovariance("Temperature", resultCovarTm);
-
-        outFile.open("data/raukf/Values" + std::to_string(i) + ".bin", std::ios::out | std::ios::binary);
-        if (outFile.is_open())
-        {
-            double resultTime = (i + 1) * St / Lt;
-            outFile.write((char *)(&resultTime), sizeof(double));
-            outFile.write((char *)resultT, sizeof(double) * Lx * Ly);
-            outFile.write((char *)resultCovarT, sizeof(double) * Lx * Ly);
-            outFile.write((char *)resultQ, sizeof(double) * Lx * Ly);
-            outFile.write((char *)resultCovarQ, sizeof(double) * Lx * Ly);
-            outFile.write((char *)resultTm, sizeof(double) * Lx * Ly);
-            outFile.write((char *)resultCovarTm, sizeof(double) * Lx * Ly);
-            outFile.write((char *)(measuresN + Lx * Ly * i), sizeof(double) * Lx * Ly);
-            outFile.write((char *)(measures + Lx * Ly * i), sizeof(double) * Lx * Ly);
-#if USE_MEASUREMENTS == 0
-            outFile.write((char *)(q_ref + Lx * Ly * i), sizeof(double) * Lx * Ly);
-#endif
-        }
-        outFile.close();
-
-        outFile.open("data/raukf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
-        outFile.close();
-#endif
-
-#if KF_USAGE == 1
         kf.SetMeasure("Temperature", measuresN + Lx * Ly * i);
 
         kf.Iterate(timer);
@@ -486,7 +425,6 @@ int main(int argc, char *argv[])
 
         outFile.open("data/kf/ready/" + std::to_string(i), std::ios::out | std::ios::binary);
         outFile.close();
-#endif
     }
 
     free(resultCovarTm);
@@ -495,25 +433,12 @@ int main(int argc, char *argv[])
     free(resultCovarT);
     free(resultQ);
     free(resultT);
-#if USE_MEASUREMENTS == 0
     free(q_ref);
-#endif
     free(measuresN);
     free(measures);
 
-#if KF_USAGE == 1
     kf.UnsetModel();
-#endif
-#if RAUKF_USAGE == 1
-    raukf.UnsetWeight();
-    raukf.UnsetModel();
-#endif
-#if KF_USAGE == 1
     hfeKF.UnsetMemory(type);
-#endif
-#if RAUKF_USAGE == 1
-    hfe.UnsetMemory(type);
-#endif
 
     if (type == Type::GPU)
     {

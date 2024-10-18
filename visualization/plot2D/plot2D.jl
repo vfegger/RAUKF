@@ -140,11 +140,11 @@ function printProfiles_IP(case, t)
     points = [(x, y, t) for x in X for y in Y]
 
     zT = reshape([itp_T(p...) for p in points], (Lx, Ly))
-    zcT = reshape([itp_cT(p...) for p in points], (Lx, Ly))
+    zcT = sqrt.(reshape([itp_cT(p...) for p in points], (Lx, Ly)))
     zQ = reshape([itp_Q(p...) for p in points], (Lx, Ly))
-    zcQ = reshape([itp_cQ(p...) for p in points], (Lx, Ly))
+    zcQ = sqrt.(reshape([itp_cQ(p...) for p in points], (Lx, Ly)))
     zTm = reshape([itp_Tm(p...) for p in points], (Lx, Ly))
-    zcTm = reshape([itp_cTm(p...) for p in points], (Lx, Ly))
+    zcTm = sqrt.(reshape([itp_cTm(p...) for p in points], (Lx, Ly)))
     zTsN = reshape([itp_TsN(p...) for p in points], (Lx, Ly))
     zTs = reshape([itp_Ts(p...) for p in points], (Lx, Ly))
     zQs = reshape([itp_Qs(p...) for p in points], (Lx, Ly))
@@ -153,7 +153,19 @@ function printProfiles_IP(case, t)
 
     mkpath(joinpath(imagePath, case))
 
-    plt_T_Profile = heatmap(X, Y, zT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    T_min = (floor(min(minimum(zT))) - 4) ÷ 5 * 5
+    T_max = (ceil(max(maximum(zT))) + 4) ÷ 5 * 5
+
+    Tm_min = (floor(min(minimum(zTm), minimum(zTsN), minimum(zTs))) - 4) ÷ 5 * 5
+    Tm_max = (ceil(max(maximum(zTm), maximum(zTsN), maximum(zTs))) - 4) ÷ 5 * 5
+
+    Q_min = (floor(min(minimum(zQ), minimum(zQs))) - 4) ÷ 5 * 5
+    Q_max = (ceil(max(maximum(zQ), maximum(zQs))) + 4) ÷ 5 * 5
+
+    R_min = (floor(min(minimum(zTm .- zTsN))) - 4) ÷ 5 * 5
+    R_max = (ceil(max(maximum(zTm .- zTsN))) + 4) ÷ 5 * 5
+
+    plt_T_Profile = heatmap(X, Y, zT, xlims=(0, Sx), ylims=(0, Sy), clims=(T_min, T_max), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
     savefig(plt_T_Profile, joinpath(imagePath, case, "TemperatureProfile_" * string(t) * ".pdf"))
 
     plt_cT_Profile = heatmap(X, Y, zcT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
@@ -179,6 +191,9 @@ function printProfiles_IP(case, t)
 
     plt_Qs_Profile = heatmap(X, Y, zQs, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Reference Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Qs_Profile, joinpath(imagePath, case, "SimulatedHeatFluxProfile_" * string(t) * ".pdf"))
+
+    plt_rT_Profile = heatmap(X, Y, zTm .- zTsN, xlims=(0, Sx), ylims=(0, Sy), clims=(R_min, R_max), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Residual", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature [K]", dpi=1000)
+    savefig(plt_rT_Profile, joinpath(imagePath, case, "ResidualTemperatureProfile_" * string(t) * ".pdf"))
 
     return
 end
@@ -208,19 +223,19 @@ function printEvolutions(case, x, y)
     points = [(x, y, t) for t in T]
 
     zT = [itp_T(p...) for p in points]
-    zcT = [itp_cT(p...) for p in points]
+    zcT = sqrt.([itp_cT(p...) for p in points])
     zQ = [itp_Q(p...) for p in points]
-    zcQ = [itp_cQ(p...) for p in points]
+    zcQ = sqrt.([itp_cQ(p...) for p in points])
     zTm = [itp_Tm(p...) for p in points]
-    zcTm = [itp_cTm(p...) for p in points]
+    zcTm = sqrt.([itp_cTm(p...) for p in points])
     zTsN = [itp_TsN(p...) for p in points]
     zTs = [itp_Ts(p...) for p in points]
     zQs = [itp_Qs(p...) for p in points]
 
-    plt_T_Evolution = plot(T, [zTs zTsN zT zT .+ 1.96 .* sqrt.(zcT) zT .- 1.96 .* sqrt.(zcT)], title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]",dpi=1000)
+    plt_T_Evolution = plot(T, [zTs zTsN zTm zTm .+ 1.96 .* zcTm zTm .- 1.96 .* zcTm], title="Temperature", xlabel="Time [s]", ylabel="Temperature [K]", dpi=1000)
     savefig(plt_T_Evolution, joinpath(imagePath, case, "TemperatureEvolution_" * string(x) * "_" * string(y) * ".pdf"))
 
-    plt_Q_Evolution = plot(T, [zQs zQ zQ .+ 1.96 .* sqrt.(zcQ) zQ .- 1.96 .* sqrt.(zcQ)], title="Heat Flux", xlabel="Time [s]", ylabel="Heat Flux [W/m^2]", dpi=1000)
+    plt_Q_Evolution = plot(T, [zQs zQ zQ .+ 1.96 .* zcQ zQ .- 1.96 .* zcQ], title="Heat Flux", xlabel="Time [s]", ylabel="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Q_Evolution, joinpath(imagePath, case, "HeatFluxEvolution_" * string(x) * "_" * string(y) * ".pdf"))
 
     plt_rT_Evolution = plot(T, zTm .- zTsN, title="Temperature", xlabel="Time [s]", ylabel="Residual [K]", dpi=1000)

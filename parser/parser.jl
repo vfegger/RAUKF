@@ -40,18 +40,18 @@ case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1
 case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 
 Rec2_Time = (36 - 20) * 60 + (39.611 - 52.728)
-Rec3_Time = missing
+Rec3_Time = (46 - 25) * 60 + (3.665 - 43.837)
 Rec2_i0 = 1999
 Rec2_i1 = 4499
 Rec3_i0 = 799
 Rec3_i1 = 5999
 
 Rec2_L = 28386
-Rec3_L = missing
+Rec3_L = 36635
 
 Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_L
-#Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
-println("Case 2: Lt = ", Rec2_i1 - Rec2_i0, "; St = ", Rec2_newTime)
-#println("Case 3: Lt = ", Rec3_i1 - Rec3_i0, "; St = ", Rec3_newTime)
+Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
+println("Case 2: Lt = ", Rec2_i1 - Rec2_i0, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0))
+println("Case 3: Lt = ", Rec3_i1 - Rec3_i0, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0))
 importfiles(input_path, output_path, "case2/Rec-0002_", "case2/Values", 1999, 4499, 1, case2_points)
-#importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)
+importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)

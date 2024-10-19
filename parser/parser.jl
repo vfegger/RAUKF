@@ -1,6 +1,7 @@
 using Pkg;
-Pkg.activate(".");
+Pkg.activate(@__DIR__);
 Pkg.instantiate();
+cd(@__DIR__);
 
 using FileIO
 using Interpolations
@@ -23,6 +24,7 @@ end
 
 # Example usage
 function importfiles(path_input, path_output, name_input, name_output, start, stop, stride, case_points)
+    mkpath(path_output)
     for (i, j) in enumerate(start:stride:stop)
         input_csv = path_input * name_input * string(j) * ".csv"
         output_bin = path_output * name_output * string(i - 1) * ".bin"
@@ -51,7 +53,7 @@ Rec3_L = 36635
 
 Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_L
 Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
-println("Case 2: Lt = ", Rec2_i1 - Rec2_i0, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0))
-println("Case 3: Lt = ", Rec3_i1 - Rec3_i0, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0))
-importfiles(input_path, output_path, "case2/Rec-0002_", "case2/Values", 1999, 4499, 1, case2_points)
-importfiles(input_path, output_path, "case3/Rec-0003_", "case3/Values", 799, 5999, 1, case3_points)
+println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0))
+println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0))
+importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points)
+importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points)

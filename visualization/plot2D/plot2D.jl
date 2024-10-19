@@ -1,12 +1,14 @@
 using Pkg;
-Pkg.activate(".")
+Pkg.activate(@__DIR__);
+Pkg.instantiate();
+cd(@__DIR__);
 
 using Plots
 using LaTeXStrings
 using Printf
 using Interpolations
 
-const dataPath = joinpath("..", "..", "data", "kf")
+const dataPath = joinpath("..", "..", "results", ARGS[1])
 const imagePath = joinpath(".", "Images")
 
 const typeParms = [:Lx, :Ly, :Lt]
@@ -40,7 +42,7 @@ const typeSizes = Dict(
 #[t T cT Q cQ Tm cTm Ts Qs]
 dataValues = Dict(id => Array{Float64,3}(undef, last(typeSizes[id])[1], last(typeSizes[id])[2], Lt) for id in typeValues)
 
-function getData()
+function getData(dataPath)
     names = readdir(joinpath(dataPath, "ready"), join=false)
     if length(names) > 0
         sortedNames = sortperm(parse.(Int32, names))
@@ -245,7 +247,10 @@ function printEvolutions(case, x, y)
 end
 
 
-getData()
+getData(dataPath)
 
-printProfiles_IP("Simulation1", 59)
-printEvolutions("Simulation1", Sx / 2, Sy / 2)
+printProfiles_IP(ARGS[1], 10)
+printProfiles_IP(ARGS[1], 30)
+printProfiles_IP(ARGS[1], 50)
+printProfiles_IP(ARGS[1], 70)
+printEvolutions(ARGS[1], Sx / 2, Sy / 2)

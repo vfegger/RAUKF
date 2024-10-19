@@ -15,5 +15,7 @@ rm data/kf/*.bin data/kf/ready/*
 mkdir -p results
 mkdir -p results/$1
 
+rm -rf results/$1/*
+
 # Move the generated data to the results directory with the given name
-cp data/kf/* "results/$1"
+cp -r data/kf/* "results/$1"

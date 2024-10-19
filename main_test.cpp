@@ -9,7 +9,7 @@
 #include <string>
 #include <format>
 
-#define NOISE_USAGE 1
+#define NOISE_USAGE 0
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    double amp = 1.0e4;
+    double amp = 1e2;
     double h = 0.0; // 11.0;
 
     std::ofstream outParms;

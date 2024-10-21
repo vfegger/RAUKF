@@ -173,7 +173,7 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
 #endif
 }
 
-void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, Type type)
+void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, double gamma, Type type)
 {
     std::cout << "Generating synthetic measurements.\n";
     double *workspace;
@@ -185,7 +185,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     int n = 10;
     int Lst = n * Lt;
     int L = 2 * Lsxy;
-    int Lu = 1;
+    int Lu = 1 + 2 * (parms.Lx + parms.Ly);
     parms.Lx = Lsx;
     parms.Ly = Lsy;
     parms.Lt = Lst;
@@ -198,9 +198,10 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     parms.dt = St / Lst;
     parms.amp = amp;
     parms.h = h;
+    parms.gamma = gamma;
 
     Pointer<double> X, T, Q, aux;
-    Pointer<double> U, T_amb;
+    Pointer<double> U, T_amb, T_c;
     Pointer<double> Y, T_m;
     Pointer<double> XX, UX, XY;
     Pointer<double> Tr, Qr;
@@ -211,6 +212,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
 
     U.alloc(Lu);
     T_amb = U;
+    T_c = U + 1;
 
     Y.alloc(Lsxy);
     T_m = Y;
@@ -232,6 +234,11 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     }
     double *T_ambh = T_amb.host();
     T_ambh[0] = 300.0;
+    double *T_ch = T_c.host();
+    for (int i = 0; i < 2 * (Lx + Ly); ++i)
+    {
+        T_ch[i] = 300.0;
+    }
     if (type == Type::GPU)
     {
         T.copyHost2Dev(Lsxy);
@@ -301,7 +308,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     std::cout << "Synthetic measurements generated.\n";
 }
 
-void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt, std::string case_input)
+void ReadMeasurements(double *measures, double *Q_ref, double *T_c, int Lx, int Ly, int Lt, std::string case_input)
 {
     std::ifstream inFile;
     int Lxy = Lx * Ly;
@@ -311,6 +318,20 @@ void ReadMeasurements(double *measures, double *Q_ref, int Lx, int Ly, int Lt, s
         if (inFile.is_open())
         {
             inFile.read((char *)(measures + i * Lxy), sizeof(double) * Lxy);
+        }
+        else
+        {
+            throw std::runtime_error("Error reading file.");
+        }
+        inFile.close();
+    }
+    int Lp = 2 * Lx + 2 * Ly;
+    for (int i = 0; i < Lt; i++)
+    {
+        inFile.open(case_input + "/Values" + std::to_string(i) + "_Tc.bin", std::ios::in | std::ios::binary);
+        if (inFile.is_open())
+        {
+            inFile.read((char *)(T_c + i * Lp), sizeof(double) * Lp);
         }
         else
         {
@@ -349,8 +370,9 @@ int main(int argc, char *argv[])
         cudaDeviceReset();
         MathGPU::CreateHandles();
     }
-    double amp = 1e2;
+    double amp = 5e3;
     double h = 0.0; // 11.0;
+    double gamma = 0.0;
 
     std::ofstream outParms;
     outParms.open("data/kf/Parms.bin", std::ios::out | std::ios::binary);
@@ -372,13 +394,14 @@ int main(int argc, char *argv[])
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
+    double *T_c = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     if (useMeasurements)
     {
-        ReadMeasurements(measures, q_ref, Lx, Ly, Lt, case_input);
+        ReadMeasurements(measures, q_ref, T_c, Lx, Ly, Lt, case_input);
     }
     else
     {
-        Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, type);
+        Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, gamma, type);
     }
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);
@@ -397,6 +420,7 @@ int main(int argc, char *argv[])
         std::cout << "Loop: " << i + 1 << "/" << Lt << " at t = " << (i + 1) * St / Lt << "\n";
 
         kf.SetMeasure("Temperature", measuresN + Lx * Ly * i);
+        kf.SetControl("Contour Temperature", T_c + 2 * (Lx + Ly) * i);
 
         kf.Iterate(timer);
         kf.GetState("Temperature", resultT);

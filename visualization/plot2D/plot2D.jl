@@ -161,7 +161,7 @@ function printProfiles_IP(case, t)
     Tm_min = (floor(min(minimum(zTm), minimum(zTsN), minimum(zTs))) - 4) ÷ 5 * 5
     Tm_max = (ceil(max(maximum(zTm), maximum(zTsN), maximum(zTs))) - 4) ÷ 5 * 5
 
-    Q_min = (floor(min(minimum(zQ), minimum(zQs))) - 4) ÷ 5 * 5
+    Q_min = 0.0#(floor(min(minimum(zQ), minimum(zQs))) - 4) ÷ 5 * 5
     Q_max = (ceil(max(maximum(zQ), maximum(zQs))) + 4) ÷ 5 * 5
 
     R_min = (floor(min(minimum(zTm .- zTsN))) - 4) ÷ 5 * 5
@@ -173,7 +173,7 @@ function printProfiles_IP(case, t)
     plt_cT_Profile = heatmap(X, Y, zcT, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Temperature Standard Deviation [K]", dpi=1000)
     savefig(plt_cT_Profile, joinpath(imagePath, case, "TemperatureCovarianceProfile_" * string(t) * ".pdf"))
 
-    plt_Q_Profile = heatmap(X, Y, zQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
+    plt_Q_Profile = heatmap(X, Y, zQ, xlims=(0, Sx), ylims=(0, Sy), clims=(Q_min, Q_max), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux [W/m^2]", dpi=1000)
     savefig(plt_Q_Profile, joinpath(imagePath, case, "HeatFluxProfile_" * string(t) * ".pdf"))
 
     plt_cQ_Profile = heatmap(X, Y, zcQ, xlims=(0, Sx), ylims=(0, Sy), yflip=false, c=colgrad, aspect_ratio=:equal, title="Heat Flux Standard Deviation", xlabel="X [m]", ylabel="Y [m]", colorbar_title="Heat Flux Standard Deviation [W/m^2]", dpi=1000)
@@ -253,4 +253,5 @@ printProfiles_IP(ARGS[1], 10)
 printProfiles_IP(ARGS[1], 30)
 printProfiles_IP(ARGS[1], 50)
 printProfiles_IP(ARGS[1], 70)
+printEvolutions(ARGS[1], 0.004, 0.025)
 printEvolutions(ARGS[1], Sx / 2, Sy / 2)

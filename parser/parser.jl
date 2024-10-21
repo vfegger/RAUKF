@@ -15,6 +15,7 @@ function parse_and_convert_to_binary(input_csv::String, output_bin::String, case
     numbers .+= 273.15
     itp = LinearInterpolation((1:640, 1:480), numbers)
     values = [itp(p...) for p in case_points]
+    values_p = [itp(p...) for p in case_points_p]
 
     # Open the binary file for writing
     open(output_bin, "w") do io
@@ -23,7 +24,7 @@ function parse_and_convert_to_binary(input_csv::String, output_bin::String, case
 end
 
 # Example usage
-function importfiles(path_input, path_output, name_input, name_output, start, stop, stride, case_points)
+function importfiles(path_input, path_output, name_input, name_output, start, stop, stride, case_points, case_points_p)
     mkpath(path_output)
     for (i, j) in enumerate(start:stride:stop)
         input_csv = path_input * name_input * string(j) * ".csv"
@@ -40,6 +41,17 @@ Lx = 32;
 Ly = 32;
 case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
+case2_points_p = collect(
+    vcat([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (-0.5) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (Lx + 0.5) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (-0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (Ly + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+case3_points_p = collect(
+    vcat([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (-0.5) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (Lx + 0.5) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (-0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (Ly + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+
 
 Rec2_Time = (36 - 20) * 60 + (39.611 - 52.728)
 Rec3_Time = (46 - 25) * 60 + (3.665 - 43.837)
@@ -51,9 +63,12 @@ Rec3_i1 = 5999
 Rec2_L = 28386
 Rec3_L = 36635
 
-Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_L
-Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_L
-println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0))
-println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0))
+Rec2_N = Rec2_L - 1
+Rec3_N = Rec3_L - 1
+
+Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_N # 1 is added to the denominator to account for the first time step
+Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_N # 1 is added to the denominator to account for the first time step
+println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0 + 1))
+println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0 + 1))
 importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points)
 importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points)

@@ -19,3 +19,5 @@ rm -rf results/$1/*
 
 # Move the generated data to the results directory with the given name
 cp -r data/kf/* "results/$1"
+
+julia visualization/plot2D/plot2D.jl $1

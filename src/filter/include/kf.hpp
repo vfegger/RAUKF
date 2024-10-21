@@ -34,6 +34,8 @@ public:
     void UnsetModel();
     void SetType(Type type);
 
+    void SetControl(std::string name, double *data);
+    void GetControl(std::string name, double *data);
     void SetMeasure(std::string name, double *data);
     void GetMeasure(std::string name, double *data);
     void GetMeasureCovariance(std::string name, double *data);

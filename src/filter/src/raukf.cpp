@@ -44,6 +44,7 @@ void RAUKF::UnsetModel()
         pmeasure->UnsetInstances();
         pstate->UnsetInstances();
         delete this->pstate;
+        delete this->pcontrol;
         delete this->pmeasure;
         this->pmodel = NULL;
     }

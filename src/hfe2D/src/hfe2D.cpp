@@ -17,7 +17,7 @@ Pointer<double> HFE2D::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
         isValidState = true;
     }
 
@@ -32,15 +32,15 @@ Pointer<double> HFE2D::EvolveMatrixGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int offsetTa = pstate->GetOffset("Ambient Temperature");
+    int offsetTc = pstate->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.dev();
     double *puwork = pwork + L2;
 
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
         isValidState = true;
     }
 
@@ -105,7 +105,7 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
     MathCPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
         isValidState = true;
     }
 
@@ -137,7 +137,7 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
     MathGPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
         isValidState = true;
     }
 
@@ -255,13 +255,22 @@ Data *HFE2D::GenerateData()
 }
 Control *HFE2D::GenerateControl()
 {
-    std::string nameU = "Ambient Temperature";
+    std::string nameTamb = "Ambient Temperature";
+    std::string nameTc = "Contour Temperature";
     int Lx = parms.Lx;
     int Ly = parms.Ly;
-    controlLoader.Add(nameU, 1);
-    double *U = (double *)malloc(sizeof(double));
-    U[0] = 300.0;
-    controlLoader.Link(nameU, U);
+    controlLoader.Add(nameTamb, 1);
+    controlLoader.Add(nameTc, 2 * Lx + 2 * Ly);
+    double *U = (double *)malloc(sizeof(double) * (2 * Lx + 2 * Ly + 1));
+    double *Tamb = U;
+    Tamb[0] = 300.0;
+    double *Tc = U + 1;
+    for (int i = 0; i < 2 * (Lx + Ly); ++i)
+    {
+        Tc[i] = 300.0;
+    }
+    controlLoader.Link(nameTamb, Tamb);
+    controlLoader.Link(nameTc, Tc);
     Control *pc = controlLoader.Load();
     free(U);
     return pc;

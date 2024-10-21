@@ -33,6 +33,7 @@ void KF::UnsetModel()
     if (this->pmodel != NULL)
     {
         delete this->pstate;
+        delete this->pcontrol;
         delete this->pmeasure;
         this->pmodel = NULL;
     }
@@ -47,6 +48,16 @@ void KF::SetType(Type type)
     this->type = type;
 }
 
+
+void KF::SetControl(std::string name, double *data)
+{
+    this->pcontrol->SetControlData(name, data);
+}
+
+void KF::GetControl(std::string name, double *data)
+{
+    this->pcontrol->GetControlData(name, data);
+}
 void KF::SetMeasure(std::string name, double *data)
 {
     this->pmeasure->SetMeasureData(name, data);

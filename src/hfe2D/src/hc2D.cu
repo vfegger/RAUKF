@@ -151,20 +151,23 @@ void HC2D::CPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
             pUT[index] = h / (c * CT);
         }
     }
-    for (int i = 0; i < Lx; ++i)
-    {
-        double KT = K((i + 0.5) * dx, (j + 0.5) * dy);
-        double CT = C((i + 0.5) * dx, (j + 0.5) * dy);
-        index_0 = 0 * Lx + i;
-        index_1 = (Ly-1) * Lx + i;
-        pmUT[(k + 1) * L + index] = -dt * gamma * KT / (CT * dx * dx);
-    }
     for (int j = 0; j < Ly; ++j)
     {
-        double KT = K((i + 0.5) * dx, (j + 0.5) * dy);
-        double CT = C((i + 0.5) * dx, (j + 0.5) * dy);
-        index = j * Lx + i;
-        pmUT[(k + 1) * L + index] = -dt * gamma * KT / (CT * dx * dx);
+        double KT = K((0.5) * dx, (j + 0.5) * dy);
+        double CT = C((0.5) * dx, (j + 0.5) * dy);
+        int index_0 = j * Lx + 0;
+        int index_1 = j * Lx + Lx - 1;
+        pUT[(1 + j) * L + index_0] = -dt * gamma * KT / (CT * dx * dx);
+        pUT[(1 + Ly + j) * L + index_1] = -dt * gamma * KT / (CT * dx * dx);
+    }
+    for (int i = 0; i < Lx; ++i)
+    {
+        double KT = K((i + 0.5) * dx, (0.5) * dy);
+        double CT = C((i + 0.5) * dx, (0.5) * dy);
+        int index_0 = 0 * Lx + i;
+        int index_1 = (Ly - 1) * Lx + i;
+        pUT[(1 + 2 * Ly + i) * L + index_0] = -dt * gamma * KT / (CT * dx * dx);
+        pUT[(1 + 2 * Ly + Lx + i) * L + index_1] = -dt * gamma * KT / (CT * dx * dx);
     }
     // Control Input Heat Flux Contribution
     for (int j = 0; j < Ly; ++j)
@@ -193,7 +196,8 @@ void HC2D::CPU::ExplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1;
+    int Lu = 1 + 2 * (parms.Lx + parms.Ly);
+    ;
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
@@ -420,7 +424,7 @@ __global__ void ImplicitScheme_A(double *pmTT, double *pmTQ, double *pmQT, doubl
     }
 }
 
-__global__ void ImplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, double dx, double dy, double dt, double c, double amp, double h, double gammma)
+__global__ void ImplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, double dx, double dy, double dt, double c, double amp, double h, double gamma)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -522,7 +526,7 @@ __global__ void ExplicitScheme_B(double *pmTT, double *pmTQ, double *pmQT, doubl
     }
 }
 
-__global__ void ExplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, double dx, double dy, double dt, double c, double amp, double h)
+__global__ void ExplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, double dx, double dy, double dt, double c, double amp, double h, double gamma)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -531,9 +535,38 @@ __global__ void ExplicitScheme_C(double *pmUT, double *pmUQ, int Lx, int Ly, dou
     int index = j * Lx + i;
     if (i < Lx && j < Ly)
     {
+        double KT = HC2D::K((i + 0.5) * dx, (j + 0.5) * dy);
         double CT = HC2D::C((i + 0.5) * dx, (j + 0.5) * dy);
         pmUT[index] = dt * h / (c * CT);
         pmUQ[index] = 0.0;
+        if (i == 0)
+        {
+            for (int k = 0; k < Ly; k++)
+            {
+                pmUT[(k + 1) * L + index] = -dt * gamma * KT / (CT * dx * dx);
+            }
+        }
+        if (i == Lx - 1)
+        {
+            for (int k = 0; k < Ly; k++)
+            {
+                pmUT[(k + Ly + 1) * L + index] = -dt * gamma * KT / (CT * dx * dx);
+            }
+        }
+        if (j == 0)
+        {
+            for (int k = 0; k < Lx; k++)
+            {
+                pmUT[(k + 2 * Ly + 1) * L + index] = -dt * gamma * KT / (CT * dy * dy);
+            }
+        }
+        if (j == Ly - 1)
+        {
+            for (int k = 0; k < Lx; k++)
+            {
+                pmUT[(k + Lx + 2 * Ly + 1) * L + index] = -dt * gamma * KT / (CT * dy * dy);
+            }
+        }
     }
 }
 
@@ -605,6 +638,7 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ)
     double c = parms.Sz;
     double amp = parms.amp;
     double h = parms.h;
+    double gamma = parms.gamma;
 
     double *pAI = AI.dev();
     double *pBE = BE.dev();
@@ -630,9 +664,9 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ)
 
     dim3 T(16, 16);
     dim3 B((L + T.x - 1) / T.x, (L + T.y - 1) / T.y);
-    ImplicitScheme_A<<<B, T>>>(pTT, pTQ, pQT, pQQ, Lx, Ly, dx, dy, dt, c, amp, h);
+    ImplicitScheme_A<<<B, T>>>(pTT, pTQ, pQT, pQQ, Lx, Ly, dx, dy, dt, c, amp, h, gamma);
     MathGPU::Identity(pBE, L, L);
-    ImplicitScheme_C<<<B, T>>>(pUT, pUQ, Lx, Ly, dx, dy, dt, c, amp, h);
+    ImplicitScheme_C<<<B, T>>>(pUT, pUQ, Lx, Ly, dx, dy, dt, c, amp, h, gamma);
 
     // Solve JX = (A^T * A)^-1 * A^T * B
     MathGPU::Copy(JXh, pBE, L * L);

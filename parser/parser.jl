@@ -7,7 +7,7 @@ using FileIO
 using Interpolations
 
 # Function to parse CSV and write to binary
-function parse_and_convert_to_binary(input_csv::String, output_bin::String, case_points)
+function parse_and_convert_to_binary(input_csv::String, output_bin::String, output_p_bin::String, case_points, case_points_p)
     # Read the CSV files
     data = split.(readlines(input_csv), ",")
     numbers = hcat([parse.(Float64, row) for row in data]...)
@@ -21,6 +21,9 @@ function parse_and_convert_to_binary(input_csv::String, output_bin::String, case
     open(output_bin, "w") do io
         write(io, values)
     end
+    open(output_p_bin, "w") do io
+        write(io, values)
+    end
 end
 
 # Example usage
@@ -29,7 +32,8 @@ function importfiles(path_input, path_output, name_input, name_output, start, st
     for (i, j) in enumerate(start:stride:stop)
         input_csv = path_input * name_input * string(j) * ".csv"
         output_bin = path_output * name_output * string(i - 1) * ".bin"
-        parse_and_convert_to_binary(input_csv, output_bin, case_points)
+        output_p_bin = path_output * name_output * string(i - 1) * "_Tc.bin"
+        parse_and_convert_to_binary(input_csv, output_bin, output_p_bin, case_points, case_points_p)
     end
 end
 input_path = "../measurements/"
@@ -70,5 +74,5 @@ Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_N # 1 is added to the 
 Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_N # 1 is added to the denominator to account for the first time step
 println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0 + 1))
 println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0 + 1))
-importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points)
-importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points)
+importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points, case2_points_p)
+importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points, case3_points_p)

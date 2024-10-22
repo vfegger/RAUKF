@@ -9,8 +9,8 @@ Pointer<double> HFE2D::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int offsetTa = pstate->GetOffset("Ambient Temperature");
+    int offsetTc = pstate->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.host();
     double *puwork = pwork + L2;
@@ -93,8 +93,8 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int offsetTa = pstate->GetOffset("Ambient Temperature");
+    int offsetTc = pstate->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().host();
     double *pc = pcontrol->GetControlPointer().host();
@@ -124,8 +124,8 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetT2 = pstate->GetOffset2("Temperature");
-    int offsetQ2 = pstate->GetOffset2("Heat Flux");
+    int offsetTa = pstate->GetOffset("Ambient Temperature");
+    int offsetTc = pstate->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().dev();
     double *pc = pcontrol->GetControlPointer().dev();

@@ -173,7 +173,7 @@ void CaseHeatFlux(double *Qh, double t, int Lx, int Ly, int Lt, double Sx, doubl
 #endif
 }
 
-void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, double gamma, Type type)
+void Simulation(double *measures, double *Q_ref, double *Tc, int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, double gamma, Type type)
 {
     std::cout << "Generating synthetic measurements.\n";
     double *workspace;
@@ -250,7 +250,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     // Invariant Evolution
     if (type == Type::GPU)
     {
-        HC2D::GPU::EvolutionMatrix(parms, XX.dev(), UX.dev(), (Q.dev() - T.dev()));
+        HC2D::GPU::EvolutionMatrix(parms, XX.dev(), UX.dev(), (Q.dev() - T.dev()), (T_c.dev() - T_amb.dev()));
         XX.copyDev2Host(L * L);
         HC2D::GPU::EvaluationMatrix(parms, XY.dev(), (Q.dev() - T.dev()));
         XY.copyDev2Host(L * Lsxy);
@@ -258,7 +258,7 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
     }
     else
     {
-        HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), (Q.host() - T.host()));
+        HC2D::CPU::EvolutionMatrix(parms, XX.host(), UX.host(), (Q.host() - T.host()), (T_c.host() - T_amb.host()));
         HC2D::GPU::EvaluationMatrix(parms, XY.host(), (Q.host() - T.host()));
     }
 
@@ -297,6 +297,10 @@ void Simulation(double *measures, double *Q_ref, int Lx, int Ly, int Lt, double 
         std::cout << std::format("{:.8f}", measures[k * Lx * Ly + Lx * (Ly + 1) / 2]) << "\n";
     }
     MathCPU::Copy(Q_ref, Qr.host(), Lx * Ly * Lt);
+    for (int k = 0; k < 2 * (Lx + Ly) * Lt; ++k)
+    {
+        Tc[k] = 300.0;
+    }
     Qr.free();
     Tr.free();
     XY.free();
@@ -394,14 +398,14 @@ int main(int argc, char *argv[])
     double *measures = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *measuresN = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
     double *q_ref = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
-    double *T_c = (double *)malloc(sizeof(double) * Lx * Ly * Lt);
+    double *T_c = (double *)malloc(sizeof(double) * 2 * (Lx + Ly) * Lt);
     if (useMeasurements)
     {
         ReadMeasurements(measures, q_ref, T_c, Lx, Ly, Lt, case_input);
     }
     else
     {
-        Simulation(measures, q_ref, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, gamma, type);
+        Simulation(measures, q_ref, T_c, Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, gamma, type);
     }
     double *resultT = (double *)malloc(sizeof(double) * Lx * Ly);
     double *resultQ = (double *)malloc(sizeof(double) * Lx * Ly);

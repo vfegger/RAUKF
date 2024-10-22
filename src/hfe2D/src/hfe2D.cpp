@@ -9,8 +9,8 @@ Pointer<double> HFE2D::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pstate->GetOffset("Ambient Temperature");
-    int offsetTc = pstate->GetOffset("Contour Temperature");
+    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
+    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.host();
     double *puwork = pwork + L2;
@@ -32,8 +32,8 @@ Pointer<double> HFE2D::EvolveMatrixGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pstate->GetOffset("Ambient Temperature");
-    int offsetTc = pstate->GetOffset("Contour Temperature");
+    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
+    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.dev();
     double *puwork = pwork + L2;
@@ -93,8 +93,8 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pstate->GetOffset("Ambient Temperature");
-    int offsetTc = pstate->GetOffset("Contour Temperature");
+    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
+    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().host();
     double *pc = pcontrol->GetControlPointer().host();
@@ -124,8 +124,8 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pstate->GetOffset("Ambient Temperature");
-    int offsetTc = pstate->GetOffset("Contour Temperature");
+    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
+    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().dev();
     double *pc = pcontrol->GetControlPointer().dev();
@@ -192,7 +192,7 @@ Pointer<double> HFE2D::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h)
+void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, double gamma)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -206,6 +206,7 @@ void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, do
     parms.dt = St / Lt;
     parms.amp = amp;
     parms.h = h;
+    parms.gamma = gamma;
 }
 void HFE2D::SetMemory(Type type)
 {

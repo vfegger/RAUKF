@@ -48,7 +48,6 @@ void KF::SetType(Type type)
     this->type = type;
 }
 
-
 void KF::SetControl(std::string name, double *data)
 {
     this->pcontrol->SetControlData(name, data);
@@ -112,14 +111,14 @@ void KF::PrintMatrix(std::string name, Pointer<double> mat, int lengthI, int len
     }
     std::cout << name << ":\n";
     double *p = mat.host();
-    std::cout.precision(2);
+    std::cout.precision(8);
     std::cout << std::fixed;
     for (int i = 0; i < lengthI; ++i)
     {
         for (int j = 0; j < lengthJ; ++j)
         {
             std::cout << std::setw(6) << p[j * lengthI + i];
-            if (j < lengthJ)
+            if (j < lengthJ - 1)
             {
                 std::cout << ",";
             }
@@ -166,6 +165,8 @@ void KF::Iterate(Timer &timer)
     Pointer<double> ym = this->pmeasure->GetMeasureData();
     Pointer<double> R = this->pmeasure->GetMeasureNoisePointer();
 
+    Pointer<double> u = this->pcontrol->GetControlData();
+
     Pointer<double> KT;
     Pointer<double> F;
     Pointer<double> B;
@@ -180,6 +181,7 @@ void KF::Iterate(Timer &timer)
 
     int Lx = this->pstate->GetStateLength();
     int Ly = this->pmeasure->GetMeasureLength();
+    int Lu = this->pcontrol->GetControlLength();
 
     KT.alloc(Lx * Ly);
     v_0.alloc(Ly);
@@ -192,7 +194,7 @@ void KF::Iterate(Timer &timer)
     timer.Record(type);
 
     F = pmodel->Evolve(pstate, pcontrol, ExecutionType::Matrix, type);
-    //PrintMatrix("F", F, Lx, type);
+    // PrintMatrix("F", F, Lx, type);
     B = F + Lx * Lx;
     timer.Record(type);
 
@@ -200,6 +202,7 @@ void KF::Iterate(Timer &timer)
     timer.Record(type);
 
     Math::MatMulNN(0.0, x, 1.0, F, x, Lx, Lx, 1, type);
+    Math::MatMulNN(1.0, x, 1.0, B, u, Lx, Lu, 1, type);
     Math::MatMulNN(0.0, workspaceLx2, 1.0, F, Pxx, Lx, Lx, Lx, type);
     Math::MatMulNT(0.0, Pxx, 1.0, workspaceLx2, F, Lx, Lx, Lx, type);
     Math::Add(Pxx, Q, Lx * Lx, type);

@@ -161,7 +161,7 @@ function printProfiles_IP(case, t)
     Tm_min = (floor(min(minimum(zTm), minimum(zTsN), minimum(zTs))) - 4) ÷ 5 * 5
     Tm_max = (ceil(max(maximum(zTm), maximum(zTsN), maximum(zTs))) - 4) ÷ 5 * 5
 
-    Q_min = 0.0#(floor(min(minimum(zQ), minimum(zQs))) - 4) ÷ 5 * 5
+    Q_min = (floor(min(minimum(zQ), minimum(zQs))) - 4) ÷ 5 * 5
     Q_max = (ceil(max(maximum(zQ), maximum(zQs))) + 4) ÷ 5 * 5
 
     R_min = (floor(min(minimum(zTm .- zTsN))) - 4) ÷ 5 * 5

@@ -38,7 +38,7 @@ void HC2D::CPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1 + 2 * (parms.Lx + parms.Ly);
+    int Lu = 1 + 2 * (Lx + Ly);
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
@@ -63,8 +63,8 @@ void HC2D::CPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     pQQ = pAI + std::max(0, strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
     pQT = pQQ - strideTQ;
-    pTaT = pCE + std::max(0, -strideAC) * (2 * (parms.Lx + parms.Ly)) * L + std::max(0, -strideTQ);
-    pTaQ = pCE + std::max(0, -strideAC) * (2 * (parms.Lx + parms.Ly)) * L + std::max(0, strideTQ);
+    pTaT = pCE + std::max(0, -strideAC) * L + std::max(0, -strideTQ);
+    pTaQ = pCE + std::max(0, -strideAC) * L + std::max(0, strideTQ);
     pTcT = pCE + std::max(0, strideAC) * L + std::max(0, -strideTQ);
     pTcQ = pCE + std::max(0, strideAC) * L + std::max(0, strideTQ);
 
@@ -194,7 +194,7 @@ void HC2D::CPU::ExplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1 + 2 * (parms.Lx + parms.Ly);
+    int Lu = 1 + 2 * (Lx + Ly);
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
@@ -353,7 +353,7 @@ void HC2D::CPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
         isValid = true;
     }
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1;
+    int Lu = 1 + 2 * (parms.Lx * parms.Ly);
     int L = Lxy + Lxy;
     MathCPU::Copy(pmXX_o, JX.host(), L * L);
     MathCPU::Copy(pmUX_o, JU.host(), L * Lu);
@@ -418,7 +418,7 @@ __global__ void ImplicitScheme_A(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
-            pmTT[(index + 1) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
+            pmTT[(index - 1) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
         }
         if (j != 0)
         {
@@ -428,7 +428,7 @@ __global__ void ImplicitScheme_A(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
-            pmTT[(index + 1) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
+            pmTT[(index + Lx) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
         }
         if (j != Ly - 1)
         {
@@ -438,7 +438,7 @@ __global__ void ImplicitScheme_A(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
-            pmTT[(index + 1) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
+            pmTT[(index - Lx) * L + index] += -(1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
         }
         pmTT[index * L + index] = 1.0 + aux + dt * h / (c * CT);
         pmQT[index * L + index] = -dt * amp / (c * CT);
@@ -460,31 +460,19 @@ __global__ void ImplicitScheme_C(double *pmTaT, double *pmTaQ, double *pmTcT, do
         pmTaT[index] = dt * h / (c * CT);
         if (i == 0)
         {
-            for (int k = 0; k < Ly; k++)
-            {
-                pmTcT[k * L + index] = -dt * gamma * KT / (CT * dx * dx);
-            }
+            pmTcT[j * L + index] = -dt * gamma * KT / (CT * dx * dx);
         }
         if (i == Lx - 1)
         {
-            for (int k = 0; k < Ly; k++)
-            {
-                pmTcT[(k + Ly) * L + index] = -dt * gamma * KT / (CT * dx * dx);
-            }
+            pmTcT[(j + Ly) * L + index] = -dt * gamma * KT / (CT * dx * dx);
         }
         if (j == 0)
         {
-            for (int k = 0; k < Lx; k++)
-            {
-                pmTcT[(k + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
-            }
+            pmTcT[(i + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
         }
         if (j == Ly - 1)
         {
-            for (int k = 0; k < Lx; k++)
-            {
-                pmTcT[(k + Lx + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
-            }
+            pmTcT[(i + Lx + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
         }
     }
 }
@@ -519,7 +507,7 @@ __global__ void ExplicitScheme_B(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
-            pmTT[(index + 1) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
+            pmTT[(index - 1) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dx * dx);
         }
         if (j != 0)
         {
@@ -529,7 +517,7 @@ __global__ void ExplicitScheme_B(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
-            pmTT[(index + 1) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
+            pmTT[(index + Lx) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
         }
         if (j != Ly - 1)
         {
@@ -539,7 +527,7 @@ __global__ void ExplicitScheme_B(double *pmTT, double *pmTQ, double *pmQT, doubl
         else
         {
             aux += (3.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
-            pmTT[(index + 1) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
+            pmTT[(index - Lx) * L + index] += (1.0 / 2.0) * dt * gamma * KT / (CT * dy * dy);
         }
         pmTT[index * L + index] = 1.0 - aux - dt * h / (c * CT);
         pmQT[index * L + index] = dt * amp / (c * CT);
@@ -561,31 +549,19 @@ __global__ void ExplicitScheme_C(double *pmTaT, double *pmTaQ, double *pmTcT, do
         pmTaT[index] = dt * h / (c * CT);
         if (i == 0)
         {
-            for (int k = 0; k < Ly; k++)
-            {
-                pmTcT[k * L + index] = -dt * gamma * KT / (CT * dx * dx);
-            }
+            pmTcT[j * L + index] = -dt * gamma * KT / (CT * dx * dx);
         }
         if (i == Lx - 1)
         {
-            for (int k = 0; k < Ly; k++)
-            {
-                pmTcT[(k + Ly) * L + index] = -dt * gamma * KT / (CT * dx * dx);
-            }
+            pmTcT[(j + Ly) * L + index] = -dt * gamma * KT / (CT * dx * dx);
         }
         if (j == 0)
         {
-            for (int k = 0; k < Lx; k++)
-            {
-                pmTcT[(k + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
-            }
+            pmTcT[(i + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
         }
         if (j == Ly - 1)
         {
-            for (int k = 0; k < Lx; k++)
-            {
-                pmTcT[(k + Lx + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
-            }
+            pmTcT[(i + Lx + 2 * Ly) * L + index] = -dt * gamma * KT / (CT * dy * dy);
         }
     }
 }
@@ -596,7 +572,7 @@ void HC2D::GPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1;
+    int Lu = 1 + 2 * (Lx + Ly);
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
@@ -622,13 +598,13 @@ void HC2D::GPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     pQQ = pAI + std::max(0, strideTQ) * (L + 1);
     pTQ = pTT + strideTQ;
     pQT = pQQ - strideTQ;
-    pTaT = pCE + std::max(0, -strideAC) * (2 * (parms.Lx + parms.Ly)) * L + std::max(0, -strideTQ);
-    pTaQ = pCE + std::max(0, -strideAC) * (2 * (parms.Lx + parms.Ly)) * L + std::max(0, strideTQ);
+    pTaT = pCE + std::max(0, -strideAC) * L + std::max(0, -strideTQ);
+    pTaQ = pCE + std::max(0, -strideAC) * L + std::max(0, strideTQ);
     pTcT = pCE + std::max(0, strideAC) * L + std::max(0, -strideTQ);
     pTcQ = pCE + std::max(0, strideAC) * L + std::max(0, strideTQ);
 
-    double *JXh = JX.dev();
-    double *JUh = JU.dev();
+    double *JXd = JX.dev();
+    double *JUd = JU.dev();
 
     dim3 T(16, 16);
     dim3 B((L + T.x - 1) / T.x, (L + T.y - 1) / T.y);
@@ -639,11 +615,11 @@ void HC2D::GPU::ImplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     MathGPU::MatMulTN(0.0, pATA, 1.0, pAI, pAI, L, L, L);
     MathGPU::MatMulTN(0.0, paux, 1.0, pAI, pBE, L, L, L);
     // Solve JX = (A^T * A)^-1 * A^T * B
-    MathGPU::CholeskySolver(JXh, pATA, paux, L, L, L);
+    MathGPU::CholeskySolver(JXd, pATA, paux, L, L, L);
 
     MathGPU::MatMulTN(0.0, paux, 1.0, pAI, pCE, L, L, Lu);
     // Solve JU = (A^T * A)^-1 * A^T * C
-    MathGPU::CholeskySolver(JUh, pATA, paux, L, L, Lu);
+    MathGPU::CholeskySolver(JUd, pATA, paux, L, L, Lu);
     cudaFree(paux);
 }
 
@@ -653,7 +629,7 @@ void HC2D::GPU::ExplicitScheme(HCParms &parms, int strideTQ, int strideAC)
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1;
+    int Lu = 1 + 2 * (Lx + Ly);
     int L = Lxy + Lxy;
     double dx = parms.dx;
     double dy = parms.dy;
@@ -714,7 +690,7 @@ void HC2D::GPU::EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, 
         isValid = true;
     }
     int Lxy = parms.Lx * parms.Ly;
-    int Lu = 1;
+    int Lu = 1 + 2 * (parms.Lx + parms.Ly);
     int L = Lxy + Lxy;
     MathGPU::Copy(pmXX_o, JX.dev(), L * L);
     MathGPU::Copy(pmUX_o, JU.dev(), L * Lu);

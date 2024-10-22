@@ -46,15 +46,15 @@ Ly = 32;
 case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 case2_points_p = collect(
-    vcat([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (-0.5) ./ Ly for j in 0:Ly-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (Lx + 0.5) ./ Ly for j in 0:Ly-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (-0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (Ly + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+    vcat([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (-1.0) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (Lx + 1.0) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (-1.0) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (Ly + 1.0) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
 case3_points_p = collect(
-    vcat([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (-0.5) ./ Ly for j in 0:Ly-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (Lx + 0.5) ./ Ly for j in 0:Ly-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (-0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (Ly + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+    vcat([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (-1.0) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (Lx + 1.0) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (-1.0) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (Ly + 1.0) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
 
 
 Rec2_Time = (36 - 20) * 60 + (39.611 - 52.728)

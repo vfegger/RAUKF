@@ -375,8 +375,8 @@ int main(int argc, char *argv[])
         MathGPU::CreateHandles();
     }
     double amp = 5e3;
-    double h = 0.0; // 11.0;
-    double gamma = 0.0;
+    double h = 0.0;     // 11.0;
+    double gamma = 0.0; // 5.0e-3;
 
     std::ofstream outParms;
     outParms.open("data/kf/Parms.bin", std::ios::out | std::ios::binary);
@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
     HFE2D hfeKF;
     KF kf;
 
-    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h);
+    hfeKF.SetParms(Lx, Ly, Lt, Sx, Sy, Sz, St, amp, h, gamma);
     hfeKF.SetMemory(type);
 
     kf.SetModel(&hfeKF);

@@ -81,6 +81,13 @@ void Control::GetControlData(std::string name, double *data)
     }
 }
 
+Pointer<double> Control::GetControlData()
+{
+    pointer.copyHost2Dev(length);
+    cudaDeviceSynchronize();
+    return pointer;
+}
+
 int Control::GetControlLength()
 {
     return length;

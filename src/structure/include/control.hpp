@@ -34,6 +34,7 @@ public:
     Pointer<double> GetControlPointer();
     void SetControlData(std::string name, double *data);
     void GetControlData(std::string name, double *data);
+    Pointer<double> GetControlData();
     int GetControlLength();
     int GetOffset(std::string name);
 };

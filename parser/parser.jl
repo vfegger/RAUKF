@@ -5,6 +5,19 @@ cd(@__DIR__);
 
 using FileIO
 using Interpolations
+using Plots
+
+# Plot
+function plot_domain(input_path::String, input_name::String, i::Integer, points)
+    input_csv = input_path * input_name * string(i) * ".csv"
+    data = split.(readlines(input_csv), ",")
+    numbers = hcat([parse.(Float64, row) for row in data]...)'
+    dims = reverse(range.(1, size(numbers)))
+    plt = heatmap(dims..., numbers, aspect_ratio=:equal, yflip=true)
+    scatter!(plt, points)
+    savefig(plt, joinpath("./Images", "Domain" * string(i) * ".pdf"))
+    return
+end
 
 # Function to parse CSV and write to binary
 function parse_and_convert_to_binary(input_csv::String, output_bin::String, output_p_bin::String, case_points, case_points_p)
@@ -43,18 +56,19 @@ case2_corners = tuple((166, 126), (385, 126), (385, 345), (166, 345))
 case3_corners = tuple((173, 119), (401, 126), (396, 354), (166, 347))
 Lx = 32;
 Ly = 32;
+σ = 7;
 case2_points = collect([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 case3_points = collect([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1, j in 0:Ly-1])
 case2_points_p = collect(
-    vcat([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (-1.0) ./ Ly for j in 0:Ly-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (Lx + 1.0) ./ Ly for j in 0:Ly-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (-1.0) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
-        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (Ly + 1.0) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+    vcat([case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (-σ) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (j + 0.5) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (Lx + σ) ./ Ly for j in 0:Ly-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (-σ) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case2_corners[1] .+ (case2_corners[2] .- case2_corners[1]) .* (Ly + σ) ./ Lx .+ (case2_corners[4] .- case2_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
 case3_points_p = collect(
-    vcat([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (-1.0) ./ Ly for j in 0:Ly-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (Lx + 1.0) ./ Ly for j in 0:Ly-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (-1.0) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
-        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (Ly + 1.0) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
+    vcat([case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (-σ) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (j + 0.5) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (Lx + σ) ./ Ly for j in 0:Ly-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (-σ) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1],
+        [case3_corners[1] .+ (case3_corners[2] .- case3_corners[1]) .* (Ly + σ) ./ Lx .+ (case3_corners[4] .- case3_corners[1]) .* (i + 0.5) ./ Ly for i in 0:Lx-1]))
 
 
 Rec2_Time = (36 - 20) * 60 + (39.611 - 52.728)
@@ -72,7 +86,10 @@ Rec3_N = Rec3_L - 1
 
 Rec2_newTime = Rec2_Time * (Rec2_i1 - Rec2_i0 + 1) / Rec2_N # 1 is added to the denominator to account for the first time step
 Rec3_newTime = Rec3_Time * (Rec3_i1 - Rec3_i0 + 1) / Rec3_N # 1 is added to the denominator to account for the first time step
-println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0 + 1))
-println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0 + 1))
-importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points, case2_points_p)
-importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points, case3_points_p)
+println("Case 2: Lt = ", Rec2_i1 - Rec2_i0 + 1, "; St = ", Rec2_newTime, "; Δt = ", Rec2_newTime / (Rec2_i1 - Rec2_i0 + 1), "; Δc = ", σ, " Δx")
+println("Case 3: Lt = ", Rec3_i1 - Rec3_i0 + 1, "; St = ", Rec3_newTime, "; Δt = ", Rec3_newTime / (Rec3_i1 - Rec3_i0 + 1), "; Δc = ", σ, " Δx")
+#importfiles(input_path * "case2/", output_path * "case2/", "Rec-0002_", "Values", 1999, 4499, 1, case2_points, case2_points_p)
+#importfiles(input_path * "case3/", output_path * "case3/", "Rec-0003_", "Values", 799, 5999, 1, case3_points, case3_points_p)
+
+plot_domain(input_path * "case2/", "Rec-0002_", 2500, case2_points_p)
+plot_domain(input_path * "case2/", "Rec-0002_", 2000, case2_points_p)

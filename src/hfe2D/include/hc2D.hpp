@@ -7,6 +7,7 @@
 
 #define IMPLICIT_SCHEME 1
 #define ILSA 0
+#define ORDER 0
 
 namespace HC2D
 {
@@ -15,14 +16,14 @@ namespace HC2D
         int Lx, Ly, Lt;
         double Sx, Sy, Sz, St;
         double dx, dy, dt;
-        double amp, h, gamma;
+        double amp, h;
 
         bool operator==(const HCParms &rhs)
         {
             return (this->Lx == rhs.Lx) && (this->Ly == rhs.Ly) && (this->Lt == rhs.Lt) &&
                    (this->Sx == rhs.Sx) && (this->Sy == rhs.Sy) && (this->Sz == rhs.Sz) && (this->St == rhs.St) &&
                    (this->dx == rhs.dx) && (this->dy == rhs.dy) && (this->dt == rhs.dt) &&
-                   (this->amp == rhs.amp) && (this->h == rhs.h) && (this->gamma == rhs.gamma);
+                   (this->amp == rhs.amp) && (this->h == rhs.h);
         }
     };
 
@@ -41,17 +42,17 @@ namespace HC2D
 
     namespace CPU
     {
-        void ImplicitScheme(HCParms &parms, int strideTQ, int strideAC);
-        void ExplicitScheme(HCParms &parms, int strideTQ, int strideAC);
-        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ, int strideAC);
+        void ImplicitScheme(HCParms &parms, int strideTQ);
+        void ExplicitScheme(HCParms &parms, int strideTQ);
+        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
         void EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ);
     };
 
     namespace GPU
     {
-        void ImplicitScheme(HCParms &parms, int strideTQ, int strideAC);
-        void ExplicitScheme(HCParms &parms, int strideTQ, int strideAC);
-        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ, int strideAC);
+        void ImplicitScheme(HCParms &parms, int strideTQ);
+        void ExplicitScheme(HCParms &parms, int strideTQ);
+        void EvolutionMatrix(HCParms &parms, double *pmXX_o, double *pmUX_o, int strideTQ);
         void EvaluationMatrix(HCParms &parms, double *pmH_o, int strideTQ);
     };
 }

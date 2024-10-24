@@ -9,15 +9,13 @@ Pointer<double> HFE2D::EvolveMatrixCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
-    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.host();
     double *puwork = pwork + L2;
 
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -32,15 +30,13 @@ Pointer<double> HFE2D::EvolveMatrixGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
-    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *pwork = workspaceState.dev();
     double *puwork = pwork + L2;
 
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -93,8 +89,6 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
-    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().host();
     double *pc = pcontrol->GetControlPointer().host();
@@ -105,7 +99,7 @@ Pointer<double> HFE2D::EvolveStateCPU(Data *pstate, Control *pcontrol)
     MathCPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
+        HC2D::CPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -124,8 +118,6 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
 
     int offsetT = pstate->GetOffset("Temperature");
     int offsetQ = pstate->GetOffset("Heat Flux");
-    int offsetTa = pcontrol->GetOffset("Ambient Temperature");
-    int offsetTc = pcontrol->GetOffset("Contour Temperature");
 
     double *ps = pstate->GetStatePointer().dev();
     double *pc = pcontrol->GetControlPointer().dev();
@@ -137,7 +129,7 @@ Pointer<double> HFE2D::EvolveStateGPU(Data *pstate, Control *pcontrol)
     MathGPU::Copy(paux, ps, L);
     if (!isValidState)
     {
-        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT, offsetTc - offsetTa);
+        HC2D::GPU::EvolutionMatrix(parms, pwork, puwork, offsetQ - offsetT);
         isValidState = true;
     }
 
@@ -192,7 +184,7 @@ Pointer<double> HFE2D::EvaluateStateGPU(Measure *pmeasure, Data *pstate)
     return pmeasure->GetMeasurePointer();
 }
 
-void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h, double gamma)
+void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, double St, double amp, double h)
 {
     parms.Lx = Lx;
     parms.Ly = Ly;
@@ -206,7 +198,6 @@ void HFE2D::SetParms(int Lx, int Ly, int Lt, double Sx, double Sy, double Sz, do
     parms.dt = St / Lt;
     parms.amp = amp;
     parms.h = h;
-    parms.gamma = gamma;
 }
 void HFE2D::SetMemory(Type type)
 {
@@ -257,21 +248,13 @@ Data *HFE2D::GenerateData()
 Control *HFE2D::GenerateControl()
 {
     std::string nameTamb = "Ambient Temperature";
-    std::string nameTc = "Contour Temperature";
     int Lx = parms.Lx;
     int Ly = parms.Ly;
     controlLoader.Add(nameTamb, 1);
-    controlLoader.Add(nameTc, 2 * Lx + 2 * Ly);
-    double *U = (double *)malloc(sizeof(double) * (2 * Lx + 2 * Ly + 1));
+    double *U = (double *)malloc(sizeof(double));
     double *Tamb = U;
     Tamb[0] = 300.0;
-    double *Tc = U + 1;
-    for (int i = 0; i < 2 * (Lx + Ly); ++i)
-    {
-        Tc[i] = 300.0;
-    }
     controlLoader.Link(nameTamb, Tamb);
-    controlLoader.Link(nameTc, Tc);
     Control *pc = controlLoader.Load();
     free(U);
     return pc;

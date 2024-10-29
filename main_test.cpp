@@ -9,7 +9,7 @@
 #include <string>
 #include <format>
 
-#define NOISE_USAGE 1
+#define NOISE_USAGE 0
 
 #define LX_DEFAULT (32)
 #define LY_DEFAULT (32)
@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
         MathGPU::CreateHandles();
     }
     double amp = 5e3;
-    double h = 0.0; // 11.0;
+    double h = 11.0; // 11.0;
 
     std::ofstream outParms;
     outParms.open("data/kf/Parms.bin", std::ios::out | std::ios::binary);

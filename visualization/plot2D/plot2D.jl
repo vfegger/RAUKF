@@ -1,6 +1,7 @@
 using Pkg;
 Pkg.activate(@__DIR__);
 Pkg.instantiate();
+Pkg.update();
 cd(@__DIR__);
 
 using Plots
@@ -28,6 +29,10 @@ St = Ss[3];
 
 plot_font = "Computer Modern"
 default(fontfamily=plot_font)
+#default(xtickfontsize=12,ytickfontsize=12)
+#default(colorbar_tickfontsize=12)
+Plots.scalefontsizes(1+0.27)
+
 
 const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :TsN, :Ts, :Qs]
 const typeSizes = Dict(
@@ -208,13 +213,13 @@ function printPartialProfile_IP(case, t, x, y, isExperimental)
     R_vals_Y = [zTm_Y .- zTsN_Y]
 
     labels_sim = Dict(
-        :T => ["Simulated" "Noisy" "Estimated" "Confidence Interval 95%" ""],
-        :Q => ["Reference" "Estimated" "Confidence Interval 95%" ""],
+        :T => ["Simulated" "Noisy" "Estimated" "C.I. 95%" ""],
+        :Q => ["Reference" "Estimated" "C.I. 95%" ""],
         :R => "Residual",
     )
     labels_exp = Dict(
-        :T => ["Measured" "Estimated" "Confidence Interval 95%" ""],
-        :Q => ["Estimated" "Confidence Interval 95%" ""],
+        :T => ["Measured" "Estimated" "C.I. 95%" ""],
+        :Q => ["Estimated" "C.I. 95%" ""],
         :R => "Residual",
     )
     labels = isExperimental ? labels_exp : labels_sim
@@ -312,13 +317,13 @@ function printEvolutions(case, x, y, isExperimental)
     R_vals = [zTm .- zTsN]
 
     labels_sim = Dict(
-        :T => ["Simulated" "Noisy" "Estimated" "Confidence Interval 95%" ""],
-        :Q => ["Reference" "Estimated" "Confidence Interval 95%" ""],
+        :T => ["Simulated" "Noisy" "Estimated" "C.I. 95%" ""],
+        :Q => ["Reference" "Estimated" "C.I. 95%" ""],
         :R => "Residual",
     )
     labels_exp = Dict(
-        :T => ["Measured" "Estimated" "Confidence Interval 95%" ""],
-        :Q => ["Estimated" "Confidence Interval 95%" ""],
+        :T => ["Measured" "Estimated" "C.I. 95%" ""],
+        :Q => ["Estimated" "C.I. 95%" ""],
         :R => "Residual",
     )
     labels = isExperimental ? labels_exp : labels_sim

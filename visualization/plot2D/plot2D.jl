@@ -80,6 +80,8 @@ end
 function printProfiles_IP(case, t)
     @assert t >= 1
     @assert t <= Lt
+    dx = Sx / Lx
+    dy = Sy / Ly
     dx2 = Sx / Lx / 2
     dy2 = Sy / Ly / 2
     X = range(0 + dx2, Sx - dx2, Lx)
@@ -170,7 +172,7 @@ function printProfiles_IP(case, t)
     plt_rT_Profile = heatmap(X, Y, zTm .- zTsN, xlims=xlims, ylims=ylims, clims=(R_min, R_max), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Residual", xlabel=L"X $[\mathrm{m}]$", ylabel=L"Y $[\mathrm{m}]$", colorbar_title=L"Temperature $[\mathrm{K}]$", dpi=1000)
     savefig(plt_rT_Profile, joinpath(imagePath, case, "ResidualTemperatureProfile_" * string(t) * ".pdf"))
 
-    return reshape(points,(Lx,Ly))[pos_T_index], reshape(points,(Lx,Ly))[pos_Q_index]
+    return reshape(points,(Lx,Ly))[pos_T_index], reshape(points,(Lx,Ly))[pos_Q_index], sum(zQ) * dx * dy
 end
 
 function printPartialProfile_IP(case, t, x, y, isExperimental)
@@ -397,12 +399,13 @@ end
 getData(dataPath)
 
 if isExperimental
-    p10_T, p10_Q = printProfiles_IP(ARGS[1], 10)
-    p30_T, p30_Q = printProfiles_IP(ARGS[1], 30)
-    p50_T, p50_Q = printProfiles_IP(ARGS[1], 50)
-    p70_T, p70_Q = printProfiles_IP(ARGS[1], 70)
+    p10_T, p10_Q, Q10_med = printProfiles_IP(ARGS[1], 10)
+    p30_T, p30_Q, Q30_med = printProfiles_IP(ARGS[1], 30)
+    p50_T, p50_Q, Q50_med = printProfiles_IP(ARGS[1], 50)
+    p70_T, p70_Q, Q70_med = printProfiles_IP(ARGS[1], 70)
     println("Temperatures Position: ", p10_T, " ", p30_T, " ", p50_T, " ", p70_T)
     println("Heat Flux Position: ", p10_Q, " ", p30_Q, " ", p50_Q, " ", p70_Q)
+    println("Heat Flux Integral: ", Q10_med, " ", Q30_med, " ", Q50_med, " ", Q70_med)
     printEvolutions(ARGS[1], p10_T[1], p10_T[2], isExperimental)
     printEvolutions(ARGS[1], p10_Q[1], p10_Q[2], isExperimental)
     printEvolutions(ARGS[1], 0.004, 0.025, isExperimental)

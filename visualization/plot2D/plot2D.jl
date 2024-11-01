@@ -31,7 +31,7 @@ plot_font = "Computer Modern"
 default(fontfamily=plot_font)
 #default(xtickfontsize=12,ytickfontsize=12)
 #default(colorbar_tickfontsize=12)
-Plots.scalefontsizes(1+0.27)
+Plots.scalefontsizes(1 + 0.27)
 
 
 const typeValues = [:t, :T, :cT, :Q, :cQ, :Tm, :cTm, :TsN, :Ts, :Qs]
@@ -86,10 +86,6 @@ function printProfiles_IP(case, t)
     dy2 = Sy / Ly / 2
     X = range(0 + dx2, Sx - dx2, Lx)
     Y = range(0 + dx2, Sy - dy2, Ly)
-    if isExperimental
-        X = range(0 - dx2, Sx + dx2, Lx)
-        Y = range(0 - dx2, Sy + dy2, Ly)
-    end
     t0 = first(dataValues[:t])
     t1 = last(dataValues[:t])
     T = range(t0, t1, Lt)
@@ -104,10 +100,6 @@ function printProfiles_IP(case, t)
     itp_Ts = LinearInterpolation(Ω, dataValues[:Ts])
     itp_Qs = LinearInterpolation(Ω, dataValues[:Qs])
 
-    if isExperimental
-        X = range(0 + dx2, Sx - dx2, Lx)
-        Y = range(0 + dx2, Sy - dy2, Ly)
-    end
     points = [(x, y, t) for x in X for y in Y]
 
     zT = reshape([itp_T(p...) for p in points], (Lx, Ly))
@@ -172,7 +164,7 @@ function printProfiles_IP(case, t)
     plt_rT_Profile = heatmap(X, Y, zTm .- zTsN, xlims=xlims, ylims=ylims, clims=(R_min, R_max), yflip=false, c=colgrad, aspect_ratio=:equal, title="Temperature Residual", xlabel=L"X $[\mathrm{m}]$", ylabel=L"Y $[\mathrm{m}]$", colorbar_title=L"Temperature $[\mathrm{K}]$", dpi=1000)
     savefig(plt_rT_Profile, joinpath(imagePath, case, "ResidualTemperatureProfile_" * string(t) * ".pdf"))
 
-    return reshape(points,(Lx,Ly))[pos_T_index], reshape(points,(Lx,Ly))[pos_Q_index], sum(zQ) * dx * dy
+    return reshape(points, (Lx, Ly))[pos_T_index], reshape(points, (Lx, Ly))[pos_Q_index], sum(zQ) * dx * dy
 end
 
 function printPartialProfile_IP(case, t, x, y, isExperimental)
@@ -307,11 +299,11 @@ function printEvolutions(case, x, y, isExperimental)
     T = range(t0, t1, Lt)
     Ω = (X, Y, T)
     itp_T = LinearInterpolation(Ω, dataValues[:T])
-    itp_cT = LinearInterpolation(Ω, dataValues[:cT])
+    itp_cT = LinearInterpolation(Ω, sqrt.(dataValues[:cT]))
     itp_Q = LinearInterpolation(Ω, dataValues[:Q])
-    itp_cQ = LinearInterpolation(Ω, dataValues[:cQ])
+    itp_cQ = LinearInterpolation(Ω, sqrt.(dataValues[:cQ]))
     itp_Tm = LinearInterpolation(Ω, dataValues[:Tm])
-    itp_cTm = LinearInterpolation(Ω, dataValues[:cTm])
+    itp_cTm = LinearInterpolation(Ω, sqrt.(dataValues[:cTm]))
     itp_TsN = LinearInterpolation(Ω, dataValues[:TsN])
     itp_Ts = LinearInterpolation(Ω, dataValues[:Ts])
     itp_Qs = LinearInterpolation(Ω, dataValues[:Qs])
@@ -319,11 +311,11 @@ function printEvolutions(case, x, y, isExperimental)
     points = [(x, y, t) for t in T]
 
     zT = [itp_T(p...) for p in points]
-    zcT = sqrt.([itp_cT(p...) for p in points])
+    zcT = [itp_cT(p...) for p in points]
     zQ = [itp_Q(p...) for p in points]
-    zcQ = sqrt.([itp_cQ(p...) for p in points])
+    zcQ = [itp_cQ(p...) for p in points]
     zTm = [itp_Tm(p...) for p in points]
-    zcTm = sqrt.([itp_cTm(p...) for p in points])
+    zcTm = [itp_cTm(p...) for p in points]
     zTsN = [itp_TsN(p...) for p in points]
     zTs = [itp_Ts(p...) for p in points]
     zQs = [itp_Qs(p...) for p in points]
@@ -395,6 +387,24 @@ function printEvolutions(case, x, y, isExperimental)
     return
 end
 
+function printIntegralEvolution(case, offset, isExperimental)
+    dx = Sx / Lx
+    dy = Sy / Ly
+    t0 = first(dataValues[:t])
+    t1 = last(dataValues[:t])
+    T = range(t0, t1, Lt)
+    A = (Sx - 2 * offset * dx) * (Sy - 2 * offset * dy)
+    B = (Lx - 2 * offset) * (Ly - 2 * offset)
+    Q_med = [sum(dataValues[:Q][begin+offset:end-offset, begin+offset:end-offset, it]) for (it, _) in enumerate(T)]
+    cQ_med = [sqrt(sum(dataValues[:cQ][begin+offset:end-offset, begin+offset:end-offset, it])) for (it, _) in enumerate(T)]
+    Int_Q = Q_med * A / B
+    Int_Q_min = (Q_med - 1.96 .* cQ_med) * A / B
+    Int_Q_max = (Q_med + 1.96 .* cQ_med) * A / B
+
+    plt_IntegralEvolution = plot(T, [Int_Q Int_Q_min Int_Q_max], title="Source Power", xlabel=L"Time $[\mathrm{s}]$", ylabel=L"Power $[\mathrm{W}]$", label=["Estimated" "C.I. 95%" ""], ls=[:solid :dashdot :dashdot], seriescolor=[:black :gray :gray] , dpi=1000)
+    savefig(plt_IntegralEvolution, joinpath(imagePath, case, "IntegralHeatFluxEvolution_o" * string(offset) * ".pdf"))
+end
+
 
 getData(dataPath)
 
@@ -409,6 +419,8 @@ if isExperimental
     printEvolutions(ARGS[1], p10_T[1], p10_T[2], isExperimental)
     printEvolutions(ARGS[1], p10_Q[1], p10_Q[2], isExperimental)
     printEvolutions(ARGS[1], 0.004, 0.025, isExperimental)
+    printIntegralEvolution(ARGS[1], 1, isExperimental)
+    printIntegralEvolution(ARGS[1], 2, isExperimental)
 else
     printProfiles_IP(ARGS[1], 59)
     printPartialProfile_IP(ARGS[1], 59, Sx / 2, Sy / 2, isExperimental)
